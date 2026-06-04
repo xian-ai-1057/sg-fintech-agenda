@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>議程 | Singapore FinTech Festival 2025</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#10142e; --paper:#f5f6f3; --card:#fff; --navy:#0b0e2a;
+  --accent:#00d3a7; --accent-dark:#00926f; --magenta:#e83e8c; --amber:#e0a23a;
+  --line:#dcdfd8; --muted:#6b7280; --slot:14px; /* 每15分鐘高度 */
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans TC",sans-serif;background:var(--paper);color:var(--ink);line-height:1.55}
+header{background:var(--navy);color:#fff;border-bottom:3px solid var(--accent);position:sticky;top:0;z-index:60}
+.hd{max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:24px;padding:12px 20px;flex-wrap:wrap}
+.logo{font-family:"Archivo";font-weight:900;font-size:1.2rem;color:#fff;text-decoration:none}
+.logo span{color:var(--accent)}
+.hd nav{display:flex;gap:16px}
+.hd nav a{color:#cfd3e8;text-decoration:none;font-size:.88rem}
+.hd nav a.active,.hd nav a:hover{color:var(--accent)}
+.reg{margin-left:auto;background:var(--accent);color:var(--navy);font-weight:700;font-size:.82rem;padding:7px 15px;border-radius:999px;text-decoration:none}
+.wrap{max-width:1280px;margin:0 auto;padding:30px 20px 70px}
+h1{font-family:"Archivo","Noto Sans TC";font-size:clamp(2rem,4.5vw,2.8rem);font-weight:900}
+h1::after{content:"";display:block;width:64px;height:6px;background:var(--accent);margin-top:8px;border-radius:3px}
+p.note{color:var(--muted);font-size:.92rem;margin-top:12px;max-width:880px}
+/* 日期頁籤 */
+.days{display:flex;gap:6px;margin-top:24px;flex-wrap:wrap}
+.days button{font-family:"Archivo","Noto Sans TC";font-weight:700;font-size:.92rem;padding:9px 16px;cursor:pointer;border:2px solid var(--ink);border-bottom:none;background:transparent;color:var(--ink);border-radius:10px 10px 0 0}
+.days button.active{background:var(--ink);color:var(--accent)}
+.days button small{display:block;font-weight:500;font-size:.68rem;opacity:.75}
+.bar{border-top:2px solid var(--ink);padding:10px 0;display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:.78rem}
+/* 主題圖例 */
+.lg{display:flex;gap:6px;align-items:center}
+.dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+/* 日曆格 */
+.cal-scroll{overflow-x:auto;border:2px solid var(--ink);border-radius:14px;background:var(--card);box-shadow:0 10px 28px rgba(11,14,42,.07)}
+.cal{display:grid;position:relative}
+.corner{position:sticky;left:0;z-index:30;background:var(--navy);border-radius:12px 0 0 0}
+.rh{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;padding:10px 8px;text-align:center;border-left:1px solid #2a2f55}
+.rh b{font-family:"Archivo";font-size:1rem;color:var(--accent);display:block}
+.rh small{font-size:.66rem;color:#aeb3d4;font-weight:400;line-height:1.3;display:block;margin-top:2px}
+.tlabel{position:sticky;left:0;z-index:10;background:var(--card);border-top:1px solid var(--line);border-right:2px solid var(--ink);font-family:"Archivo";font-weight:800;font-size:.78rem;color:var(--muted);padding:2px 8px 0 0;text-align:right}
+.cell{border-left:1px solid #eef0ea;border-top:1px solid var(--line)}
+.cell.half{border-top:1px dashed #ebede6}
+/* 場次區塊 */
+.ev{position:relative;margin:1px 3px;border-radius:8px;padding:6px 8px;font-size:.74rem;line-height:1.35;cursor:pointer;overflow:hidden;border:1.5px solid;transition:.15s;z-index:5;display:flex;flex-direction:column}
+.ev:hover{transform:scale(1.02);z-index:15;box-shadow:0 6px 16px rgba(11,14,42,.18)}
+.ev .t{font-weight:700;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+.ev .tm{font-family:"Archivo";font-weight:800;font-size:.66rem;opacity:.85;margin-bottom:2px}
+.ev .lock{position:absolute;top:4px;right:6px;font-size:.62rem;opacity:.85}
+/* 主題色 */
+.c-DA{background:#eef0fc;border-color:#5b6fd6;color:#2c3a8f}
+.c-NT{background:#e6f7f3;border-color:#0aa688;color:#066353}
+.c-SF{background:#fdecec;border-color:#e05656;color:#9c2424}
+.c-BG{background:#fdf3e3;border-color:#e0a23a;color:#8a5d0d}
+.c-AQ{background:#f4ecfb;border-color:#9b59d6;color:#5e2b91}
+.c-TT{background:#fdeef5;border-color:#e83e8c;color:#a01b5a}
+.c-SU{background:#eaf6e7;border-color:#56a843;color:#2f6b22}
+.c-EE{background:#fff0e8;border-color:#e8742a;color:#9c4308}
+.c-OT{background:#f1f2f0;border-color:#9aa0a6;color:#4b5057}
+/* 非格狀日提示 */
+.notice{border:2px dashed var(--line);border-radius:14px;background:var(--card);padding:50px 26px;text-align:center;color:var(--muted)}
+.notice b{color:var(--ink)}
+.notice a{color:var(--accent-dark);font-weight:700}
+/* 彈窗 */
+.ov{position:fixed;inset:0;background:rgba(11,14,42,.55);backdrop-filter:blur(3px);display:none;align-items:flex-start;justify-content:center;z-index:100;padding:40px 16px;overflow-y:auto}
+.ov.show{display:flex}
+.md{background:#fff;border-radius:18px;max-width:680px;width:100%;padding:30px 28px;position:relative;border-top:8px solid var(--accent);animation:pop .2s ease}
+@keyframes pop{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+.md .x{position:absolute;top:12px;right:16px;border:none;background:none;font-size:1.5rem;cursor:pointer;color:var(--muted)}
+.md h2{font-size:1.25rem;font-weight:900;line-height:1.5;padding-right:28px}
+.md .meta{margin-top:12px;font-family:"Archivo","Noto Sans TC";font-weight:700;font-size:.93rem}
+.md .meta b{color:var(--accent-dark)}
+.md .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.tag{font-size:.72rem;font-weight:700;border-radius:999px;padding:3px 10px;border:1px solid}
+.tag.open{background:#e6f7f3;color:var(--accent-dark);border-color:var(--accent-dark)}
+.tag.invite{background:#fdeef5;color:var(--magenta);border-color:var(--magenta)}
+.tag.premium{background:#fdf3e3;color:#8a5d0d;border-color:var(--amber)}
+.md .sp{margin-top:16px;font-size:.88rem;color:#374151}
+.md .sp b{display:block;color:var(--ink);margin-bottom:6px;font-size:.8rem;letter-spacing:1px}
+.md a.ext{display:inline-block;margin-top:20px;border:2px solid var(--ink);border-radius:999px;padding:7px 18px;font-size:.84rem;font-weight:700;color:var(--ink);text-decoration:none}
+.md a.ext:hover{background:var(--ink);color:#fff}
+footer{background:var(--navy);color:#9aa0c0;text-align:center;padding:24px 20px;font-size:.78rem}
+footer b{color:var(--accent)}
+</style>
+</head>
+<body>
+<header><div class="hd">
+  <a class="logo" href="#">SFF<span>2025</span></a>
+  <nav><a class="active" href="#">議程</a><a href="https://www.fintechfestival.sg/speakers" target="_blank">講者</a><a href="https://www.fintechfestival.sg/exhibitors" target="_blank">展覽</a><a href="https://www.fintechfestival.sg/sponsors" target="_blank">贊助</a></nav>
+  <a class="reg" href="https://www.fintechfestival.sg/registration" target="_blank">參與活動</a>
+</div></header>
+
+<div class="wrap">
+  <h1>議程</h1>
+  <p class="note">時間軸在左側、各會議室／舞台為欄位，色塊長度對應場次時長，點擊色塊可看完整資訊。11/10（一）與 11/11（二）為 Insights Forum 日，於 Sands Expo &amp; Convention Centre 各會議室舉行；11/12 ~ 11/14 移師 Singapore Expo，於 Festival、Founders、Catalyst、Impact、FutureMatters、Frontier 六大主舞台與各 Lounge 同步進行（全部五日場次已完整收錄）。</p>
+
+  <div class="days" id="days"></div>
+  <div class="bar" id="legend"></div>
+  <div id="view"></div>
+</div>
+
+<div class="ov" id="ov"><div class="md" id="md"></div></div>
+<footer>以 <b>g0v Summit</b> 議程表風格重新呈現 Singapore FinTech Festival 2025 議程 ‧ 資料來源：fintechfestival.sg</footer>
+
+<script>
+/* 會議室（Insights Forum 日 d1/d2，Sands Expo & Convention Centre）*/
+const ROOMS = [
+  ["DT","Design Thinking Room"],
+  ["W1","Workshop Room 1 ‧ L4"],
+  ["W2","Workshop Room 2 ‧ L4"],
+  ["W3","Workshop Room 3 ‧ L4"],
+  ["LP","Launchpad Room"],
+  ["RT1","Roundtable Room 1 ‧ L4"],
+  ["RT2","Roundtable Room 2 ‧ L4"],
+  ["RT3","Roundtable Room 3 ‧ L4"],
+  ["RT4","Roundtable Room 4 ‧ L4"],
+  ["RT5","Roundtable Room 5 ‧ L4"],
+  ["SE","Bayview Foyer / 其他"]
+];
+const ROOM_FULL = {DT:"Design Thinking Room",W1:"Workshop Room 1, Sands Expo & Convention Centre, Level 4",W2:"Workshop Room 2, Sands Expo & Convention Centre, Level 4",W3:"Workshop Room 3, Sands Expo & Convention Centre, Level 4",LP:"Launchpad Room",RT1:"Roundtable Room 1, Sands Expo & Convention Centre, Level 4",RT2:"Roundtable Room 2, Sands Expo & Convention Centre, Level 4",RT3:"Roundtable Room 3, Sands Expo & Convention Centre, Level 4",RT4:"Roundtable Room 4, Sands Expo & Convention Centre, Level 4",RT5:"Roundtable Room 5, Sands Expo & Convention Centre, Level 4",SE:"Sands Expo & Convention Centre"};
+
+/* 主舞台 + Lounge（d3/d4/d5，Singapore Expo）*/
+const STAGES = [
+  ["FES","Festival Stage ‧ Hall 1"],
+  ["FOU","Founders Stage ‧ Hall 2"],
+  ["CAT","Catalyst Stage ‧ Hall 3"],
+  ["IMP","Impact Stage ‧ Hall 3"],
+  ["FUT","FutureMatters ‧ Hall 5"],
+  ["FRO","Frontier Stage ‧ Hall 6"],
+  ["GFT","GFTN Lounge ‧ Hall 4"],
+  ["INV","Investors Lounge ‧ Hall 2"],
+  ["PIF","Pay It Forward ‧ Hall 3"],
+  ["SYN","Synergy Soup ‧ Hall 5"],
+  ["SP","Side Programmes ‧ 其他"]
+];
+const STAGE_FULL = {FES:"Festival Stage, Hall 1, Singapore Expo",FOU:"Founders Stage, Hall 2, Singapore Expo",CAT:"Catalyst Stage, Hall 3, Singapore Expo",IMP:"Impact Stage, Hall 3, Singapore Expo",FUT:"FutureMatters Stage, Hall 5, Singapore Expo",FRO:"Frontier Stage, Hall 6, Singapore Expo",GFT:"GFTN Lounge, Hall 4, Singapore Expo",INV:"Investors Lounge, Hall 2, Singapore Expo",PIF:"Pay It Forward Lounge, Hall 3, Singapore Expo",SYN:"Synergy Soup, Hall 5, Singapore Expo",SP:"Side Programmes, Singapore Expo"};
+
+const TOPICS = {DA:["數位資產藍圖","Blueprint for Digital Assets"],NT:["次世代交易","Next-Gen Transactions"],SF:["未來資安","Securing the Future"],BG:["普惠金融","Bridging the Financial Gap"],AQ:["AI 與量子藍圖","Roadmap for AI and Quantum"],TT:["明日人才","Talent of Tomorrow"],SU:["永續行動","Sustainability in Action"],EE:["創業賦能","Empowering Entrepreneurship"],OT:["其他","Others"]};
+const U="https://www.fintechfestival.sg/agenda/";
+
+/* [day, room/stage, start, end, access(O/I/P), topic, title, slug, speakers[], stage(可選)] */
+const S=[
+/* ===== 11/10（一）Insights Forum ===== */
+["d1","DT","9:00","10:30","I","NT","Trusted data corridors: How will we get there – designing a roadmap for the future","agn90-trusted-data-corridors-how-will-we-get-there-designing-a-roadmap-for-the-future",["Doug Campbell-Pitt (Visa)","Dr. Derek Ho (Mastercard)","Hadri Sopri (Amazon)","Nydia Ngiow (BowerGroupAsia)","Prabhat Bassi (Citibank)","Rishiraj Singh (UOB)","Royston Ng (Sea Limited)","Yeong Zee Kin (Singapore Academy of Law)","Jo Yeo (MAS)"]],
+["d1","W1","9:00","10:00","O","OT","Evolution vs. Reinvention: Shaping the Future of Global Commerce – Powered by Amazon","agn103-evolution-vs-reinvention-shaping-the-future-of-global-commerce-powered-by-amazon",["Camilla Bullock (EPAA)","Dr. Kati Suominen (Nextrade Group)","Rachel Lee (AWS)","Tony Mclaughlin (Ubyx)","Amira Karim (Amazon)","Kennie Ong (Amazon)"]],
+["d1","LP","9:00","13:00","O","OT","AIFC Connect: Singapore 2025","agn111-aifc-connect-singapore-2025",["Bakhtiyar Tleubekov (AIFC Authority)","Baurzhan Kankin (AIFC Authority)","Evgeniya Bogdanova (AFSA)","Renat Bekturov (AIFC)","H.E. Askar Kuttykadam (Kazakhstan)","James Tan (Quest Ventures)","Brett Miranda (Binance)","Holly Fang (SFA)","等共 16 位講者"]],
+["d1","RT1","9:00","10:30","I","AQ","Artificial Intelligence – Evaluation tools and governance frameworks","agn204-invite-only-artificial-intelligence-evaluation-tools-and-governance-frameworks",["Daniel Ross (Dynamo AI)","Deep Thomas (JPMorgan Chase)","Lim Tuang Lee (MAS)","Prof. Rama Cont (Oxford)","Prof. Dawn Song (UC Berkeley)","Joe Perry (IAIS)","Alp Eroglu (IOSCO)"]],
+["d1","RT2","9:15","10:45","I","SF","Privacy and compliance in next-gen FMI: Beyond the binary","agn72-privacy-and-compliance-in-next-gen-fmi-beyond-the-binary",["Candace Kelly (Stellar)","Dr. Jay Prakash (Silence Laboratories)","Jessica Rusu (FCA)","Khai Pham (Banque de France)","Naveen Mallela (J.P. Morgan)","Prof. Chris Brummer (Bluprynt)","Qaiser Anwarudin (BNM)","Siddharth Shetty (Finternet Labs)","Sonja Davidovic (IMF)","Vincent Pek (MAS)","Friedrich Klinger (BIS)","Raunak Mittal (BIS)"]],
+["d1","RT3","9:30","11:00","O","DA","GFIN tokenisation: Global perspectives on evolving frameworks","agn197-gfin-tokenisation-global-perspectives-on-evolving-frameworks",["Camille Blackburn (FCA)","Elisabeth Wallace (DFSA)","Haocong Ren (CGAP)","Jessica Yeung (Insurance Authority)","Joseph Joshy C J (IFSCA)","Nicole Sandler (CFIT/Ubyx)","Nischint Sanghavi (Visa)","Tom Duff Gordon (Coinbase)","William Mason (GFSC)","Zach Masum (BCSC)","等共 13 位講者"]],
+["d1","RT4","9:45","11:15","I","BG","Build local, connect global: Balancing between local approaches and cross-border linkages in global DPI development","agn69-build-local-connect-global-balancing-between-local-approaches-and-cross-border-linkages-in-global-dpi-development",["Angelique Timmer (Women's World Banking)","Dr. Abbas Albasha (G+D)","Dr. Alexandra Hachmeister (Bundesbank)","Hortense Mudenge (Kigali IFC)","Ivan Mortimer-Schutts (GLEIF)","Julie Guetta (Mojaloop)","Mahesh Uttamchandani (World Bank)","Mathilde Bonneau (PayPal)","Sumnesh Joshi (Government of India)","Raadhika Sihin (GFTN)","等共 12 位講者"]],
+["d1","W1","10:30","11:30","O","OT","The Three Transformational Trends Reshaping Digital Finance – Powered by Banking Circle","agn104-the-three-transformational-trends-reshaping-digital-finance-powered-by-banking-circle",["Daniel Lee (Banking Circle)","Ryosuke Ushida (JFSA)"]],
+["d1","W2","10:30","11:30","O","OT","The Future of Marketing: Agentic AI, Experience-Led Growth, and the Rise of the Performance Marketer – Powered by Adobe","agn118-the-future-of-marketing-agentic-ai-experience-led-growth-and-the-rise-of-the-performance-marketer-powered-by-adobe",["Christopher Young (Adobe)","Clement Quek (Adobe)","Varun Kapoor (Adobe)"]],
+["d1","W3","10:30","11:30","O","OT","Agentic AI Transforming Insurance – Powered by Boston Consulting Group","agn137-agentic-ai-transforming-insurance-powered-by-boston-consulting-group",["Chakrarajan Srihari (BCG)","Tarandeep Singh (BCGX)"]],
+["d1","RT1","11:00","12:30","I","DA","Financial asset tokenisation – Progress on the development and policy considerations","agn55-invite-only-financial-asset-tokenisation-progress-on-the-development-and-policy-considerations",["Allison Parent (GFMA)","Alison Wolpert (DTCC)","Laurens Schepens (UBS)","Lena Ng (Clifford Chance)","Lim Tuang Lee (MAS)","Merion Anggerek (MAS)","Sharon Yuen (R3)"]],
+["d1","RT2","11:15","12:45","I","SF","Balancing integrity and inclusion in AML/CFT: From standards to practice","agn70-balancing-integrity-and-inclusion-in-aml-cft-from-standards-to-practice",["Amira Ahmad (Central Bank of UAE)","Angela Ang (TRM Labs)","Avalon Ingram (Swift)","Azleena Idris (PayNet)","Dr. Nopnuanparn Pavasant (SEC Thailand)","Lisette Cipriano (ADB)","Prof. Andreas Chai (Griffith)","Prof. Louis de Koker (La Trobe/CGAP)","Eun Mi Kristina Rhee (Toss Bank)","Winston Tay (Mastercard)","Haocong Ren (CGAP)"]],
+["d1","RT3","11:30","13:00","I","DA","Guardian: Next generation capital markets","agn80-guardian-next-generation-capital-markets",["Camille Blackburn (FCA)","Chan Boon-Hiong (Deutsche Bank)","Carmen Wee (IMAS)","Chetan Karkhanis (Franklin Templeton)","Dr. Rhys Bollen (ASIC)","Emma Lovett (JP Morgan)","Georgina Jarratt (ICMA)","John Allan (The Investment Association)","Kah Kit Yip (UOB)","Marita McGinley (Schroders)","Ryosuke Ushida (JFSA)","Stephanie Law (UBS AM)","Ken Chua (MAS)"]],
+["d1","RT4","11:45","13:15","I","BG","Interconnected digital finance: Bridging cross-regulatory challenges in DPI and data sharing","agn51-interconnected-digital-finance-bridging-cross-regulatory-challenges-in-dpi-and-data-sharing",["Isabelle Lessedjina (Rawbank)","Jennifer Fowler (FSB)","Jonathan Chan (MAS)","Julie Guetta (Mojaloop)","Kate Jones (DRCF)","Nolwazi Hlophe (FSCA)","Prof. Carsten Maple (Warwick/Turing)","Sai Krishna Kumaraswamy (CGAP/World Bank)","Subhashini Chandran (Mastercard)","Siddharth Shetty (Finternet Labs)","Dr. Yusuf Rakiya Opemi (CBN)","等共 13 位講者"]],
+["d1","W1","12:00","13:00","O","OT","Advancing Financial Infrastructure with CBDCs: A Path to Resilience, Interoperability and Collaboration – Powered by Giesecke + Devrient","agn105-advancing-financial-infrastructure-with-cbdcs-a-path-to-resilience-interoperability-and-collaboration-powered-by-giesecke-devrient",["Amit Tendulkar (ADB)","Audrey Metzger (Banque de France)","Dr. Alexandra Hachmeister (Bundesbank)","Dr. Wolfram Seidemann (G+D)","Vincent Pek (MAS)","Katie-Ann Wilson (OMFIF)"]],
+["d1","RT1","13:00","14:30","I","TT","From skills gap to skills edge: Future proofing finance","agn52-from-skills-gap-to-skills-edge-future-proofing-finance",["Alessandro Di Lullo (Digital Education Council)","Hayley Yap (UOB)","Ishita Goel (Aon)","Leiming Chen (Ant International)","Prof. Chia Tek Yew (NUS AIDF)","Prof. Thomas Puschmann (Stanford & Zurich)","Shayan Hazir (HSBC)","Akanksha Rath (GFTN)"]],
+["d1","RT2","13:15","14:45","I","NT","Payments, politics and power: Cross-border systems in a fragmented world","agn171-payments-politics-and-power-cross-border-systems-in-a-fragmented-world",["Angelina Kwan (Stratford Finance)","Debra Brookes (Wyoming STC)","Dr. Lisa Ross (Flint Global)","Ghassan Abu Shihab (Central Bank of Jordan)","Kennie Ong (Amazon)","Neeraj Makin (Emirates NBD)","Ramakrishnan TG (Google)","Rich Clow (Bank of America)","Soulysak Thamnuvong (Bank of the Lao P.D.R)","Tom Mutton (Bank of England)","Yasuto Watanabe (AMRO)","Curtis S. Chin (Milken Institute)","等共 13 位講者"]],
+["d1","RT3","13:30","15:00","I","DA","GL1 dialogue","agn71-gl1-dialogue",["Audrey Metzger (Banque de France)","Emma Butterworth (Bank of England)","等多位講者（完整名單見官方頁面）"]],
+["d1","W1","13:30","14:30","O","OT","Your Legacy Core Is The AI Bottleneck – Powered by Thought Machine","agn106-your-legacy-core-is-the-ai-bottleneck-powered-by-thought-machine",["Manu Iyer (Thoughtworks)","Nalin Sinha (Thought Machine)","Dr. Paul Taylor (Thought Machine)"]],
+["d1","RT4","13:45","15:15","I","BG","Leveraging data innovation to support access to finance","agn79-leveraging-data-innovation-to-support-access-to-finance",["Amira Karim (Amazon)","Ankit Khandelwal (FICO)","Dawn Lai (Experian Malaysia)","Elizabeth Byun (Tencent)","Mesina-Romero Bridget Rose (BSP)","Pradeep Malik (Nucleus Software)","Qamar Saleem (SME Finance Forum)","Simone Colombara (CRIF)","Tamish Dhamani (Mastercard)","Neil Munroe (BIIA)"]],
+["d1","LP","14:00","16:00","O","DA","Institutional Digital Assets in the Spotlight","agn216-institutional-digital-assets-in-the-spotlight",["Alfonse Mandese (Talos)","Daniela Barbosa (Linux Foundation)","Dr. Max Bernt (Taxbit)","Javier Garcia (Kaleido)","Kirit Bhatia (Banking Circle)","Lu Yin (Solana Foundation)","Mathias Imbach (Sygnum)","Mo Jalil (Ethereum Foundation)","Moses Lee (Anchorage Digital)","等共 16 位講者"]],
+["d1","RT1","15:00","16:30","I","TT","The FinTech formula: Building competitive and connected ecosystems","agn76-the-fintech-formula-building-competitive-and-connected-ecosystems",["Camilla Bullock (EPAA)","Elise Soucie Watts (Global Digital Finance)","Maha El Dimachki (BIS Singapore)","Ned Lowe (MISSION+)","Shayan Hazir (HSBC)","Toh Wee Kee (Kinexys by J.P. Morgan)","Pat Patel (GFTN)"]],
+["d1","W2","15:00","16:00","O","OT","Our Sector. Our Products. Our Responsibility: Addressing the Risks of Financial Abuse","agn122-our-sector-our-products-our-responsibility-addressing-the-risks-of-financial-abuse",["Aarti Rana (Laxmi Sunrise Bank)","Catherine Fitzpatrick (Flequity Ventures)","Christina Ongoma (IFC)","Deepika Vidanagamage (Commercial Bank of Ceylon)","Ryan Burke (IFC)"]],
+["d1","W1","15:00","16:00","O","OT","Trust is Good, Verification is Better – Applying Verifiable Org ID in a Border Agnostic Economy – Powered by GLEIF","agn127-trust-is-good-verification-is-better-applying-verifiable-org-id-in-a-border-agnostic-economy-powered-by-gleif",["Alexandre Kech (GLEIF)","Davide Ceper (Dataswyft)","Gabriele Graziani (CRIF)","Ivan Mortimer-Schutts (GLEIF)","Jordi Kushartanto (CMA)","Maxim Nescheret (CMA)","Rena Ho (Clearstream)","Saurav Bhatia (Yirifi.ai)"]],
+["d1","RT2","15:15","16:45","I","SF","Breaking barriers: United cross-border efforts to fight financial crime","agn53-breaking-barriers-united-cross-border-efforts-to-fight-financial-crime",["Andy White (AusPayNet)","Angela Ang (TRM Labs)","Dr. Alexandra Hachmeister (Bundesbank)","Dr. Sungyong Kang (INTERPOL)","Herman Schueller (DFSA)","Jennifer Fowler (FSB)","Kate Jones (DRCF)","Kenneth Gay (MAS)","Prof. Chris Brummer (Bluprynt)","Qaiser Anwarudin (BNM)","R. Jesse McWaters (Mastercard)","Francesca Hopwood Road (BIS London)"]],
+["d1","RT3","15:30","17:00","I","DA","Digital money adoption and regulation: Strategies for commercial banks and FinTechs","agn81-digital-money-adoption-and-regulation-strategies-for-commercial-banks-and-fintechs",["Basak Toprak (J.P. Morgan)","Chan Yam Ki (Circle)","Dr. Karin Boonlertvanich (KASIKORNBANK)","Dr. Steven Hu (OCBC)","Holger Neuhaus (ECB)","Jean-Marc Stenger (SG-FORGE)","Kelvin Li (Ant International)","Tianwei Liu (StraitsX)","Tony Mclaughlin (Ubyx)","Vincent Lau (HSBC)","Zilong Li (DBS)","Alan Lim (MAS)"]],
+["d1","RT4","15:45","17:15","I","NT","The next wave of innovations for merchant payments","agn82-the-next-wave-of-innovations-for-merchant-payments",["Aaron Wong (PayPal Singapore)","Dr. Jian Jiangtao (UnionPay International)","Gary Yeoh (PayNet)","Kennie Ong (Amazon)","等多位講者（完整名單見官方頁面）"]],
+["d1","LP","16:30","18:30","O","OT","Malaysia in the Spotlight: Accelerating Southeast Asia's Digital Finance Leap – Powered by FAOM","agn217-malaysia-in-the-spotlight-accelerating-southeast-asias-digital-finance-leap-powered-by-faom",["Amitabh Singh (FAOM)","Chyi Lee (SC Malaysia)","Dato' Mahendra Ramaiyah (Perfios)","Dr. Andreas Deppeler (Monash Malaysia)","Gary Yeoh (PayNet)","Kelvin Teo (Funding Societies)"]],
+["d1","SE","18:30","20:30","O","OT","Networking Drinks @ Bayview Foyer – Powered by Hitachi","agn95-networking-drinks-bayview-foyer-powered-by-hitachi",[]],
+/* ===== 11/11（二）Insights Forum ===== */
+["d2","LP","8:00","10:00","O","OT","[Closed-door] Launch of CCAF Women Regulators Network (WRN)","agn175-closed-door-launch-of-ccaf-women-regulators-network-wrn",["Nick Clark (CCAF)","Lindis Oma (FII & CCAF)","Haocong Ren (CGAP)","Francesca Hopwood Road (BIS London)","Nolwazi Hlophe (FSCA)","Deborah Young (CCAF)"]],
+["d2","RT4","9:00","10:30","I","SF","Stablecoin collapse tsunami: Systemic risk, contagion, and the future of digital finance","agn64-stablecoin-collapse-tsunami-systemic-risk-contagion-and-the-future-of-digital-finance",["Alvinder Singh (MAS)","Candace Kelly (Stellar)","Dr. Rhys Bollen (ASIC)","Hugo Coelho (CCAF)","Jannah Patchay (GDF)","Jane Moore (FCA)","Katie Mitchell (Coinbase)","Sasha Mills (Bank of England)","Sophie Gilder (CBA)","Steve Vallas (BlockchainAPAC)","Tim Way (Fireblocks)","Dr. Andrzej Gwizdalski (UWA)"]],
+["d2","RT1","9:00","10:30","I","SU","Greenovation in ASEAN's built sector: Driving collaborative strategies and actionable outcomes","agn160-greenovation-in-aseans-built-sector-driving-collaborative-strategies-and-actionable-outcomes",["Amy Ramli (Schindler)","Ang Kian Seng (BCA)","Caroline Stern (Hilti)","Corrado Forcellati (Paia/CBRE)","Courtney Lutterman (Autodesk)","David Craig (TNFD)","Dr. Wujuan Lin (Hitachi Asia)","Esther An (CDL)","Joe Phelan (WBCSD)","Lee Bing Yi (PwC)","等共 13 位講者"]],
+["d2","W1","9:00","10:00","O","OT","Connecting Europe's Financial Ecosystem: GFTN, Point Zero Forum, and Finmonda in Action","agn248-connecting-europes-financial-ecosystem-gftn-point-zero-forum-and-finmonda-in-action",["Matthias Kröner (GFTN)","Toluth Apalowo (GFTN)"]],
+["d2","RT2","9:15","10:45","I","AQ","Next Gen Financial Services: Industry AI adoption & the rise of AI agents","agn62-next-gen-financial-services-industry-ai-adoption-the-rise-of-ai-agents",["Caesar Sengupta (Arta Finance)","Chris Brandon (AWS)","Christine Graham (JPMorganChase)","Daniel Ross (Dynamo AI)","Jessica Rusu (FCA)","Morito Emi (MUFG)","Patrik Bless (Partners Group)","Takaya Sugino (JFSA)","Victoria Sanchez-Terry (BNY)","Zhang Tao (Manus AI)","Eugene Goh (MAS)","等共 16 位講者"]],
+["d2","RT3","9:30","11:00","I","DA","Impact of US stablecoin and crypto regulations on global token payment providers","agn56-impact-of-us-stablecoin-and-crypto-regulations-on-global-token-payment-providers",["David Katz (Circle)","Debra Brookes (Wyoming STC)","Elise Soucie Watts (GDF)","Emma Butterworth (Bank of England)","Nicole Sandler (CFIT/Ubyx)","Peter Goodrich (FSB)","Peter Kerstens (European Commission)","Rosemary Lim (MAS)","Tom Duff Gordon (Coinbase)","Foo Chek-Tchung (GFTN)"]],
+["d2","RT5","9:45","11:15","I","NT","The next frontier of cross-border digital finance: Building trusted, inclusive and interoperable payment ecosystems","agn173-the-next-frontier-of-cross-border-digital-finance-building-trusted-inclusive-and-interoperable-payment-ecosystems",["Andrew McCormack (Nexus Global Payments)","Ankur Jakhwal (Boost Connect)","Avishek Chandra (Amazon)","Joseph Cleetus (LuLu Financial)","Holly Dorber (PayPal)","Kevin Kang (Reap)","Ling Wu (TBCASoft)","Maxim Nescheret (CMA)","Nilixa Devlukia (Payments Solved)","等多位講者"]],
+["d2","W3","10:30","11:30","O","OT","Faster, cheaper, smarter: Redefining cross-border payments in the digital age – Powered by Swift","agn150-faster-cheaper-smarter-redefining-cross-border-payments-in-the-digital-age-powered-by-swift",["Anupam Pahuja (Nium)","Kevin Tay (Swift)","Qaiser Anwarudin (BNM)","Avanee Gokhale (Swift)"]],
+["d2","LP","10:30","12:30","O","DA","Japan in the Spotlight – Connecting Financial Corridors across Asia","agn174-japan-in-the-spotlight-connecting-financial-corridors-across-asia",["Masao Shimazaki (JFSA)","Kentaro Ogata (Dai-ichi Life)","Taiki Sakata (Hitachi)","Natalie Shiori Fleming (Banking Circle)","Nobuyasu Sugimoto (IMF)","Teppei Terada (MUFG)","Yo Nakagawa (Monex)","Aya Miyaguchi (Ethereum Foundation)","Pieter Franken (GFTN Japan)","Takeshi Kito (GFTN Japan)","等共 13 位講者"]],
+["d2","W1","10:30","11:30","O","OT","Inside the Institutional Shift: Breaking News in Digital Assets – Powered by Kaleido","agn130-inside-the-institutional-shift-breaking-news-in-digital-assets-powered-by-kaleido",["Conan French (IIF)","Javier Garcia (Kaleido)","Sophia Lopez (Kaleido)","Parag Monteiro (Standard Chartered)"]],
+["d2","RT1","11:00","12:30","I","BG","SME banking leaders' league: From groundbreaking to game-changing","agn78-sme-banking-leaders-league-from-groundbreaking-to-game-changing",["Aditya Sharma (Standard Chartered)","John David Yap (Security Bank)","Kara Byun (HSBC)","Kelvin Teo (Funding Societies)","Manu Panda (Maya Bank)","Maxim Afanasyev (Google Cloud)","Melis Özdeğirmenci (Akbank)","Ng Say Ling (Visa)","Philip Sigwart (Baobab)","Rajeev Chalisgaonkar (Mashreq)","Qamar Saleem (SME Finance Forum)"]],
+["d2","RT2","11:15","12:45","I","AQ","Building global AI competencies in financial services","agn77-building-global-ai-competencies-in-financial-services",["Donald MacDonald (OCBC)","Dr. David Hardoon (Standard Chartered)","Dr. Geraldine Wong (GXS Bank)","Dr. Zhao Jingyuan (Great Eastern)","Jefferson Chen (Advance Intelligence)","Kieran White (Nomura)","Kishore KV (UBS)","Mark Czajkowski (Manulife)","Nicolas de Skowronski (Julius Baer)","Richard Lowe (UOB)","Ronald Chen (DBS)","Yip Shue Heng (MUFG)","Alan Lim (MAS)"]],
+["d2","RT3","11:30","13:00","I","DA","Advancing cross-border DLT infrastructure through shared governance, interoperability, and roadmaps","agn73-advancing-cross-border-dlt-infrastructure-through-shared-governance-interoperability-and-roadmaps",["Amy Lee (Bank of England)","Andrew Brinson (Pave Bank)","Dr. Elli Androulaki (IBM)","Dr. Mark Staples (Digital Finance CRC)","Jean-Marc Stenger (SG-FORGE)","Kara Kennedy (Kinexys)","Lukas Jakubonis (Bank of Lithuania)","Morten Lilleøre (Banking Circle)","Philippe Laurensy (Euroclear)","Thierry Chilosi (Swift)","Sandra Ro (GBBC)"]],
+["d2","RT5","11:45","13:15","I","SF","Securing the future of finance: Real-time collaboration against illicit activity in the digital asset ecosystem","agn159-securing-the-future-of-finance-real-time-collaboration-against-illicit-activity-in-the-digital-asset-ecosystem",["Ari Redbord (TRM Labs)","Dane Shelly (Coinbase)","Dr. Clara Guerra (Liechtenstein)","Herman Schueller (DFSA)","Kah Kit Yip (UOB)","Matthias Obrecht (FINMA)","Nils Andersen-Röed (Binance)","Peter Kerstens (European Commission)","Rosemary Lim (MAS)","Sam Lamour (AUSTRAC)","Elise Soucie Watts (GDF)"]],
+["d2","W1","12:00","13:00","O","OT","Tyme Group Investor Update – Powered by Tyme Group","agn243-tyme-group-investor-update-powered-by-tyme-group",["Aaron Foo (Tyme)","Charmaine Padayachy (Tyme)","Coen Jonker (Tyme)"]],
+["d2","RT4","13:00","14:30","I","AQ","Quantum roadmaps to resilience: Navigating risk, architecting ultimate advantage in finance","agn63-quantum-roadmaps-to-resilience-navigating-risk-architecting-ultimate-advantage-in-finance",["Anton Ruddenklau (KPMG)","Azleena Idris (PayNet)","Colin Payne (FCA)","Dr. Hart Montgomery (Linux Foundation)","Dr. Philip Intallura (HSBC)","Drew Propson (WEF)","等多位講者"]],
+["d2","RT2","13:15","14:45","I","AQ","UK-Singapore AI in Finance: Cross-regional AI growth","agn183-uk-singapore-ai-in-finance-cross-regional-ai-growth",["Amal Jolly (Saturn)","David Sully (Advai)","Dr. Hamish Macalister (Transparently)","Dr. Harry Wang (Sonar)","Frankie Phua (UOB)","Sang Hao Chung (IMDA)","Simran Singh (FCA)","Wendy Wang (HSBC)","Jessica Rusu (FCA)","Kenneth Gay (MAS)","等共 13 位講者"]],
+["d2","RT3","13:30","15:00","I","DA","Public blockchains in banking: Building trust in decentralised infrastructure","agn83-public-blockchains-in-banking-building-trust-in-decentralised-infrastructure",["Dea Markova (Fireblocks)","Deborah Algeo (Zodia Custody)","Candace Kelly (Stellar)","Matthew Osborne (Ripple)","Michael Gao (RedotPay)","Michael Maurer (MIT DCI)","Peter Kerstens (European Commission)","Toh Wee Kee (Kinexys)","Vivian Clavel (Minsait)","Katie-Ann Wilson (OMFIF)","Lewis McLellan (OMFIF)"]],
+["d2","LP","13:30","14:30","O","OT","Thailand in Focus: ASEAN's Growth Engine for the Digital Future – Powered by Krungsri Finnovate","agn110-thailand-in-focus-aseans-growth-engine-for-the-digital-future-powered-by-krungsri-finnovate",["Palida Artispong (Krungsri Finnovate)","Clare Leighton (fileAI)","Chonladet Khemarattana (Webull Thailand)","Ronald Kam (MUFG)"]],
+["d2","W3","13:30","14:30","O","OT","Cross-border Payments, Instant Settlement: Leveraging Stablecoins & Blockchain – Powered by XWeave","agn255-cross-border-payments-instant-settlement-leveraging-stablecoins-blockchain-powered-by-xweave",["David Katz (Circle)","Ken Chua (MAS)","Milind Sanghavi (XWeave)","Moses Lee (Anchorage Digital)","Tianwei Liu (StraitsX)","Jeannie Lim (XWeave)"]],
+["d2","W2","13:30","14:30","O","OT","Empowering Businesses in the Onchain Economy – Powered by Coinbase","agn245-empowering-businesses-in-the-onchain-economy-how-coinbase-is-modernising-finance-for-smes-startups-and-enterprise-powered-by-coinbase",["Siddharth Coelho-Prabhu (Coinbase)"]],
+["d2","RT5","13:45","15:15","I","OT","Moving from hype to impact: Preparing for an agentic future","agn59-moving-from-hype-to-impact-preparing-for-an-agentic-future",["Amy Lee (Bank of England)","Bojan Obradovic (HSBC)","Christopher Young (Adobe)","Celine Le Cotonnec (Bank of Singapore)","Diana Paredes (Suade Labs)","Frédéric Beck (BNP Paribas)","InJun Kim (Microsoft)","Mac Duncan (Constantinople)","Tahir Zafar (Nomura)","等共 13 位講者"]],
+["d2","RT4","15:00","16:30","I","NT","Tokenised money across borders: Regulatory pathways and global interoperability","agn158-tokenised-money-across-borders-regulatory-pathways-and-global-interoperability",["Basak Toprak (J.P. Morgan)","Daniel Lee (Banking Circle)","David Katz (Circle)","Emma Butterworth (Bank of England)","John O'Neill (HSBC)","Maha El Dimachki (BIS Singapore)","Natasha Deloge (CSSF)","Novita Bachtiar (OJK)","Peter Goodrich (FSB)","Ryoma Ikeda (Bank of Japan)","Siddharth Shetty (Finternet Labs)","等共 13 位講者"]],
+["d2","W1","15:00","16:00","O","OT","Making Tokenized Assets Legally Enforceable Across Chains – Powered by Axelar","agn107-making-tokenized-assets-legally-enforceable-across-chains-powered-by-axelar",["Jason Rozovsky (Interop Labs)","Shawn Lim (Interop Labs)"]],
+["d2","W3","15:00","15:30","O","OT","The End of Data Sharing: A New Paradigm for Open Data – Powered by Terminal 3","agn237-the-end-of-data-sharing-a-new-paradigm-for-open-data-powered-by-terminal-3",["Gary Liu (Terminal 3)"]],
+["d2","DT","15:00","18:00","I","DA","Ethereum in the Spotlight","agn239-ethereum-in-the-spotlight",["Ash Morgan (Ethereum Foundation)","Aya Miyaguchi (Ethereum Foundation)","Mo Jalil (Ethereum Foundation)","Paul Brody (EY / EEA)","Shyam Sridhar (Ethereum Foundation)","Chua Tju Liang (Ethereum Foundation)","Qing Ze Hum (Ethereum Ecosystem Fund)","Ridwan Meslan (EEA)"]],
+["d2","W2","15:00","16:00","O","OT","Redefining Corporate CAS: The Digital Bank Blueprint for Smarter Business Banking – Powered by Nucleus Software","agn119-redefining-corporate-cas-the-digital-bank-blueprint-for-smarter-business-banking-powered-by-nucleus-software",["Anshul Khare (Nucleus Software)","Nouman Aziz Mir (Reem Finance)"]],
+["d2","RT2","15:15","16:45","I","AQ","AI governance, stability, and competitive dynamics: Aligning priorities for safe and effective AI adoption","agn157-ai-governance-stability-and-competitive-dynamics-aligning-priorities-for-safe-and-effective-ai-adoption",["Asif Saleem (Google)","Caecilia Chu (YouTrip)","Deepak Sarda (Endowus)","Francesca Hopwood Road (BIS London)","Lotte Schou Zibell (Impact Financial Advisory)","Nolwazi Hlophe (FSCA)","Osamu Abe (MUFG)","Sam Hinton-Smith (Stripe)","Ronit Ghose (Citi)","Drew Propson (WEF)","Kieran Garvey (CCAF)"]],
+["d2","RT1","15:30","17:00","O","EE","Unicorn roundtable: Scaling innovation for sustainable growth – Bridging FinTech ecosystems across borders","agn84-unicorn-roundtable-scaling-innovation-for-sustainable-growth-bridging-fintech-ecosystems-across-borders",["Adam Gagen (Revolut)","Agnès Bastaert (Ant International)","Dhruv Arora (Syfe)","Elian Ciptono (Wise)","Hassan Ahmed (Coinbase)","Kelvin Teo (Funding Societies)","Prajit Nanu (Nium)","Rachel Freeman (Tyme)","Shou Dong (ADVANCE.AI)","Tang Wei (Stripe)","Alvinder Singh (MAS)","Colin Payne (FCA)","等共 14 位講者"]],
+["d2","RT3","15:30","17:00","O","OT","Risk to resilience: Strategies for FinTech-driven SME finance","agn200-risk-to-resilience-strategies-for-fintech-driven-sme-finance",["Ammar Habib Khan (NCGCL)","Arvind Sankaran (ADB)","Eugenia Koh (Standard Chartered)","Grishma Kewada (Coface)","Jatinder Handoo (Unified Fintech Forum)","Jiang Fangfang (IFC)","Neil Shonhard (MonetaGo)","Pallavi Shrivastava (Progcap)","Vikram Lodha (360tf)","Qamar Saleem (SME Finance Forum)","等共 13 位講者"]],
+["d2","RT5","15:45","17:15","I","DA","Public blockchains in banking: Technology risks and token design for safety and resilience","agn61-public-blockchains-in-banking-technology-risks-and-token-design-for-safety-and-resilience",["Alexandre Kech (GLEIF)","Delane Foo (Nethermind)","Jason Rozovsky (Interop Labs)","Masashi Yanase (JFSA)","Michael Maurer (MIT DCI)","Simon Vans-Colina (Pave Bank)","Toh Wee Kee (Kinexys)","Sandra Ro (GBBC)"]],
+["d2","W3","16:00","18:00","O","OT","Harnessing AI and Quantum Computing: Transforming the Future Landscape of Financial Services – Brought to you by HSBC","agn133-harnessing-ai-and-quantum-computing-transforming-the-future-landscape-of-financial-services-brought-to-you-by-hsbc",["Alan Lim (MAS)","Cheryl Tanaja (HSBC)","Dr. Philip Intallura (HSBC)","John O'Neill (HSBC)","Mile Gu (NTU)","Winnie Yap (HSBC)","Yvonne Chan (主持)","等共 16 位講者"]],
+["d2","LP","18:00","20:00","O","OT","[Closed-door] Cocktails and Connections – Brought to you by HSBC and British High Commission Singapore","agn215-closed-door-cocktails-and-connections-brought-to-you-by-hsbc-and-british-high-commission-singapore",["Dr. Vivek Ramachandran (HSBC)","Lucy Rigby KC MP (UK Treasury)","Sopnendu Mohanty (GFTN)","Yvonne Chan (主持)"]],
+["d2","SE","18:30","20:30","O","OT","Networking Drinks @ Bayview Foyer","agn234-networking-drinks-bayview-foyer",[]],
+/* ===== 11/12–11/14 主舞台 + Lounge（自 agenda.csv 產生）===== */
+["d3", "FES", "9:10", "9:25", "P", "OT", "Welcome to Singapore FinTech Festival 2025", "agnd59-welcome-to-singapore-fintech-festival-2025", ["Manisha Tank"], "Festival Stage"],
+["d3", "FES", "9:25", "9:45", "P", "OT", "A Decade of FinTech: Impact on Financial Services and Regulation", "agnd345-a-decade-of-fintech-impact-on-financial-services-and-regulation", ["Axel Weber"], "Festival Stage"],
+["d3", "GFT", "9:30", "10:00", "O", "OT", "FinMonda demo", "agnd720-finmonda-demo", [], "Side Programmes"],
+["d3", "FES", "9:45", "10:00", "P", "OT", "Banking Leadership in the Digital Age", "agnd351-banking-leadership-in-the-digital-age", ["Wee Ee Cheong"], "Festival Stage"],
+["d3", "FES", "10:00", "10:35", "P", "OT", "Fireside Chat with DPM Gan Kim Yong", "agnd344-fireside-chat-with-dpm-gan-kim-yong", ["Gan Kim Yong", "Tan Su Shan"], "Festival Stage"],
+["d3", "GFT", "10:00", "11:00", "I", "OT", "Next Gen Leaders AMA Session 1", "agnd721-next-gen-leaders-ama-session-1", [], "Side Programmes"],
+["d3", "FRO", "10:30", "10:45", "P", "OT", "Internet Capital Markets - Powered by Solana", "agnd452-internet-capital-markets-powered-by-solana", ["Lu Yin"], "Frontier Stage"],
+["d3", "FES", "10:35", "10:50", "P", "OT", "Future of Finance: At the Intersection of Geopolitics, Technology and Markets", "agnd582-future-of-finance-at-the-intersection-of-geopolitics-technology-and-markets", ["George Lee"], "Festival Stage"],
+["d3", "FRO", "10:45", "11:00", "P", "OT", "The Shape of Money: How Embedded Finance is Powering the Next Gen of Digital Banking - Powered by Fiserv", "agnd453-the-shape-of-money-how-embedded-finance-is-powering-the-next-gen-of-digital-banking-powered-by-fiserv", ["Suresh Chandrasekaran"], "Frontier Stage"],
+["d3", "IMP", "10:45", "11:00", "O", "OT", "Emirates NBD x Singapore Ecosystem: A Blueprint for FinTech Growth - Powered by Emirates NBD", "agnd411-emirates-nbd-x-singapore-ecosystem-a-blueprint-for-fintech-growth-powered-by-emirates-nbd", ["Neeraj Makin"], "Impact Stage"],
+["d3", "FES", "10:50", "11:25", "P", "SF", "Geopolitics: Can Finance and Technology Support Globalisation Amid Fragmentation?", "agnd346-geopolitics-can-finance-and-technology-support-globalisation-amid-fragmentation", ["George Lee", "Jawed Ashraf", "Kishore Mahbubani", "Patrick Njoroge", "Alex Capri"], "Festival Stage"],
+["d3", "FRO", "11:00", "11:15", "P", "OT", "Trustworthy and Governed Agentic AI for the enterprise - Powered by Pega", "agnd454-trustworthy-and-governed-agentic-ai-for-the-enterprise-powered-by-pega", ["Chang Chee Loong"], "Frontier Stage"],
+["d3", "GFT", "11:00", "11:30", "O", "OT", "Meet ALFIN - Your Intelligent Insights Engine for the Financial Industry", "agnd722-meet-alfin-your-intelligent-insights-engine-for-the-financial-industry", [], "Side Programmes"],
+["d3", "IMP", "11:00", "11:15", "O", "OT", "AI-Driven Credit Evolution: Beyond Forecasting - Powered by FinVolution", "agnd412-ai-driven-credit-evolution-beyond-forecasting-powered-by-finvolution", ["Lei Chen"], "Impact Stage"],
+["d3", "FRO", "11:15", "11:30", "P", "OT", "One Year On: Boost Bank’s Journey and Lessons for Aspiring Digital Banks - Powered by Boost", "agnd455-one-year-on-boost-banks-journey-and-lessons-for-aspiring-digital-banks-powered-by-boost", ["Sheyantha Abeykoon"], "Frontier Stage"],
+["d3", "IMP", "11:15", "11:30", "O", "OT", "Unlocking Operational Efficiency with Agentic GenAI in Financial Services - Powered by Amdocs", "agnd413-unlocking-operational-efficiency-with-agentic-genai-in-financial-services-powered-by-amdocs", ["Guy Hilton"], "Impact Stage"],
+["d3", "FES", "11:25", "12:10", "P", "DA", "The Global Policy Dialogue: Towards the Next Decade of Transformation and New Financial Corridors", "agnd347-the-global-policy-dialogue-towards-the-next-decade-of-transformation-and-new-financial-corridors", ["Abdul Rasheed Ghaffour", "Chea Serey", "Lucy Rigby KC MP", "Michael S. Barr", "Soraya Hakuziyaremye", "Tommaso Mancini-Griffoli"], "Festival Stage"],
+["d3", "FRO", "11:30", "11:45", "P", "OT", "Accelerating Enterprise AI: How Financial Services reshapes and connects - Powered by Infosys", "agnd456-accelerating-enterprise-ai-how-financial-services-reshapes-and-connects-powered-by-infosys", ["David Hardoon", "Dennis Gada", "Pedro Uría-Recio"], "Frontier Stage"],
+["d3", "GFT", "11:30", "12:00", "O", "OT", "FinMonda demo", "agnd724-finmonda-demo", [], "Side Programmes"],
+["d3", "IMP", "11:30", "11:45", "O", "OT", "Behind the Curtain: Building Agentic AI Systems in Real-World Projects - Powered by Zühlke", "agnd414-behind-the-curtain-building-agentic-ai-systems-in-real-world-projects-powered-by-z%C3%BChlke", ["Anupama Gangadhar", "Silvan Melchior"], "Impact Stage"],
+["d3", "INV", "11:30", "12:30", "O", "OT", "Charting Your Next Exit, an Investor & Founder Workshop", "agnd502-charting-your-next-exit-an-investor-founder-workshop", ["Albert Shyy", "Ganesh Rengaswamy", "Rosaline Chow Koo", "Virginia Tan", "Sharon Lim"], "Side Programmes"],
+["d3", "CAT", "11:40", "12:00", "O", "DA", "Ethereum’s Next Chapter: Leadership, Finance, and the Future of Decentralised Infrastructure", "agnd557-ethereums-next-chapter-leadership-finance-and-the-future-of-decentralised-infrastructure", ["Aya Miyaguchi", "Pieter Franken"], "Catalyst Stage"],
+["d3", "FRO", "11:45", "12:00", "P", "OT", "X Star’s AI Ecosystem: Shaping the Next Decade in Auto Finance - Powered by X Star", "agnd457-x-stars-ai-ecosystem-shaping-the-next-decade-in-auto-finance-powered-by-x-star", ["Michael Jia"], "Frontier Stage"],
+["d3", "IMP", "11:45", "12:00", "O", "BG", "Digitizing PCAF Implementation in Practice - Powered by Evercomm", "agnd415-digitizing-pcaf-implementation-in-practice-powered-by-evercomm", ["Rachael Kao", "Ted Chen"], "Impact Stage"],
+["d3", "CAT", "12:00", "12:15", "O", "AQ", "AI-Driven Business Transformation in the ASEAN Region", "agnd374-ai-driven-business-transformation-in-the-asean-region", ["Oranuch (Mimee) Lerdsuwankij"], "Catalyst Stage"],
+["d3", "FRO", "12:00", "12:15", "P", "OT", "Transforming Finance Through Technology and Collaboration - Powered by Circle", "agnd458-transforming-finance-through-technology-and-collaboration-powered-by-circle", ["Anupam Pahuja", "Chan Yam Ki", "Nischint Sanghavi"], "Frontier Stage"],
+["d3", "IMP", "12:00", "12:15", "O", "OT", "Leading the Payment Revolution, Empowering Global Foreign Trade - Powered by XTransfer", "agnd416-leading-the-payment-revolution-empowering-global-foreign-trade-powered-by-xtransfer", ["Violas Xiao"], "Impact Stage"],
+["d3", "FES", "12:10", "12:45", "P", "SF", "Beyond Capital: The Next Decade", "agnd510-beyond-capital-the-next-decade", ["Abdulrahman Hesham Al Sowaidi", "John Fischer", "Kishore Moorjani", "Nobuyuki Kawabata", "Neil Parekh"], "Festival Stage"],
+["d3", "CAT", "12:15", "12:30", "O", "SF", "Real-Time Device Risk Control for Financial Fraud Defense - Powered by Tencent", "agnd375-real-time-device-risk-control-for-financial-fraud-defense-powered-by-tencent", ["David Wang"], "Catalyst Stage"],
+["d3", "FRO", "12:15", "12:30", "P", "OT", "Securing Tomorrow: Preparing for an Always-On, AI-Powered Future - Powered by Mastercard", "agnd459-securing-tomorrow-preparing-for-an-always-on-ai-powered-future-powered-by-mastercard", ["Aditi Sawhney"], "Frontier Stage"],
+["d3", "CAT", "12:30", "12:45", "O", "SF", "Industry-Powered Learning: Closing the Digital Skills Gap for Tomorrow's Workforce - Powered by Ant International", "agnd376-industry-powered-learning-closing-the-digital-skills-gap-for-tomorrows-workforce-powered-by-ant-international", ["Dongye Yang", "Sanjiv Purushotham"], "Catalyst Stage"],
+["d3", "FRO", "12:30", "12:45", "P", "OT", "Transformational Tech in Finance - Powered by Tencent", "agnd460-transformational-tech-in-finance-powered-by-tencent", ["Etienne Ng"], "Frontier Stage"],
+["d3", "IMP", "12:30", "12:45", "O", "OT", "Tokenization Takes Off: Singapore Joins APAC’s Race to Full Coverage by 2027 - Powered by Mastercard", "agnd418-tokenization-takes-off-singapore-joins-apacs-race-to-full-coverage-by-2027-powered-by-mastercard", ["Ferdie Perez", "Julianne Heng", "Sandeep Malhotra"], "Impact Stage"],
+["d3", "FES", "12:45", "12:55", "P", "AQ", "UK-SG Development Announcement", "agnd338-uk-sg-development-announcement", ["Jessica Rusu", "Kenneth Gay", "Tan Su Shan", "Wendy Wang"], "Festival Stage"],
+["d3", "FOU", "12:45", "13:00", "P", "EE", "Welcome to Founders Stage - Day 1: The Capital Providers' Day", "agnd245-welcome-to-founders-stage-day-1-the-capital-providers-day", ["Sagari White", "Navin Suri"], "Founders Stage"],
+["d3", "FRO", "12:45", "13:00", "P", "OT", "EPOS 360: One App to Start, Grow, and Scale your Business - Powered by Ant International", "agnd461-epos-360-one-app-to-start-grow-and-scale-your-business-powered-by-ant-international", ["Gary Liu"], "Frontier Stage"],
+["d3", "FUT", "12:45", "12:55", "P", "OT", "Welcome to FutureMatters Stage - Day 1", "agnd301-welcome-to-futurematters-stage-day-1", ["Sharanjit Leyl"], "FutureMatters Stage"],
+["d3", "IMP", "12:45", "13:00", "O", "OT", "Beyond Silos: The New AI Operating System for Banking - Powered by Perfios", "agnd419-beyond-silos-the-new-ai-operating-system-for-banking-powered-by-perfios", ["Pramod Vetturi"], "Impact Stage"],
+["d3", "FUT", "12:50", "13:05", "P", "DA", "Connecting Markets: Open and Interoperable Networks", "agnd157-connecting-markets-open-and-interoperable-networks", ["Leong Sing Chiong"], "FutureMatters Stage"],
+["d3", "FES", "12:55", "13:40", "P", "AQ", "C-Suite Insights: Roadmap for AI in Financial Services", "agnd354-c-suite-insights-roadmap-for-ai-in-financial-services", ["Craig Vosburg", "Javier Pérez-Tasso", "Tan Su Shan", "Yang Peng", "Yoshihiro Hyakutome", "Kfir Godrich"], "Festival Stage"],
+["d3", "FOU", "13:00", "13:15", "P", "EE", "VC Keynote: How AI is Separating the Zombies from the Future Unicorns", "agnd246-vc-keynote-how-ai-is-separating-the-zombies-from-the-future-unicorns", ["Kabir Narang"], "Founders Stage"],
+["d3", "FRO", "13:00", "13:15", "P", "OT", "Navigating the AI Divide - Combating Fatigue via Shared Sourcing of Domain Expertise - Powered by SMBC", "agnd462-navigating-the-ai-divide-combating-fatigue-via-shared-sourcing-of-domain-expertise-powered-by-smbc", ["Shohta Ishii", "Mayoran Rajendra"], "Frontier Stage"],
+["d3", "IMP", "13:00", "13:15", "O", "OT", "Bringing Business Onchain: How Crypto Unlock Growth for Entrepreneurs - Powered by Coinbase", "agnd420-bringing-business-onchain-how-crypto-unlock-growth-for-entrepreneurs-powered-by-coinbase", ["Siddharth Coelho-Prabhu"], "Impact Stage"],
+["d3", "INV", "13:00", "14:00", "O", "OT", "Turning Bad to Good: Navigating Down Rounds, an Investor Masterclass", "agnd501-turning-bad-to-good-navigating-down-rounds-an-investor-masterclass", ["Andrew Harline", "Yi Jia Ng"], "Side Programmes"],
+["d3", "PIF", "13:00", "17:00", "O", "OT", "Pay It Forward", "agnd216-pay-it-forward", [], "Side Programmes"],
+["d3", "FUT", "13:05", "13:15", "P", "NT", "Introducing the Superior Alternative to On-chain Payments for Institutions", "agnd602-introducing-the-superior-alternative-to-on-chain-payments-for-institutions", ["Naveen Mallela", "Kelvin Li", "Sandeep Malhotra", "Sagar Desai", "Laura Teo"], "FutureMatters Stage"],
+["d3", "FRO", "13:15", "13:30", "P", "OT", "Ohayo! Increasing Global Liquidity with Tokenized Deposits in JPY - Powered by Partior", "agnd463-ohayo-increasing-global-liquidity-with-tokenized-deposits-in-jpy-powered-by-partior", ["Mai Kaneko"], "Frontier Stage"],
+["d3", "IMP", "13:15", "13:30", "O", "OT", "AI at Work: Transforming Crypto Exchanges and User Trust - Powered by OKX", "agnd421-ai-at-work-transforming-crypto-exchanges-and-user-trust-powered-by-okx", ["Ong Sze Han", "Fiona Choong"], "Impact Stage"],
+["d3", "FOU", "13:20", "14:05", "P", "EE", "VCs & Founders Panel: Has AI Fascination Caused Startups' target VC pool to shrink, or just change?", "agnd257-vcs-founders-panel-has-ai-fascination-caused-startups-target-vc-pool-to-shrink-or-just-change", ["Ganesh Rengaswamy", "Saemin Ahn", "Sandeep Naik", "Sunil Sabharwal", "Sweta Rau", "Pat Patel"], "Founders Stage"],
+["d3", "FUT", "13:20", "13:55", "P", "DA", "Digital Money: How Forward-Looking Institutions Are Managing Risks and Seizing Opportunities", "agnd105-digital-money-how-forward-looking-institutions-are-managing-risks-and-seizing-opportunities", ["Cuy Sheffield", "Mishal Ruparel", "Naveen Mallela", "Salim Dhanani", "Elise Soucie Watts"], "FutureMatters Stage"],
+["d3", "FRO", "13:30", "13:45", "P", "OT", "From Secure to Foundations to Sustainable Value Creation: A Pragmatic Approach to AI in Finance - Powered by Ant Digital Technologies", "agnd464-from-secure-to-foundations-to-sustainable-value-creation-a-pragmatic-approach-to-ai-in-finance-powered-by-ant-digital-technologies", ["Garry Sien"], "Frontier Stage"],
+["d3", "IMP", "13:30", "13:45", "O", "OT", "Redefining Finance: The Rise of Stablecoins & Digital Infrastructure - Powered by Paxos", "agnd422-redefining-finance-the-rise-of-stablecoins-digital-infrastructure-powered-by-paxos", ["Nick Robnett"], "Impact Stage"],
+["d3", "FES", "13:40", "14:15", "P", "SF", "Global Founders Dialogue: A Playbook for the Next Decade", "agnd350-global-founders-dialogue-a-playbook-for-the-next-decade", ["Caecilia Chu", "Kristo Käärmann", "Tjaart van der Walt", "Vishnu R. Dusad", "Anthony Thomas"], "Festival Stage"],
+["d3", "CAT", "13:45", "14:00", "O", "OT", "The Future of Wealth – Human Trust Meets Intelligent Tools - Powered by UOB", "agnd381-the-future-of-wealth-human-trust-meets-intelligent-tools-powered-by-uob", ["Alex Sim"], "Catalyst Stage"],
+["d3", "FRO", "13:45", "14:00", "P", "OT", "Finance Rebuilt: Digital Foundations, Tokenised Futures - Powered by Banking Circle", "agnd465-finance-rebuilt-digital-foundations-tokenised-futures-powered-by-banking-circle", ["Cindy Liu", "Kirit Bhatia"], "Frontier Stage"],
+["d3", "IMP", "13:45", "14:00", "O", "OT", "Stepping into Payments of Tomorrow, Today - Powered by Visa", "agnd423-stepping-into-payments-of-tomorrow-today-powered-by-visa", ["T.R. Ramachandran"], "Impact Stage"],
+["d3", "FUT", "13:55", "14:35", "P", "NT", "Challenges, Opportunities, and Strategies for Achieving Payments Interoperability", "agnd140-challenges-opportunities-and-strategies-for-achieving-payments-interoperability", ["Daniel Hong", "Harry Gill", "He Dong", "Sohini Rajola", "Foo Chek-Tchung"], "FutureMatters Stage"],
+["d3", "CAT", "14:00", "14:05", "O", "OT", "Welcome to Catalyst Stage - Day 1", "agnd295-welcome-to-catalyst-stage-day-1", ["Anthony Howe"], "Catalyst Stage"],
+["d3", "FRO", "14:00", "14:05", "P", "OT", "Welcome to Frontier Stage - Day 1", "agnd302-welcome-to-frontier-stage-day-1", ["Amanda Wick"], "Frontier Stage"],
+["d3", "GFT", "14:00", "15:00", "O", "OT", "GFTN Regional Networking & Market Insights Hour: Connecting FinTech Ecosystems Around the World - Africa", "agnd552-gftn-regional-networking-market-insights-hour-connecting-fintech-ecosystems-around-the-world-africa", ["Patrick Njoroge", "Matteo Rizzi"], "Side Programmes"],
+["d3", "IMP", "14:00", "14:05", "O", "OT", "Welcome to Impact Stage - Day 1", "agnd322-welcome-to-impact-stage-day-1", ["Andrzej Gwizdalski"], "Impact Stage"],
+["d3", "INV", "14:00", "17:00", "O", "OT", "Investor Hours: Startup-Investor Matchmaking", "agnd535-investor-hours-startup-investor-matchmaking", [], "Side Programmes"],
+["d3", "CAT", "14:05", "14:45", "O", "AQ", "Debate: The AI Paradox - Augmenting Mankind or Leading Us to Obsolescence?", "agnd168-debate-the-ai-paradox-augmenting-mankind-or-leading-us-to-obsolescence", ["Alvin Eng", "Ben Leong", "Monica Bhatia", "Siddharth Warrier", "Linda Nguyen Schindler"], "Catalyst Stage"],
+["d3", "FOU", "14:05", "14:15", "P", "EE", "Pursuit of Purpose – Beyond the cliché", "agnd247-pursuit-of-purpose-beyond-the-clich%C3%A9", ["Dilip Modi"], "Founders Stage"],
+["d3", "FRO", "14:05", "14:35", "P", "AQ", "AI Pathfinders in Finance: FX, Wealth Management, Payments", "agnd195-ai-pathfinders-in-finance-fx-wealth-management-payments", ["Caesar Sengupta", "Kelvin Li", "Nikhil Dwarakanath", "Sok Kim Goh", "Alan Lim"], "Frontier Stage"],
+["d3", "IMP", "14:05", "14:20", "O", "DA", "How deposits can harness tokenisation", "agnd243-how-deposits-can-harness-tokenisation", ["Andréa M Maechler"], "Impact Stage"],
+["d3", "FOU", "14:15", "14:25", "P", "EE", "The Startup Cost No One Tells You About", "agnd262-the-startup-cost-no-one-tells-you-about", ["Shivashish Chatterjee"], "Founders Stage"],
+["d3", "IMP", "14:20", "15:05", "O", "NT", "Future Powered Rails: Designing Infrastructure for Tomorrow’s Economy", "agnd197-future-powered-rails-designing-infrastructure-for-tomorrows-economy", ["Aaron Wong", "Chavi Jafa", "Joyce Bo", "Jo Yeo"], "Impact Stage"],
+["d3", "FOU", "14:25", "14:35", "P", "EE", "From Rockets to Wallets: Building Things That Deserve to Exist", "agnd248-from-rockets-to-wallets-building-things-that-deserve-to-exist", ["Arthur Mak"], "Founders Stage"],
+["d3", "FOU", "14:35", "14:45", "P", "EE", "How climbing a mountain changed my view on leadership", "agnd249-how-climbing-a-mountain-changed-my-view-on-leadership", ["Adeeb Ahamed"], "Founders Stage"],
+["d3", "FRO", "14:35", "15:10", "P", "AQ", "Transforming Core Banking With AI and Cloud Without Disruption", "agnd121-transforming-core-banking-with-ai-and-cloud-without-disruption", ["Ashwini K. Tewari", "Kenneth Siow", "Luis Pereira", "Sabyasachi Goswami", "Bhavya Kumar"], "Frontier Stage"],
+["d3", "FUT", "14:35", "15:10", "P", "NT", "Addressing Challenges in Cross-Border Payments: Cost, Compliance, Last-Mile Inclusion", "agnd234-addressing-challenges-in-cross-border-payments-cost-compliance-last-mile-inclusion", ["Douglas Feagin", "José Fernández da Ponte", "Sandeep Malhotra", "Sunil Sabharwal", "Irene Arias Hofman"], "FutureMatters Stage"],
+["d3", "CAT", "14:45", "17:30", "O", "EE", "Global FinTech Hackcelerator Demo Day", "agnd64-global-fintech-hackcelerator-demo-day", ["Amy Zhao", "Chia Tek Yew", "Jatin Mamtani", "Matthew Reilly", "Pauline Sim", "Prakhar Sureka", "Scott Krivokopich", "Susli Lie", "Yasminne Cheng"], "Catalyst Stage"],
+["d3", "FOU", "14:45", "14:55", "P", "EE", "Salim's Untold Founder Story", "agnd252-salims-untold-founder-story", ["Salim Dhanani"], "Founders Stage"],
+["d3", "FOU", "15:00", "15:15", "P", "EE", "Unveiling 'It's About Tyme - Banking Beyond Borders'", "agnd250-unveiling-its-about-tyme-banking-beyond-borders", ["Bruce Whitfield", "Coen Jonker"], "Founders Stage"],
+["d3", "GFT", "15:00", "15:15", "O", "OT", "Meet ALFIN - Your Intelligent Insights Engine for the Financial Industry", "agnd731-meet-alfin-your-intelligent-insights-engine-for-the-financial-industry", [], "Side Programmes"],
+["d3", "IMP", "15:05", "15:35", "O", "DA", "IOSCO Fintech Task Force: The Current State of Play in Crypto-Assets, AI and Financial Asset Tokenisation", "agnd137-iosco-fintech-task-force-the-current-state-of-play-in-crypto-assets-ai-and-financial-asset-tokenisation", ["Lim Tuang Lee", "Matthew Long", "Merion Anggerek", "Alp Eroglu"], "Impact Stage"],
+["d3", "FRO", "15:10", "15:45", "P", "SF", "How Will Digital Banks Compete Over the Next Decade? New Propositions and Customer Segments", "agnd122-how-will-digital-banks-compete-over-the-next-decade-new-propositions-and-customer-segments", ["Bojan Obradovic", "Emma Hagan", "Jeff Parker", "Kattiya Indaravijaya", "Martin Blechta"], "Frontier Stage"],
+["d3", "FUT", "15:10", "15:45", "P", "DA", "CBDCs: When and What’s Required to Move from Pilots to Public Money?", "agnd313-cbdcs-when-and-whats-required-to-move-from-pilots-to-public-money", ["Chang Yong Rhee", "Mark Staples", "Philippe Laurensy", "Wolfram Seidemann", "Raadhika Sihin"], "FutureMatters Stage"],
+["d3", "FOU", "15:15", "16:00", "P", "EE", "VCs & Founders Panel: AI-first or Profitability-first - Can Founders Really Chase Two Rabbits?", "agnd251-vcs-founders-panel-ai-first-or-profitability-first-can-founders-really-chase-two-rabbits", ["Andrea Baronchelli", "Bill Deng", "Nobutake Suzuki", "Prajit Nanu", "Visa Kannan", "Murakami Rei"], "Founders Stage"],
+["d3", "GFT", "15:15", "16:00", "O", "OT", "Book Launch: 'It's About Tyme - Banking Beyond Borders'", "agnd597-book-launch-its-about-tyme-banking-beyond-borders", ["Coen Jonker", "Rachel Freeman", "Bruce Whitfield"], "Side Programmes"],
+["d3", "SYN", "15:15", "16:30", "O", "OT", "[Synergy Soup] Relationships as Capital: Leading With Candour, Care, and Connection", "agnd532-synergy-soup-relationships-as-capital-leading-with-candour-care-and-connection", ["Vanessa Chin"], "Side Programmes"],
+["d3", "SYN", "15:15", "16:30", "O", "OT", "[Synergy Soup] Collaboration Is Key for Quantum Computing in Finance", "agnd530-synergy-soup-collaboration-is-key-for-quantum-computing-in-finance", ["Lisa Schroeder"], "Side Programmes"],
+["d3", "SYN", "15:15", "16:30", "O", "OT", "[Synergy Soup] The Unseen Architect of Strategy: How Chiefs of Staff Shape Outcomes", "agnd534-synergy-soup-the-unseen-architect-of-strategy-how-chiefs-of-staff-shape-outcomes", ["Eelee Lua"], "Side Programmes"],
+["d3", "SYN", "15:15", "16:30", "O", "OT", "[Synergy Soup] Payment Innovation Utilising AI – Agentic Payments for Institutional Business", "agnd531-synergy-soup-payment-innovation-utilising-ai-agentic-payments-for-institutional-business", ["Daniel Lee"], "Side Programmes"],
+["d3", "SYN", "15:15", "16:30", "O", "OT", "[Synergy Soup] The Future of AI in Banking", "agnd533-synergy-soup-the-future-of-ai-in-banking", ["Shenglin Ben"], "Side Programmes"],
+["d3", "SYN", "15:15", "16:30", "O", "OT", "[Synergy Soup] Digital Assets: Laying Out the Infrastructure to Build for Tomorrow", "agnd551-synergy-soup-digital-assets-laying-out-the-infrastructure-to-build-for-tomorrow", ["Rajesh Sabari"], "Side Programmes"],
+["d3", "IMP", "15:35", "16:15", "O", "DA", "Stocktake on Digital SGD: Towards a Common Settlement Asset", "agnd167-stocktake-on-digital-sgd-towards-a-common-settlement-asset", ["Lee Zhu Kuang", "Lim Soon Chong", "Steven Hu", "Kenneth Gay"], "Impact Stage"],
+["d3", "FRO", "15:45", "16:20", "P", "BG", "Digital Wealth for an Inclusive Future: How and Which Technologies are Driving Transformation Across the Wealth Continuum", "agnd171-digital-wealth-for-an-inclusive-future-how-and-which-technologies-are-driving-transformation-across-the-wealth-continuum", ["Evy Wee", "James Verner", "Nicolas de Skowronski", "Samuel Rhee", "Nicole Sandler"], "Frontier Stage"],
+["d3", "FUT", "15:45", "16:20", "P", "NT", "Agentic Commerce: Solving for Trust, Transparency, and Commercial Models", "agnd364-agentic-commerce-solving-for-trust-transparency-and-commercial-models", ["Drew Olson", "Gary Liu", "Wendy Wang", "Abhijeet Ramesh", "Ned Lowe"], "FutureMatters Stage"],
+["d3", "FOU", "16:00", "16:10", "P", "EE", "From Cupcakes to Global CEO", "agnd253-from-cupcakes-to-global-ceo", ["David Hanna"], "Founders Stage"],
+["d3", "GFT", "16:00", "17:00", "O", "OT", "GFTN Regional Networking & Market Insights Hour: Connecting FinTech Ecosystems Around the World - Middle East", "agnd598-gftn-regional-networking-market-insights-hour-connecting-fintech-ecosystems-around-the-world-middle-east", ["George Lee", "Manisha Tank"], "Side Programmes"],
+["d3", "FOU", "16:10", "16:20", "P", "EE", "The Art of Doing What Doesn't Make Sense", "agnd254-the-art-of-doing-what-doesnt-make-sense", ["Aneirin Flynn", "Foo Wui Ngiap"], "Founders Stage"],
+["d3", "IMP", "16:15", "16:45", "O", "NT", "Protecting Retail Investors: Combating Digital Financial Fraud in the Modern Era", "agnd289-protecting-retail-investors-combating-digital-financial-fraud-in-the-modern-era", ["Camille Beaudoin", "Gerri Walsh", "Lyndwill Clarke", "Rebecca Chua", "Ana Frasquilho"], "Impact Stage"],
+["d3", "FOU", "16:20", "16:30", "P", "EE", "8 Things Startups NEED to Know", "agnd280-8-things-startups-need-to-know", ["Willix Halim"], "Founders Stage"],
+["d3", "FRO", "16:20", "16:55", "P", "DA", "The Convergence of TradFi and DeFi: What’s the Play and Where’s the Value?", "agnd329-the-convergence-of-tradfi-and-defi-whats-the-play-and-wheres-the-value", ["Akshika Gupta", "Rich Clow", "Sophie Guibaud", "Tom Duff Gordon", "Ronit Ghose"], "Frontier Stage"],
+["d3", "FUT", "16:20", "16:55", "P", "DA", "Impact of Stablecoins: Managing Compliance and Financial Stability Risks", "agnd114-impact-of-stablecoins-managing-compliance-and-financial-stability-risks", ["Chloé Mayenobe", "David Katz", "Sasha Mills", "Kirit Bhatia", "Chia Hock Lai"], "FutureMatters Stage"],
+["d3", "FOU", "16:30", "16:55", "P", "EE", "CHOOSING DIFFICULT - How Founders Take the 10% Chance", "agnd255-choosing-difficult-how-founders-take-the-10-chance", ["Coen Jonker", "Lakshmi Kripa Meiyappan", "Michael Stemmle", "Navin Suri", "Sagari White"], "Founders Stage"],
+["d3", "IMP", "16:45", "17:25", "O", "AQ", "AI in Finance: Governance, Stability and the Next Supervisory Frontier", "agnd312-ai-in-finance-governance-stability-and-the-next-supervisory-frontier", ["Justin Baldacchino", "Karmela Holtgreve", "Roong Poshyananda Mallikamas", "Raadhika Sihin"], "Impact Stage"],
+["d3", "FRO", "16:55", "17:25", "P", "NT", "The Real-World Test for Tech: Bridging the Digital Economy’s Last Mile for the Long Term", "agnd511-the-real-world-test-for-tech-bridging-the-digital-economys-last-mile-for-the-long-term", ["Aabhinna Suresh Khare", "Leiming Chen", "Ling Wu", "Amanda Wick"], "Frontier Stage"],
+["d3", "FUT", "16:55", "17:35", "P", "DA", "Rolling in the DPT: Stablecoins – Risks and Rewards", "agnd307-rolling-in-the-dpt-stablecoins-risks-and-rewards", ["Chan Yam Ki", "Nicole Sandler", "Rene Michau", "Jo Yeo"], "FutureMatters Stage"],
+["d3", "FOU", "17:00", "17:40", "P", "EE", "VCs & Founders Panel: How do Startups Bridge the Growing AI Skills Mismatch to Survive and Grow in an AI-first World", "agnd256-vcs-founders-panel-how-do-startups-bridge-the-growing-ai-skills-mismatch-to-survive-and-grow-in-an-ai-first-world", ["Laurence Liew", "Rahil Rangawala", "Shenglin Ben", "Pooja K Dhanothia", "Prantik Mazumdar"], "Founders Stage"],
+["d3", "GFT", "17:00", "18:00", "O", "OT", "GFTN Regional Networking & Market Insights Hour: Connecting FinTech Ecosystems Around the World - Asia", "agnd553-gftn-regional-networking-market-insights-hour-connecting-fintech-ecosystems-around-the-world-asia", [], "Side Programmes"],
+["d3", "IMP", "17:25", "17:30", "O", "OT", "Impact Stage Day 1 Wrap Up", "agnd324-impact-stage-day-1-wrap-up", ["Sivapriya Anbarasu"], "Impact Stage"],
+["d3", "FRO", "17:30", "17:35", "P", "OT", "Frontier Stage Day 1 Wrap Up", "agnd365-frontier-stage-day-1-wrap-up", ["Amanda Wick"], "Frontier Stage"],
+["d3", "SP", "19:00", "22:00", "O", "OT", "SFF After Hours @ Boat Quay", "agnd567-sff-after-hours-boat-quay", [], "Side Programmes"],
+["d4", "FES", "9:10", "9:25", "P", "OT", "Welcome to Singapore FinTech Festival 2025 - Day 2", "agnd314-welcome-to-singapore-fintech-festival-2025-day-2", ["Manisha Tank"], "Festival Stage"],
+["d4", "FES", "9:25", "9:50", "P", "BG", "The Great Leap Forward: From Digital Infrastructure to Universal Finternet", "agnd172-the-great-leap-forward-from-digital-infrastructure-to-universal-finternet", ["Nandan Nilekani"], "Festival Stage"],
+["d4", "GFT", "9:30", "10:00", "O", "OT", "FinMonda demo", "agnd725-finmonda-demo", [], "Side Programmes"],
+["d4", "FES", "9:50", "10:30", "P", "BG", "Global South: Strategies, Opportunities and Unresolved Challenges", "agnd174-global-south-strategies-opportunities-and-unresolved-challenges", ["Irene Arias Hofman", "Michael Schlein", "Nobuya Kawasaki", "Richard Verma", "Veerathai Santiprabhob", "Pat Patel"], "Festival Stage"],
+["d4", "GFT", "10:00", "11:00", "I", "OT", "Next Gen Leaders AMA Session 2", "agnd726-next-gen-leaders-ama-session-2", [], "Side Programmes"],
+["d4", "SP", "10:00", "11:00", "O", "OT", "Bringing Dollars Onchain: How Businesses Use Stablecoins - Powered by Circle", "agnd496-bringing-dollars-onchain-how-businesses-use-stablecoins-powered-by-circle", [], "Side Programmes"],
+["d4", "CAT", "10:30", "11:00", "O", "TT", "The FinTech Talent Blueprint: Navigating the New Era of FinTech Workforce Transformation", "agnd132-the-fintech-talent-blueprint-navigating-the-new-era-of-fintech-workforce-transformation", ["Alvinder Singh", "Hassan Ahmed", "Lai Pei-Si", "Tawishi Singh", "Jonathan Goldstein"], "Catalyst Stage"],
+["d4", "FES", "10:30", "10:35", "P", "BG", "Global Impact Champions Award", "agnd500-global-impact-champions-award", ["Neil Parekh", "Veerathai Santiprabhob"], "Festival Stage"],
+["d4", "FRO", "10:30", "10:45", "P", "OT", "Trustworthy Autonomy: Balancing Control and Innovation with Agentic AI in Banking - Powered by Nucleus Software", "agnd466-trustworthy-autonomy-balancing-control-and-innovation-with-agentic-ai-in-banking-powered-by-nucleus-software", ["Shashank Bhaskar"], "Frontier Stage"],
+["d4", "FES", "10:35", "11:05", "P", "AQ", "Creating the Future of Finance: A Journey of Innovation and Collaboration", "agnd68-creating-the-future-of-finance-a-journey-of-innovation-and-collaboration", ["Chia Der Jiun"], "Festival Stage"],
+["d4", "IMP", "10:45", "11:00", "O", "NT", "DCJPY – JPY-Based Tokenized Deposit for the Next-Generation Infrastructure", "agnd425-dcjpy-jpy-based-tokenized-deposit-for-the-next-generation-infrastructure", ["Hiromi Yamaoka"], "Impact Stage"],
+["d4", "CAT", "11:00", "11:30", "O", "EE", "FinTech in ASEAN 2025: Navigating the New Realities", "agnd187-fintech-in-asean-2025-navigating-the-new-realities", ["Arthur Leong", "Samantha Horton", "Tan Yinglan", "Wong Wanyi"], "Catalyst Stage"],
+["d4", "FRO", "11:00", "11:15", "P", "OT", "Signals That Scale Finance Conversations on X - Powered by X", "agnd468-signals-that-scale-finance-conversations-on-x-powered-by-x", ["Alan Lan"], "Frontier Stage"],
+["d4", "GFT", "11:00", "11:30", "O", "OT", "Meet ALFIN - Your Intelligent Insights Engine for the Financial Industry", "agnd727-meet-alfin-your-intelligent-insights-engine-for-the-financial-industry", [], "Side Programmes"],
+["d4", "IMP", "11:00", "11:15", "O", "OT", "Interoperability Without Borders: Building the Next Generation of National Payment Schemes - Powered by Pay10", "agnd426-interoperability-without-borders-building-the-next-generation-of-national-payment-schemes-powered-by-pay10", ["Saad Kaleem", "Lisa Nyman"], "Impact Stage"],
+["d4", "FES", "11:05", "11:40", "P", "AQ", "Quantum Frontiers: Insights from Research, Business, and Technology Leaders", "agnd355-quantum-frontiers-insights-from-research-business-and-technology-leaders", ["Michael Biercuk", "Philip Intallura", "Ray Harishankar", "Urbasi Sinha", "Steve Suarez"], "Festival Stage"],
+["d4", "FRO", "11:15", "11:30", "P", "OT", "Data & AI Powering FinTech Transformation - Powered by SAS", "agnd469-data-ai-powering-fintech-transformation-powered-by-sas", ["Patrick Xhonneux", "Sameer Thakkar"], "Frontier Stage"],
+["d4", "IMP", "11:15", "11:30", "O", "DA", "[Virtual Keynote] From Paris to Singapour: Designing an innovative and interoperable financial system", "agnd427-virtual-keynote-from-paris-to-singapour-designing-an-innovative-and-interoperable-financial-system", ["François Villeroy de Galhau [Speaking Virtually]"], "Impact Stage"],
+["d4", "FRO", "11:30", "11:45", "P", "OT", "Making Stablecoins Swipeable – Setting You Up for Future Success! - Powered by Thredd", "agnd470-making-stablecoins-swipeable-setting-you-up-for-future-success-powered-by-thredd", ["Jim McCarthy", "Kevin Kang"], "Frontier Stage"],
+["d4", "IMP", "11:30", "11:45", "O", "OT", "Rewiring Working Capital Finance with AI - Powered by Veefin", "agnd428-rewiring-working-capital-finance-with-ai-powered-by-veefin", ["Parag Ekbote"], "Impact Stage"],
+["d4", "INV", "11:30", "12:30", "O", "OT", "Building and Scaling Modern Data Architectures for Fintechs in the AI Era", "agnd527-building-and-scaling-modern-data-architectures-for-fintechs-in-the-ai-era", ["Nam Le", "Ryan Jadidi", "John Li"], "Side Programmes"],
+["d4", "FES", "11:40", "12:20", "P", "AQ", "Building an Intelligent Financial Stack", "agnd352-building-an-intelligent-financial-stack", ["Akio Isowa", "Forest Lin", "Paul Taylor", "Sabyasachi Goswami", "Shirin Hamid", "Sopnendu Mohanty"], "Festival Stage"],
+["d4", "FRO", "11:45", "12:00", "P", "OT", "Redefining Digital Payments in APAC - Powered by J.P. Morgan", "agnd471-redefining-digital-payments-in-apac-powered-by-j-p-morgan", ["Akhil Devmurari", "Gajia Parsons"], "Frontier Stage"],
+["d4", "IMP", "11:45", "12:00", "O", "OT", "Beyond Borders – Building a Payment Infrastructure for a Connected World - Powered by NETS", "agnd429-beyond-borders-building-a-payment-infrastructure-for-a-connected-world-powered-by-nets", ["Lawrence Chan"], "Impact Stage"],
+["d4", "FRO", "12:00", "12:15", "P", "OT", "Beyond Digital, AI Empowers Finance - Powered by Huawei", "agnd472-beyond-digital-ai-empowers-finance-powered-by-huawei", ["Jason Cao"], "Frontier Stage"],
+["d4", "IMP", "12:00", "12:15", "O", "OT", "Building a Bank for 2030: Laying the Case for Composable, Cloud-native Innovation - Powered by Pismo", "agnd430-building-a-bank-for-2030-laying-the-case-for-composable-cloud-native-innovation-powered-by-pismo", ["Varun Dudeja"], "Impact Stage"],
+["d4", "FRO", "12:15", "12:30", "P", "OT", "Quantum-Resilient Finance: Leading the Future of Digital Trust - Powered by ST Engineering", "agnd473-quantum-resilient-finance-leading-the-future-of-digital-trust-powered-by-st-engineering", ["Vrizlynn Thing"], "Frontier Stage"],
+["d4", "IMP", "12:15", "12:30", "O", "OT", "Stablecoin Networks: Future of Cross Border Money Movement - Powered by Tazapay", "agnd431-stablecoin-networks-future-of-cross-border-money-movement-powered-by-tazapay", ["Kanupriya Sharda"], "Impact Stage"],
+["d4", "FES", "12:20", "12:35", "P", "AQ", "The Hacker’s Playbook: From Black Hat to White Knight", "agnd353-the-hackers-playbook-from-black-hat-to-white-knight", ["Rafael Echemendia"], "Festival Stage"],
+["d4", "FRO", "12:30", "12:45", "P", "OT", "Stablecoins: The Future of Payments is Now - Powered by Ripple", "agnd474-stablecoins-the-future-of-payments-is-now-powered-by-ripple", ["Jack Cullinane", "Warren Soo"], "Frontier Stage"],
+["d4", "IMP", "12:30", "12:45", "O", "OT", "Enabling Cross-Border Merchant Payments with Interoperable Wallets - Powered by TerraPay", "agnd432-enabling-cross-border-merchant-payments-with-interoperable-wallets-powered-by-terrapay", ["Ani Sane"], "Impact Stage"],
+["d4", "FES", "12:35", "13:10", "P", "DA", "Bridging US, European, and Asian Digital Asset Regulations", "agnd356-bridging-us-european-and-asian-digital-asset-regulations", ["Andréa M Maechler", "Ho Hern Shin", "Peter Kerstens", "Timothy Adams", "Ari Redbord"], "Festival Stage"],
+["d4", "FOU", "12:40", "12:50", "P", "EE", "Financial Health Across Generations: Building Pensions for the Modern Age", "agnd716-financial-health-across-generations-building-pensions-for-the-modern-age", ["Parul Seth Khanna"], "Founders Stage"],
+["d4", "FRO", "12:45", "13:00", "P", "OT", "WhatsApp for Business in Fintech: Navigating APAC with Business Solutions Providers - Powered by Meta", "agnd475-whatsapp-for-business-in-fintech-navigating-apac-with-business-solutions-providers-powered-by-meta", ["Debby Lam", "Erik Gan", "Irfan Ismail"], "Frontier Stage"],
+["d4", "FUT", "12:45", "12:50", "P", "OT", "Welcome to FutureMatters Stage - Day 2", "agnd316-welcome-to-futurematters-stage-day-2", ["Sharanjit Leyl"], "FutureMatters Stage"],
+["d4", "IMP", "12:45", "13:00", "O", "OT", "Transformation of Digital Payments Landscape of India - Powered by UPI - Powered by NPCI", "agnd433-transformation-of-digital-payments-landscape-of-india-powered-by-upi-powered-by-npci", ["Ritesh Shukla"], "Impact Stage"],
+["d4", "FOU", "12:50", "13:05", "P", "EE", "Welcome to Founders Stage - Day 2: The Policymakers' Day", "agnd69-welcome-to-founders-stage-day-2-the-policymakers-day", ["Sagari White", "Navin Suri"], "Founders Stage"],
+["d4", "FUT", "12:50", "13:30", "P", "AQ", "Rewiring Global Value Chains: The AI and Payments Dual-Engine", "agnd600-rewiring-global-value-chains-the-ai-and-payments-dual-engine", ["Amira Karim", "Anju Patwardhan", "Kazuya Ikeda", "Livia Benisty", "Namrata Jolly", "Jaskaran Bhalla"], "FutureMatters Stage"],
+["d4", "FRO", "13:00", "13:15", "P", "OT", "AI and Cloud Computing in ICBC - Powered by ICBC", "agnd476-ai-and-cloud-computing-in-icbc-powered-by-icbc", ["Si Jike"], "Frontier Stage"],
+["d4", "IMP", "13:00", "13:15", "O", "OT", "Turning Payment Frictions into Pathways: Empowering SMEs in the Global Economy - Powered by Amazon", "agnd434-turning-payment-frictions-into-pathways-empowering-smes-in-the-global-economy-powered-by-amazon", ["Kati Suominen"], "Impact Stage"],
+["d4", "INV", "13:00", "14:00", "O", "OT", "Mastering the Fundraise: From Term Sheets to Closing, a Startup Masterclass", "agnd503-mastering-the-fundraise-from-term-sheets-to-closing-a-startup-masterclass", ["Andrew Harline", "Charlie Pennington"], "Side Programmes"],
+["d4", "PIF", "13:00", "17:00", "O", "OT", "Pay It Forward", "agnd218-pay-it-forward", [], "Side Programmes"],
+["d4", "FOU", "13:05", "13:20", "P", "EE", "Rethinking Capital, Hiring and Equity", "agnd258-rethinking-capital-hiring-and-equity", ["Bhavik Vashi"], "Founders Stage"],
+["d4", "FES", "13:10", "14:00", "P", "DA", "The Future of Stablecoins: Decoding the GENIUS Act", "agnd290-the-future-of-stablecoins-decoding-the-genius-act", ["Chris Newkirk", "Eric Anziani", "Lily Liu", "Monica Long", "Richard Teng", "Takis Panagiotis Georgakopoulos", "Pradyumna Agrawal"], "Festival Stage"],
+["d4", "FRO", "13:15", "13:30", "P", "OT", "From Chatbot to Checkout: Building the Open Standard for Agentic Commerce - Powered by Stripe", "agnd477-from-chatbot-to-checkout-building-the-open-standard-for-agentic-commerce-powered-by-stripe", ["Paul Harapin"], "Frontier Stage"],
+["d4", "IMP", "13:15", "13:30", "O", "OT", "Going Mainstream: Stablecoins are Rewriting the Corporate Finance Playbook - Powered by Hedera", "agnd435-going-mainstream-stablecoins-are-rewriting-the-corporate-finance-playbook-powered-by-hedera", ["Sabrina Tachdjian"], "Impact Stage"],
+["d4", "FOU", "13:20", "14:00", "P", "EE", "Building in a World of Hardening Digital Borders and Fractured AI Policy", "agnd259-building-in-a-world-of-hardening-digital-borders-and-fractured-ai-policy", ["Claude Marx", "Dietmar Böhmer", "Jimoh Musa Itopa", "Ulrike Schmitz", "Matteo Rizzi"], "Founders Stage"],
+["d4", "CAT", "13:25", "13:30", "O", "OT", "Welcome to Catalyst Stage - Day 2", "agnd296-welcome-to-catalyst-stage-day-2", ["Anthony Howe"], "Catalyst Stage"],
+["d4", "CAT", "13:30", "14:05", "O", "NT", "Seamless Asia: The Next Chapter in Payments", "agnd385-seamless-asia-the-next-chapter-in-payments", ["Arif Khan", "Arvind Sankaran", "Worachat Luxkanalode", "Gaya Ananda"], "Catalyst Stage"],
+["d4", "FRO", "13:30", "13:45", "P", "OT", "From Scepticism to Impact: Driving DBS AI Transformation Journey – Powered by DBS", "agnd478-from-scepticism-to-impact-driving-dbs-ai-transformation-journey-powered-by-dbs", ["Lim Him Chuan"], "Frontier Stage"],
+["d4", "FUT", "13:30", "14:05", "P", "EE", "The Decade Ahead: The Industry Leader's Perspective on Blue Oceans and Black Swans", "agnd235-the-decade-ahead-the-industry-leaders-perspective-on-blue-oceans-and-black-swans", ["Diana Paredes", "Milind Sanghavi", "Mohammed Al-Emadi", "Prajit Nanu", "Pat Patel"], "FutureMatters Stage"],
+["d4", "GFT", "13:30", "14:00", "O", "OT", "Meet ALFIN - Your Intelligent Insights Engine for the Financial Industry", "agnd728-meet-alfin-your-intelligent-insights-engine-for-the-financial-industry", [], "Side Programmes"],
+["d4", "IMP", "13:30", "13:45", "O", "OT", "From Insight to Impact: Agentic AI that Drives Real Results in Finance - Powered by Dyna.Ai", "agnd436-from-insight-to-impact-agentic-ai-that-drives-real-results-in-finance-powered-by-dyna-ai", ["Tomas Skoumal"], "Impact Stage"],
+["d4", "FRO", "13:45", "14:00", "P", "OT", "From Anonymity to Accountability: Web3’s Defining Migration - Powered by CleanVerse", "agnd479-from-anonymity-to-accountability-web3s-defining-migration-powered-by-cleanverse", ["Ceridwen Choo"], "Frontier Stage"],
+["d4", "IMP", "13:45", "14:00", "O", "OT", "Budget Better, Spend Smarter: The New Money In$ights Experience - Powered by OCBC", "agnd437-budget-better-spend-smarter-the-new-money-inights-experience-powered-by-ocbc", ["Colin Goh"], "Impact Stage"],
+["d4", "FRO", "14:00", "14:05", "P", "OT", "Welcome to Frontier Stage - Day 2", "agnd303-welcome-to-frontier-stage-day-2", ["Amanda Wick"], "Frontier Stage"],
+["d4", "GFT", "14:00", "15:00", "O", "OT", "GFTN Regional Networking & Market Insights Hour: Connecting FinTech Ecosystems Around the World - India", "agnd599-gftn-regional-networking-market-insights-hour-connecting-fintech-ecosystems-around-the-world-india", [], "Side Programmes"],
+["d4", "IMP", "14:00", "14:05", "O", "OT", "Welcome to Impact Stage - Day 2", "agnd323-welcome-to-impact-stage-day-2", ["Andrzej Gwizdalski"], "Impact Stage"],
+["d4", "INV", "14:00", "17:00", "O", "OT", "Investor Hours: Investor Hours: Startup meets Investor Reception", "agnd536-investor-hours-investor-hours-startup-meets-investor-reception", [], "Side Programmes"],
+["d4", "CAT", "14:05", "14:35", "O", "TT", "Blockchain Guardians Programme Graduation", "agnd131-blockchain-guardians-programme-graduation", ["Ang Chin Tah", "Angela Ang", "Daniel Lee", "Jag Foo", "Zhang Long Jian"], "Catalyst Stage"],
+["d4", "FOU", "14:05", "14:15", "P", "EE", "Surviving Hypergrowth", "agnd712-surviving-hypergrowth", ["Avital Pardo"], "Founders Stage"],
+["d4", "FRO", "14:05", "14:40", "P", "SF", "Collaborating for Cyber Resilience: How Financial Institutions Can Manage AI Risks", "agnd151-collaborating-for-cyber-resilience-how-financial-institutions-can-manage-ai-risks", ["Aditi Sawhney", "Kathleen Gan", "Matthew DeLauro", "Tobias Gondrom", "Pieter Franken"], "Frontier Stage"],
+["d4", "FUT", "14:05", "14:40", "P", "BG", "Digital, Personalised, and Global: Emerging Models and Trends in Wealth Management", "agnd107-digital-personalised-and-global-emerging-models-and-trends-in-wealth-management", ["Caesar Sengupta", "Dhruv Arora", "Lavanya Chari", "Marco Bizzozero", "Nasir Zubairi"], "FutureMatters Stage"],
+["d4", "IMP", "14:05", "14:20", "O", "SU", "Fintech and Sustainability: Seizing Emerging Business Opportunities from Lithuania", "agnd736-fintech-and-sustainability-seizing-emerging-business-opportunities-from-lithuania", ["Januš Kizenevič"], "Impact Stage"],
+["d4", "FOU", "14:15", "14:25", "P", "EE", "The Best Leaders Are Scared", "agnd265-the-best-leaders-are-scared", ["Qin En Looi"], "Founders Stage"],
+["d4", "IMP", "14:20", "15:00", "O", "AQ", "Leveraging Emerging Technologies to Enhance Supervisory Functions of Central Banks and Financial Authorities", "agnd294-leveraging-emerging-technologies-to-enhance-supervisory-functions-of-central-banks-and-financial-authorities", ["Jeremy Hor", "Maha El Dimachki", "Nino Landerer", "Lewis Liu"], "Impact Stage"],
+["d4", "FOU", "14:25", "14:35", "P", "EE", "Managing Euphoria and Terror: A Founder’s Guide to Staying Sane", "agnd263-managing-euphoria-and-terror-a-founders-guide-to-staying-sane", ["Mathias Imbach"], "Founders Stage"],
+["d4", "CAT", "14:35", "15:05", "O", "TT", "Scaling Onchain: Designing the Human Layer of Web3", "agnd241-scaling-onchain-designing-the-human-layer-of-web3", ["Betty Sun-Lucas", "Esther Wong", "Lily King", "Bernice Neo"], "Catalyst Stage"],
+["d4", "FOU", "14:35", "14:45", "P", "EE", "Being Underestimated is a Founder’s Superpower", "agnd310-being-underestimated-is-a-founders-superpower", ["Saurav Bhatia"], "Founders Stage"],
+["d4", "FRO", "14:40", "15:10", "P", "DA", "BLOOM: Borderless, Liquid, Open, Online, Multi-currency", "agnd194-bloom-borderless-liquid-open-online-multi-currency", ["Erik Reppel", "Paul Harapin", "Tianwei Liu", "Alan Lim"], "Frontier Stage"],
+["d4", "FUT", "14:40", "15:15", "P", "BG", "Achieving 100% Financial Health: Partnerships, Business Models, and Innovation", "agnd117-achieving-100-financial-health-partnerships-business-models-and-innovation", ["Anouska Ladds", "Lito Villanueva", "Quan Yu", "Eun Mi Kristina Rhee", "Chris Coxon"], "FutureMatters Stage"],
+["d4", "FOU", "14:45", "15:25", "P", "EE", "Policymaking at the Speed of AI: Is it Time to Change How Policies are Made and How to Get There?", "agnd266-policymaking-at-the-speed-of-ai-is-it-time-to-change-how-policies-are-made-and-how-to-get-there", ["Bruce Gosper", "Julie Tomka", "Kenneth Gay", "Arjun Vir Singh"], "Founders Stage"],
+["d4", "GFT", "15:00", "15:30", "O", "OT", "FinMonda demo", "agnd730-finmonda-demo", [], "Side Programmes"],
+["d4", "IMP", "15:00", "15:40", "O", "DA", "Technical Showcase: Tokenised Money and the Future of Cross-Border Transactions", "agnd293-technical-showcase-tokenised-money-and-the-future-of-cross-border-transactions", ["Benjamin Lee", "Khai Pham", "Vincent Pek", "Friedrich Klinger"], "Impact Stage"],
+["d4", "CAT", "15:05", "15:10", "O", "EE", "PolyFinTech100 API Hackathon Grand Finals - Opening Address", "agnd717-polyfintech100-api-hackathon-grand-finals-opening-address", ["Ong-Ang Ai Boon", "Ashvari Ravintharan"], "Catalyst Stage"],
+["d4", "CAT", "15:10", "16:20", "O", "EE", "PolyFinTech100 API Hackathon Grand Finals", "agnd130-polyfintech100-api-hackathon-grand-finals", ["Team A Group of Very Stern Bears", "Team Cashless Crusaders", "Team Quantara", "Team Teen Titans", "Ong-Ang Ai Boon", "Alvinder Singh", "Edmund Chong", "Holly Fang", "Ashvari Ravintharan"], "Catalyst Stage"],
+["d4", "FRO", "15:10", "15:45", "P", "DA", "Global Liquidity through Digital Money: Reshaping Treasury, Settlement, and Payments Infrastructure", "agnd286-global-liquidity-through-digital-money-reshaping-treasury-settlement-and-payments-infrastructure", ["Christoph König", "Gajia Parsons", "Imke Jacob", "Rebekah Wong", "Danielle Szetho"], "Frontier Stage"],
+["d4", "FUT", "15:15", "15:50", "P", "BG", "Fintech for Longevity: Transforming Insurance, Pensions, and Long-Term Capital", "agnd136-fintech-for-longevity-transforming-insurance-pensions-and-long-term-capital", ["Abhijit Phukon", "Darko Hajdukovic", "Nobuyasu Sugimoto", "Parul Seth Khanna", "Rafat Kapadia"], "FutureMatters Stage"],
+["d4", "SYN", "15:15", "16:30", "O", "OT", "[Synergy Soup] AI + RegTech: Creating a Better World for Consumers, Businesses and Regulators", "agnd538-synergy-soup-ai-regtech-creating-a-better-world-for-consumers-businesses-and-regulators", ["Peter Deans"], "Side Programmes"],
+["d4", "SYN", "15:15", "16:30", "O", "OT", "[Synergy Soup] AI: Enhancing or Eroding Lives? Navigating Trade‑offs for Human‑Centric Growth", "agnd539-synergy-soup-ai-enhancing-or-eroding-lives-navigating-trade-offs-for-human-centric-growth", ["Rachie Hui"], "Side Programmes"],
+["d4", "SYN", "15:15", "16:30", "O", "OT", "[Synergy Soup] From Comfort to Courage – Your Dream Awaits", "agnd541-synergy-soup-from-comfort-to-courage-your-dream-awaits", ["Marion Mueller"], "Side Programmes"],
+["d4", "SYN", "15:15", "16:30", "O", "OT", "[Synergy Soup] Stablecoins: Today and Tomorrow", "agnd542-synergy-soup-stablecoins-today-and-tomorrow", ["Daniel Liebau"], "Side Programmes"],
+["d4", "SYN", "15:15", "16:30", "O", "OT", "[Synergy Soup] Ecosystem Approach to Battling Scams and Frauds", "agnd540-synergy-soup-ecosystem-approach-to-battling-scams-and-frauds", ["Chia Tek Yew"], "Side Programmes"],
+["d4", "GFT", "15:30", "16:30", "O", "OT", "GFTN Regional Networking & Market Insights Hour: Connecting FinTech Ecosystems Around the World - China", "agnd554-gftn-regional-networking-market-insights-hour-connecting-fintech-ecosystems-around-the-world-china", [], "Side Programmes"],
+["d4", "FOU", "15:40", "15:50", "P", "EE", "The GUTS to Change: From Village Roots to Global Impact", "agnd270-the-guts-to-change-from-village-roots-to-global-impact", ["Shou Dong"], "Founders Stage"],
+["d4", "IMP", "15:40", "16:10", "O", "DA", "Unlocking New Markets and Liquidity for Europe-Asia", "agnd185-unlocking-new-markets-and-liquidity-for-europe-asia", ["Alexandra Hachmeister", "Audrey Metzger", "Tom Mutton", "Alan Lim"], "Impact Stage"],
+["d4", "FRO", "15:45", "16:20", "P", "AQ", "AI that Delivers: Creating Client Value While Ensuring Responsible Wealth Management", "agnd320-ai-that-delivers-creating-client-value-while-ensuring-responsible-wealth-management", ["Jessica Rusu", "Patrick Chan", "Saeki Yukinobu", "Tian Tian Chua"], "Frontier Stage"],
+["d4", "FOU", "15:50", "16:00", "P", "EE", "From Soaring Heights to Crushing Lows", "agnd309-from-soaring-heights-to-crushing-lows", ["Brad Jones"], "Founders Stage"],
+["d4", "FUT", "15:50", "16:25", "P", "DA", "GENIUS, CLARITY, MiCA, and More: Building Compliant, Scalable, and Global Digital Asset Operations in an Age of Fragmentation", "agnd202-genius-clarity-mica-and-more-building-compliant-scalable-and-global-digital-asset-operations-in-an-age-of-fragmentation", ["Jonah Crane", "Rupert Schaefer", "Steven McWhirter", "Angela Ang"], "FutureMatters Stage"],
+["d4", "FOU", "16:00", "16:10", "P", "EE", "Making the Impossible Inevitable", "agnd282-making-the-impossible-inevitable", ["Rosaline Chow Koo"], "Founders Stage"],
+["d4", "FOU", "16:10", "16:20", "P", "EE", "The Art of Not Dying / Survival > Strategy", "agnd268-the-art-of-not-dying-survival-strategy", ["Ankit Ratan"], "Founders Stage"],
+["d4", "IMP", "16:10", "16:25", "O", "DA", "Innovating Financial Supervision with SupTech", "agnd199-innovating-financial-supervision-with-suptech", ["Marlene Amstad"], "Impact Stage"],
+["d4", "CAT", "16:20", "16:55", "O", "TT", "The Future of an AI-Enabled Career in the Financial Sector for Young Talent", "agnd169-the-future-of-an-ai-enabled-career-in-the-financial-sector-for-young-talent", ["Albert Tse", "Brent McDougall", "Justin Loi", "Tan Yan Wei"], "Catalyst Stage"],
+["d4", "FRO", "16:20", "16:50", "P", "AQ", "Agentic AI in Insurance: Revolution or Risk?", "agnd201-agentic-ai-in-insurance-revolution-or-risk", ["David Lynch", "Sandeep Pandey", "Sharon Teo", "Shin Wee Chuang"], "Frontier Stage"],
+["d4", "FOU", "16:25", "16:50", "P", "EE", "The Geopolitical Board Game: Capital, Code, Creators, and Country - What Policymakers Must Prioritise", "agnd272-the-geopolitical-board-game-capital-code-creators-and-country-what-policymakers-must-prioritise", ["Amitabh Kant"], "Founders Stage"],
+["d4", "FUT", "16:25", "17:00", "P", "AQ", "The Next-Generation Financial Institution: Value Propositions, Business Models, and Tech Stacks", "agnd123-the-next-generation-financial-institution-value-propositions-business-models-and-tech-stacks", ["Lim Soon Chong", "Matthew Driver", "Vivek Ramachandran", "Janet Young", "Oliver Bussmann"], "FutureMatters Stage"],
+["d4", "IMP", "16:25", "16:55", "O", "DA", "Navigating the Digital Frontier: Facilitating Responsible Innovation in Asset Tokenisation in Capital Markets", "agnd138-navigating-the-digital-frontier-facilitating-responsible-innovation-in-asset-tokenisation-in-capital-markets", ["Carlo Comporti", "Naveen Mallela", "Peiying Chua", "Merion Anggerek"], "Impact Stage"],
+["d4", "FOU", "16:50", "17:30", "P", "EE", "Panel - The Still Unsolved Digital Passport Problem: Navigating the Fractured Interoperability Regulatory Challenge", "agnd583-panel-the-still-unsolved-digital-passport-problem-navigating-the-fractured-interoperability-regulatory-challenge", ["Ibrahim Hassan", "Pucktada Treeratpituk", "Siddharth Shetty", "Manish Bhai", "Aparna Jhajharia"], "Founders Stage"],
+["d4", "FRO", "16:50", "17:25", "P", "AQ", "Blockchain-AI Convergence: Emerging Applications, Frontier Efforts, and New Business Models", "agnd288-blockchain-ai-convergence-emerging-applications-frontier-efforts-and-new-business-models", ["Delane Foo", "Fernando Vázquez", "Gary Liu", "Wee Howe Ang", "Steve Vallas"], "Frontier Stage"],
+["d4", "IMP", "16:55", "17:35", "O", "DA", "Building Trustworthy Digital Money Infrastructures for a Global Economy", "agnd70-building-trustworthy-digital-money-infrastructures-for-a-global-economy", ["Audrey Metzger", "Isadora Arredondo", "Seiichi Shimizu", "Foo Chek-Tchung"], "Impact Stage"],
+["d4", "FUT", "17:00", "17:40", "P", "NT", "My Network is Your Network: Accelerating Access through Network of Networks", "agnd211-my-network-is-your-network-accelerating-access-through-network-of-networks", ["Andrew McCormack", "Carrie Suen", "Sandeep Malhotra", "Sharon Toh", "Jo Yeo"], "FutureMatters Stage"],
+["d4", "GFT", "17:00", "18:00", "O", "OT", "GFTN Regional Networking & Market Insights Hour: Connecting FinTech Ecosystems Around the World - Europe", "agnd555-gftn-regional-networking-market-insights-hour-connecting-fintech-ecosystems-around-the-world-europe", [], "Side Programmes"],
+["d4", "FRO", "17:25", "17:30", "P", "OT", "Frontier Stage Day 2 Wrap Up", "agnd525-frontier-stage-day-2-wrap-up", ["Amanda Wick"], "Frontier Stage"],
+["d4", "IMP", "17:35", "17:40", "O", "OT", "Impact Stage Day 2 Wrap Up", "agnd325-impact-stage-day-2-wrap-up", ["Andrzej Gwizdalski"], "Impact Stage"],
+["d5", "GFT", "9:00", "9:30", "O", "OT", "FinMonda demo", "agnd729-finmonda-demo", [], "Side Programmes"],
+["d5", "FES", "9:20", "9:30", "P", "OT", "Welcome to Singapore FinTech Festival 2025 - Day 3", "agnd315-welcome-to-singapore-fintech-festival-2025-day-3", ["Manisha Tank"], "Festival Stage"],
+["d5", "FES", "9:30", "9:50", "P", "OT", "Mastering Web Architecture", "agnd237-mastering-web-architecture", ["Roy Fielding", "Sopnendu Mohanty"], "Festival Stage"],
+["d5", "GFT", "9:30", "10:30", "I", "OT", "Next Gen Leaders AMA Session 3", "agnd732-next-gen-leaders-ama-session-3", [], "Side Programmes"],
+["d5", "FES", "9:50", "10:30", "P", "SF", "Steering the Global Future", "agnd175-steering-the-global-future", ["Agustín Carstens", "Eric Jing", "Ravi Menon", "Razeen Sally"], "Festival Stage"],
+["d5", "INV", "10:00", "11:00", "O", "EE", "NUS Start-up Pitch Showcase: 10 Ventures Advancing AI, Industry, and Sustainability", "agnd529-nus-start-up-pitch-showcase-10-ventures-advancing-ai-industry-and-sustainability", [], "Side Programmes"],
+["d5", "FES", "10:30", "10:45", "P", "EE", "Beyond the Horizon: Tomorrow’s Investment Thesis for a Changing World", "agnd504-beyond-the-horizon-tomorrows-investment-thesis-for-a-changing-world", ["Vijay Shekhar Sharma"], "Festival Stage"],
+["d5", "FES", "10:45", "11:25", "P", "OT", "Middle East: A Re-imagined Economy", "agnd358-middle-east-a-re-imagined-economy", ["Adeeb Ahamed", "Hasan Fardan Al Fardan", "Mohamed Abdelbary", "Raheel Ahmed", "Arjun Vir Singh"], "Festival Stage"],
+["d5", "FRO", "11:00", "11:15", "P", "OT", "Democratizing Bill Payments through a centralized payment platform - Powered by NPCI", "agnd482-democratizing-bill-payments-through-a-centralized-payment-platform-powered-by-npci", ["Chinmay Pol"], "Frontier Stage"],
+["d5", "INV", "11:00", "11:30", "O", "OT", "The Knowledge Engine for FinTech Research: A Masterclass on ALFIN", "agnd528-the-knowledge-engine-for-fintech-research-a-masterclass-on-alfin", ["Madhuvarshitt Yerramilli Subramanya"], "Side Programmes"],
+["d5", "FRO", "11:15", "11:30", "P", "OT", "The Quantum-Safe Roadmap: The Post-Quantum Readiness Playbook - Powered by ST Engineering", "agnd483-the-quantum-safe-roadmap-the-post-quantum-readiness-playbook-powered-by-st-engineering", ["Wong Cheng Ngai"], "Frontier Stage"],
+["d5", "FES", "11:25", "12:05", "P", "OT", "ASEAN: Perspectives from Finance Leaders", "agnd359-asean-perspectives-from-finance-leaders", ["Allen Forlemu", "Chan Yam Ki", "Justin Yek", "Vincent Iswara", "Jill Neubronner"], "Festival Stage"],
+["d5", "GFT", "11:30", "12:15", "O", "OT", "Book signing: The Catalysts: The Accelerating Forces Forging the New World Financial Order by Amanda Wick", "agnd300-book-signing-the-catalysts-the-accelerating-forces-forging-the-new-world-financial-order-by-amanda-wick", ["Amanda Wick"], "Side Programmes"],
+["d5", "IMP", "11:30", "11:45", "O", "DA", "How Public CBDCs and Private Stablecoins Will Redefine Global Commerce", "agnd442-how-public-cbdcs-and-private-stablecoins-will-redefine-global-commerce", ["Saw Choo Tatt"], "Impact Stage"],
+["d5", "INV", "11:30", "12:15", "O", "OT", "Scaling Beyond Setup: Pathways from Singapore to Global Markets", "agnd818-scaling-beyond-setup-pathways-from-singapore-to-global-markets", [], "Side Programmes"],
+["d5", "IMP", "11:45", "12:00", "O", "DA", "From Days to Seconds: Transforming Securities Trading through Blockchain", "agnd438-from-days-to-seconds-transforming-securities-trading-through-blockchain", ["Dulguun Battulga"], "Impact Stage"],
+["d5", "FRO", "12:00", "12:15", "P", "OT", "Leading the Future of Payments with AI and Stablecoins - Powered by dtcpay", "agnd709-leading-the-future-of-payments-with-ai-and-stablecoins-powered-by-dtcpay", ["Sam Lin"], "Frontier Stage"],
+["d5", "IMP", "12:00", "12:15", "O", "OT", "Beyond the Ledger: How Tokenization is Transforming Banking - Powered by Fireblocks", "agnd417-beyond-the-ledger-how-tokenization-is-transforming-banking-powered-by-fireblocks", ["Shawn Chan", "Tim Way"], "Impact Stage"],
+["d5", "FES", "12:05", "12:35", "P", "OT", "Japan’s FinTech Frontier: Investing in Innovation and Inclusion Across Asia", "agnd361-japans-fintech-frontier-investing-in-innovation-and-inclusion-across-asia", ["Makoto Shibata", "Masashi Namatame", "Rob Schimek", "Manisha Tank"], "Festival Stage"],
+["d5", "FRO", "12:15", "12:30", "P", "OT", "Exploration and Practice of FinTech for Small and Micro Enterprises - Powered by MYbank", "agnd686-exploration-and-practice-of-fintech-for-small-and-micro-enterprises-powered-by-mybank", ["Zheng Bo"], "Frontier Stage"],
+["d5", "INV", "12:15", "13:00", "O", "OT", "From Banker to Global VC - An A.M.A. Session with Anju Patwardhan, by TiE Singapore", "agnd819-from-banker-to-global-vc-an-a-m-a-session-with-anju-patwardhan-by-tie-singapore", ["Anju Patwardhan", "Prantik Mazumdar"], "Side Programmes"],
+["d5", "FES", "12:35", "13:00", "P", "BG", "India: Engineering Growth Across the Global South", "agnd362-india-engineering-growth-across-the-global-south", ["Amitabh Kant", "Jawed Ashraf", "Preeti Dawra"], "Festival Stage"],
+["d5", "FUT", "12:50", "13:00", "P", "OT", "Welcome to FutureMatters Stage - Day 3", "agnd317-welcome-to-futurematters-stage-day-3", ["Sharanjit Leyl"], "FutureMatters Stage"],
+["d5", "CAT", "13:00", "13:30", "O", "EE", "Singhacks Award Ceremony - Agentic AI in Financial Services Hackathon - Powered by Tenity", "agnd404-singhacks-award-ceremony-agentic-ai-in-financial-services-hackathon-powered-by-tenity", ["Andreas Zingg", "Jeffrey Tchui", "Jelyne Tan", "Jonas Thürig"], "Catalyst Stage"],
+["d5", "FES", "13:00", "13:30", "P", "AQ", "China: Scaling AI Across FinTech and Embedded Finance (conducted in Mandarin)", "agnd291-china-scaling-ai-across-fintech-and-embedded-finance-conducted-in-mandarin", ["Matthew Chen", "Powell Li", "Yong Xue", "Tin Pei Ling"], "Festival Stage"],
+["d5", "FUT", "13:00", "13:35", "P", "AQ", "Innovating Responsibly: AI Governance as a Competitive Advantage", "agnd113-innovating-responsibly-ai-governance-as-a-competitive-advantage", ["David Tan", "Goh Gek Choo", "Marko Milek", "Sameer Gupta", "Irene Liu"], "FutureMatters Stage"],
+["d5", "INV", "13:00", "14:00", "O", "OT", "Mastering Start-Up Foundations: Legal and Economic Essentials for Founders", "agnd514-mastering-start-up-foundations-legal-and-economic-essentials-for-founders", ["David He", "Xenia Chiu"], "Side Programmes"],
+["d5", "PIF", "13:00", "17:00", "O", "OT", "Pay It Forward", "agnd220-pay-it-forward", [], "Side Programmes"],
+["d5", "IMP", "13:10", "13:15", "O", "OT", "Welcome to Impact Stage - Day 3", "agnd326-welcome-to-impact-stage-day-3", ["Monica Jasuja"], "Impact Stage"],
+["d5", "IMP", "13:15", "13:35", "O", "SF", "From Spark to Engine: The Mechanics of Innovation-Led Growth", "agnd714-from-spark-to-engine-the-mechanics-of-innovation-led-growth", ["Taimur Baig", "Khyati Chauhan"], "Impact Stage"],
+["d5", "FOU", "13:30", "13:40", "P", "EE", "Welcome to Founders Stage - Day 3: The Enterprise Buyers' Day", "agnd76-welcome-to-founders-stage-day-3-the-enterprise-buyers-day", ["Navin Suri", "Sagari White"], "Founders Stage"],
+["d5", "FUT", "13:35", "14:10", "P", "AQ", "Moving Beyond Pilots in Agentic AI: Pitfalls, Scaling and the Commercial Case", "agnd233-moving-beyond-pilots-in-agentic-ai-pitfalls-scaling-and-the-commercial-case", ["Kelvin Li", "Tomas Skoumal", "Zhang Tao", "Vincent Maladière", "Marion Bernardi"], "FutureMatters Stage"],
+["d5", "IMP", "13:35", "14:20", "O", "SU", "Singapore Sustainability Spotlight - Views from the Ground: Pacing Singapore's Sustainable Future", "agnd363-singapore-sustainability-spotlight-views-from-the-ground-pacing-singapores-sustainable-future", ["Benjamin Soh", "Christina Lee", "Yuit Ang", "Lionel Wong"], "Impact Stage"],
+["d5", "FOU", "13:40", "13:55", "P", "EE", "Fireside Chat with Globe Telecom CEO: In an AI-first world, what do major enterprise buyers want from startups now?", "agnd273-fireside-chat-with-globe-telecom-ceo-in-an-ai-first-world-what-do-major-enterprise-buyers-want-from-startups-now", ["Carl Cruz", "Navin Suri"], "Founders Stage"],
+["d5", "FRO", "13:40", "13:45", "P", "OT", "Welcome to Frontier Stage - Day 3", "agnd304-welcome-to-frontier-stage-day-3", ["Richie Santosdiaz"], "Frontier Stage"],
+["d5", "CAT", "13:45", "13:50", "O", "OT", "Welcome to Catalyst Stage - Day 3", "agnd297-welcome-to-catalyst-stage-day-3", ["Anthony Howe"], "Catalyst Stage"],
+["d5", "FRO", "13:45", "14:05", "P", "SF", "Time to Act: Quantum Computing at an Inflection Point and Its Implications", "agnd509-time-to-act-quantum-computing-at-an-inflection-point-and-its-implications", ["Ray Harishankar"], "Frontier Stage"],
+["d5", "CAT", "13:50", "14:05", "O", "EE", "An Efficient, Equal and Entrepreneurial World Needs Fintech. Why?", "agnd407-an-efficient-equal-and-entrepreneurial-world-needs-fintech-why", ["Amlan Roy"], "Catalyst Stage"],
+["d5", "FOU", "14:00", "14:10", "P", "EE", "From being a Nuclear Physicist to a Portfolio Manager; From Financial Inclusion to Agentic Inclusion", "agnd711-from-being-a-nuclear-physicist-to-a-portfolio-manager-from-financial-inclusion-to-agentic-inclusion", ["Yanan Wu"], "Founders Stage"],
+["d5", "GFT", "14:00", "14:30", "O", "OT", "Meet ALFIN - Your Intelligent Insights Engine for the Financial Industry", "agnd733-meet-alfin-your-intelligent-insights-engine-for-the-financial-industry", [], "Side Programmes"],
+["d5", "INV", "14:00", "17:00", "O", "OT", "Investor Hours: Startup meets Investor Reception", "agnd537-investor-hours-startup-meets-investor-reception", [], "Side Programmes"],
+["d5", "SP", "14:00", "16:30", "O", "OT", "The FinTech Founder’s Playbook: Scaling Across Borders - Powered by Amazon", "agnd519-the-fintech-founders-playbook-scaling-across-borders-powered-by-amazon", [], "Side Programmes"],
+["d5", "CAT", "14:05", "14:35", "O", "TT", "SFA Presents: 10 Years, 10 Voices - Shaping the Future of Fintech", "agnd188-sfa-presents-10-years-10-voices-shaping-the-future-of-fintech", ["Adeline Kim", "Amanda Ong", "Caecilia Chu", "Charis Liau", "Rachel Freeman", "Rosaline Chow Koo", "Samantha Horton", "Sharon Lourdes Paul", "Shi Mei Chin", "Huey Lin", "Vanessa Chin"], "Catalyst Stage"],
+["d5", "FRO", "14:05", "14:25", "P", "DA", "Layer 1 Summit Closing Session: Key Announcements and Summit Takeaways", "agnd145-layer-1-summit-closing-session-key-announcements-and-summit-takeaways", ["Alan Lim"], "Frontier Stage"],
+["d5", "FOU", "14:10", "14:20", "P", "EE", "How Becoming An Underdog Become My Superpower", "agnd281-how-becoming-an-underdog-become-my-superpower", ["Vincent Iswara"], "Founders Stage"],
+["d5", "FUT", "14:10", "14:40", "P", "AQ", "Smaller Models, Embodied Applications, and Novel Approaches: Preparing for the Next Wave of AI Innovation", "agnd139-smaller-models-embodied-applications-and-novel-approaches-preparing-for-the-next-wave-of-ai-innovation", ["Ahmed Mazhari", "Ayesha Khanna", "Wong Chi Heem", "Madhuvarshitt Yerramilli Subramanya"], "FutureMatters Stage"],
+["d5", "IMP", "14:20", "15:05", "O", "SU", "Singapore Sustainability Spotlight - More 'Green Bees': How Singapore’s Queen Bees are Stepping Up to Mobilise SME Value Chains", "agnd545-singapore-sustainability-spotlight-more-green-bees-how-singapores-queen-bees-are-stepping-up-to-mobilise-sme-value-chains", ["Benjamin Wee", "Esther An", "Lim Tuang Liang", "Sammie Leung"], "Impact Stage"],
+["d5", "FRO", "14:25", "15:00", "P", "NT", "Payments 2035: Reimagining the Value Chain", "agnd203-payments-2035-reimagining-the-value-chain", ["Axel Boye-Moller", "Jeremy Tan", "Jim McCarthy", "Oscar Enrico", "Jeannie Lim"], "Frontier Stage"],
+["d5", "GFT", "14:30", "15:00", "O", "OT", "FinMonda demo", "agnd734-finmonda-demo", [], "Side Programmes"],
+["d5", "CAT", "14:35", "15:10", "O", "OT", "Silent Crisis: Prioritising Organisational Wellbeing in the Age of Machines", "agnd126-silent-crisis-prioritising-organisational-wellbeing-in-the-age-of-machines", ["Anthea Ong", "Ong Lue Ping", "Reiko Mori", "Sha-En Yeo", "Cho Ming Xiu"], "Catalyst Stage"],
+["d5", "FOU", "14:40", "14:50", "P", "EE", "The Rise of a Borderless Generation", "agnd271-the-rise-of-a-borderless-generation", ["Joe Kinvi"], "Founders Stage"],
+["d5", "FUT", "14:40", "15:15", "P", "AQ", "Intelligent Infrastructure: Rewiring the Foundations of Banking for AI Readiness", "agnd328-intelligent-infrastructure-rewiring-the-foundations-of-banking-for-ai-readiness", ["Paddy (Padmanabh) Padiyar", "Srivatsan Tirumalai", "Vinay Sathyanarayan", "Francesca Aliverti"], "FutureMatters Stage"],
+["d5", "FOU", "15:00", "15:10", "P", "EE", "Safe Doesn't Fly", "agnd283-safe-doesnt-fly", ["Anna Joo Fee"], "Founders Stage"],
+["d5", "FRO", "15:00", "15:35", "P", "BG", "From Cash to Capital: Unlocking SME Inclusion and Growth Through Innovation", "agnd144-from-cash-to-capital-unlocking-sme-inclusion-and-growth-through-innovation", ["Amit Malhotra", "Au Chong Wei", "Helena Forest", "Milind Sanghavi", "Aparna Jhajharia"], "Frontier Stage"],
+["d5", "GFT", "15:00", "15:30", "O", "OT", "Meet ALFIN - Your Intelligent Insights Engine for the Financial Industry", "agnd735-meet-alfin-your-intelligent-insights-engine-for-the-financial-industry", [], "Side Programmes"],
+["d5", "IMP", "15:05", "15:45", "O", "NT", "Policymakers' Dialogue: Building Trust, Stability and Innovation in the Next Era of Money", "agnd321-policymakers-dialogue-building-trust-stability-and-innovation-in-the-next-era-of-money", ["Boris Vujčić", "José Luis Escrivá", "Khalid Humaidan", "Raadhika Sihin"], "Impact Stage"],
+["d5", "CAT", "15:10", "15:45", "O", "TT", "Capacity Building at Scale: Empowering the Next Billion Talents of the Global South", "agnd125-capacity-building-at-scale-empowering-the-next-billion-talents-of-the-global-south", ["Matteo Rizzi", "Sean Sarginson", "Shadab Taiyabi", "Sid Gautam", "Akanksha Rath"], "Catalyst Stage"],
+["d5", "FOU", "15:10", "15:20", "P", "EE", "The Art of Eating Glass", "agnd284-the-art-of-eating-glass", ["Vince Vissers"], "Founders Stage"],
+["d5", "FUT", "15:15", "15:50", "P", "DA", "Tokenization and Treasury: Practical Opportunities in Liquidity, Settlement, and FX Flows", "agnd287-tokenization-and-treasury-practical-opportunities-in-liquidity-settlement-and-fx-flows", ["Burkhard Balz", "Dan Sleep", "Inmoo Hwang", "Laura Loh", "Richmond Teo"], "FutureMatters Stage"],
+["d5", "FOU", "15:20", "15:30", "P", "EE", "Hustle with Heart: Why Founders Should Build with Purpose", "agnd276-hustle-with-heart-why-founders-should-build-with-purpose", ["Juan Pablo Ortega"], "Founders Stage"],
+["d5", "FOU", "15:30", "15:40", "P", "EE", "Coding for Disruption: The power of meritocracy", "agnd275-coding-for-disruption-the-power-of-meritocracy", ["Winston Damarillo"], "Founders Stage"],
+["d5", "GFT", "15:30", "16:30", "O", "OT", "GFTN Regional Networking & Market Insights Hour: Connecting FinTech Ecosystems Around the World - ASEAN - Central Asia Corridor", "agnd556-gftn-regional-networking-market-insights-hour-connecting-fintech-ecosystems-around-the-world-asean-central-asia-corridor", [], "Side Programmes"],
+["d5", "FRO", "15:35", "16:10", "P", "NT", "Cross-border at Crossroads: Building Seamless, Low-Cost Global Remittance Solutions that Work", "agnd292-cross-border-at-crossroads-building-seamless-low-cost-global-remittance-solutions-that-work", ["Marc Fungard", "Pratik Khowala", "Tin Pei Ling", "Yang Wenhui", "Umang Moondra"], "Frontier Stage"],
+["d5", "FOU", "15:40", "15:50", "P", "EE", "Kevin's Untold Founder Story", "agnd713-kevins-untold-founder-story", ["Kevin Kang"], "Founders Stage"],
+["d5", "CAT", "15:45", "16:15", "O", "TT", "Fostering Startup Energy in Large Institutions", "agnd128-fostering-startup-energy-in-large-institutions", ["Brad Jones", "Vikas Verma", "Yinn Ewe", "Anthony Thomas"], "Catalyst Stage"],
+["d5", "IMP", "15:45", "16:25", "O", "BG", "Policymakers' Dialogue: Shaping the Future of Inclusive Digital Finance", "agnd340-policymakers-dialogue-shaping-the-future-of-inclusive-digital-finance", ["Ahsan Mansur", "Hortense Mudenge", "Khaled Al-Dhaher", "Peter Kažimír", "Foo Chek-Tchung"], "Impact Stage"],
+["d5", "FUT", "15:50", "16:25", "P", "DA", "Programmable Capital Markets, Mainstream Infrastructure, and Long-Term Opportunities for Blockchain", "agnd207-programmable-capital-markets-mainstream-infrastructure-and-long-term-opportunities-for-blockchain", ["Gracie Lin", "Hassan Ahmed", "Yusuke Takezawa", "Julian Sawyer", "Stefan Grasmann"], "FutureMatters Stage"],
+["d5", "FOU", "16:00", "16:40", "P", "EE", "Panel: AI on Trial - What AI Will Banks Pay For? Separating Enterprise-Grade Value from a GPT Wrapper", "agnd274-panel-ai-on-trial-what-ai-will-banks-pay-for-separating-enterprise-grade-value-from-a-gpt-wrapper", ["David Hardoon", "Harry Margaritis", "Mayoran Rajendra", "Moran Levinovitz", "Osamu Abe", "Holly Fang"], "Founders Stage"],
+["d5", "FRO", "16:10", "16:45", "P", "AQ", "Preparing for Q-Day: Quantum Migration for Payments, Core Banking, and Financial Services", "agnd119-preparing-for-q-day-quantum-migration-for-payments-core-banking-and-financial-services", ["Camilla Bullock", "Colin Payne", "Nimish Panchmatia", "Vincent Loy", "Richard Tong"], "Frontier Stage"],
+["d5", "FUT", "16:25", "16:55", "P", "SU", "Road to Net-Zero: Reviving Momentum, Mobilising Capabilities, and Financing the Transition", "agnd164-road-to-net-zero-reviving-momentum-mobilising-capabilities-and-financing-the-transition", ["Eric Lim", "Oi-Yee Choo", "Parag Khanna", "Joe Phelan"], "FutureMatters Stage"],
+["d5", "IMP", "16:25", "17:05", "O", "BG", "Bridging Gaps, Building Foundations: Digital Public Infrastructure and Social Protection for Inclusive Growth", "agnd190-bridging-gaps-building-foundations-digital-public-infrastructure-and-social-protection-for-inclusive-growth", ["Adel Meer", "Ingrid Cyuzuzo", "Luca Antonio Ricci", "Parul Seth Khanna", "Raadhika Sihin"], "Impact Stage"],
+["d5", "FRO", "16:45", "16:50", "P", "OT", "Frontier Stage Day 3 Wrap Up", "agnd526-frontier-stage-day-3-wrap-up", ["Richie Santosdiaz"], "Frontier Stage"],
+["d5", "IMP", "17:05", "17:25", "O", "BG", "New Financial Corridors: Stability, Innovation, and Connectivity", "agnd213-new-financial-corridors-stability-innovation-and-connectivity", ["Firas Al Lawati", "Raadhika Sihin"], "Impact Stage"],
+["d5", "IMP", "17:25", "17:30", "O", "OT", "Impact Stage Day 3 Wrap Up", "agnd327-impact-stage-day-3-wrap-up", ["Sivapriya Anbarasu"], "Impact Stage"],
+["d5", "SP", "18:00", "20:00", "O", "EE", "🎸🥁 The Founders ROCK™ 🥁🎸", "agnd305-the-founders-rock-", ["Amanda Wick", "Anthony Howe", "Colin Payne", "Luca Antonio Ricci", "Parul Seth Khanna", "Pieter Franken", "Rafael Echemendia", "Saw Choo Tatt", "Tommaso Mancini-Griffoli"], "Side Programmes"]
+];
+
+const DAYS=[
+ {k:"d1",l:"Day 1",d:"11/10（一）Insights Forum",grid:true,cols:"rooms"},
+ {k:"d2",l:"Day 2",d:"11/11（二）Insights Forum",grid:true,cols:"rooms"},
+ {k:"d3",l:"Day 3",d:"11/12（三）主舞台",grid:true,cols:"stages"},
+ {k:"d4",l:"Day 4",d:"11/13（四）主舞台",grid:true,cols:"stages"},
+ {k:"d5",l:"Day 5",d:"11/14（五）主舞台",grid:true,cols:"stages"}
+];
+let cur="d1";
+
+function mins(t){const[a,b]=t.split(":").map(Number);return a*60+b;}
+function fmt(m){return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");}
+function colsOf(day){return day.cols==="stages"?STAGES:ROOMS;}
+function fullName(code){return STAGE_FULL[code]||ROOM_FULL[code]||code;}
+
+/* 日期頁籤 */
+const daysEl=document.getElementById("days");
+daysEl.innerHTML=DAYS.map(d=>`<button data-k="${d.k}" class="${d.k===cur?'active':''}">${d.l}<small>${d.d}</small></button>`).join("");
+daysEl.onclick=e=>{const b=e.target.closest("button");if(!b)return;cur=b.dataset.k;
+ daysEl.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===b));render();};
+
+/* 主題圖例 */
+document.getElementById("legend").innerHTML=
+ Object.entries(TOPICS).map(([k,v])=>`<span class="lg"><span class="dot c-${k}" style="border:1.5px solid"></span>${v[0]}</span>`).join("")
+ +`<span class="lg" style="margin-left:auto">🔒 邀請制 Invite-Only</span>`
+ +`<span class="lg">◆ 付費 Premium</span>`;
+
+function render(){
+ const day=DAYS.find(d=>d.k===cur);
+ const view=document.getElementById("view");
+ const list=S.filter(s=>s[0]===cur);
+ if(!list.length){view.innerHTML=`<div class="notice"><b>${day.d}</b> 尚無可顯示的場次。</div>`;return;}
+
+ const master=colsOf(day);
+ const usedRooms=master.filter(([k])=>list.some(s=>s[1]===k));
+
+ /* 同一欄位若有時間重疊的場次，拆成多個子欄（lane）並排 */
+ const laneOf=new Map();        // session -> lane index
+ const laneCount={};            // room code -> lane 數
+ usedRooms.forEach(([k])=>{
+  const evs=list.filter(s=>s[1]===k).sort((a,b)=>mins(a[2])-mins(b[2])||mins(a[3])-mins(b[3]));
+  const laneEnd=[];
+  evs.forEach(ev=>{
+   let p=laneEnd.findIndex(end=>mins(ev[2])>=end);
+   if(p<0){p=laneEnd.length;laneEnd.push(0);}
+   laneEnd[p]=mins(ev[3]);
+   laneOf.set(ev,p);
+  });
+  laneCount[k]=Math.max(1,laneEnd.length);
+ });
+
+ /* 累計子欄起點（grid-column；第 1 欄為時間軸）*/
+ const colStart={};let totalCols=0;
+ usedRooms.forEach(([k])=>{colStart[k]=totalCols+2;totalCols+=laneCount[k];});
+
+ const start=Math.floor(Math.min(...list.map(s=>mins(s[2])))/60)*60;
+ const end=Math.ceil(Math.max(...list.map(s=>mins(s[3])))/60)*60;
+ const slots=(end-start)/15;
+ const minW=Math.max(1100,64+totalCols*150);
+
+ let html=`<div class="cal-scroll"><div class="cal" style="min-width:${minW}px;grid-template-columns:64px repeat(${totalCols},minmax(132px,1fr));grid-template-rows:54px repeat(${slots},var(--slot))">`;
+ html+=`<div class="corner" style="grid-row:1;grid-column:1"></div>`;
+ usedRooms.forEach(([k,n])=>{html+=`<div class="rh" style="grid-row:1;grid-column:${colStart[k]} / span ${laneCount[k]}"><b>${k}</b><small>${n}</small></div>`;});
+ /* 時間標籤 + 背景格線（每個會議室一格、橫跨其子欄）*/
+ for(let m=start;m<end;m+=15){
+  const r=(m-start)/15+2;
+  if(m%60===0) html+=`<div class="tlabel" style="grid-row:${r};grid-column:1">${fmt(m)}</div>`;
+  else html+=`<div class="tlabel" style="grid-row:${r};grid-column:1;border-top:none"></div>`;
+  usedRooms.forEach(([k])=>{
+   html+=`<div class="cell ${m%60!==0?'half':''}" style="grid-row:${r};grid-column:${colStart[k]} / span ${laneCount[k]}"></div>`;
+  });
+ }
+ /* 場次區塊 */
+ list.forEach(s=>{
+  const idx=S.indexOf(s);
+  const col=colStart[s[1]]+(laneOf.get(s)||0);
+  const r1=(mins(s[2])-start)/15+2, r2=(mins(s[3])-start)/15+2;
+  const span=r2-r1;
+  const clamp=Math.max(1,Math.min(6,span-1));
+  const badge=s[4]==="I"?'<span class="lock">🔒</span>':(s[4]==="P"?'<span class="lock">◆</span>':'');
+  html+=`<div class="ev c-${s[5]}" data-i="${idx}" style="grid-column:${col};grid-row:${r1} / ${r2}">
+    ${badge}
+    <span class="tm">${s[2]} – ${s[3]}</span>
+    <span class="t" style="-webkit-line-clamp:${clamp}">${s[6]}</span>
+  </div>`;
+ });
+ html+=`</div></div>`;
+ view.innerHTML=html;
+}
+
+/* 彈窗 */
+const ACCESS={O:['開放參加 Open','open'],I:['🔒 邀請制 Invite-Only','invite'],P:['◆ 付費 Premium','premium']};
+const ov=document.getElementById("ov"),md=document.getElementById("md");
+document.getElementById("view").addEventListener("click",e=>{
+ const el=e.target.closest(".ev");if(!el)return;
+ const s=S[+el.dataset.i];
+ const day=DAYS.find(d=>d.k===s[0]);
+ const stage=s[9]||"Insights Forum";
+ const acc=ACCESS[s[4]]||ACCESS.O;
+ md.innerHTML=`<button class="x" onclick="document.getElementById('ov').classList.remove('show')">×</button>
+  <h2>${s[6]}</h2>
+  <div class="tags">
+   <span class="tag" style="background:var(--ink);color:#fff;border-color:var(--ink)">${stage}</span>
+   <span class="tag ${acc[1]}">${acc[0]}</span>
+   <span class="tag c-${s[5]}">${TOPICS[s[5]][0]}（${TOPICS[s[5]][1]}）</span>
+  </div>
+  <div class="meta">${day.d.split("）")[0]}） ${s[2]} ~ ${s[3]} <b>@ ${s[1]}</b>　<span style="font-weight:500;color:var(--muted)">${fullName(s[1])}</span></div>
+  ${s[8]&&s[8].length?`<div class="sp"><b>講者 SPEAKERS</b>${s[8].join("、")}</div>`:""}
+  <a class="ext" href="${U+s[7]}" target="_blank">查看官方場次頁面 ↗</a>`;
+ ov.classList.add("show");
+});
+ov.onclick=e=>{if(e.target===ov)ov.classList.remove("show");};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")ov.classList.remove("show");});
+
+render();
+</script>
+</body>
+</html>
