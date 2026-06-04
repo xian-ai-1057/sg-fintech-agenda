@@ -3,9 +3,9 @@
 用 Selenium 抓取 [Singapore FinTech Festival 議程頁](https://www.fintechfestival.sg/agenda)
 所有場次資訊，輸出成 CSV。
 
-## 議程視覺化（agenda.html）
+## 議程視覺化（index.html）
 
-`agenda.html` 是仿 [g0v Summit](https://summit.g0v.tw/2026/agenda/day1/) 議程表風格的
+`index.html` 是仿 [g0v Summit](https://summit.g0v.tw/2026/agenda/day1/) 議程表風格的
 互動式時間軸日曆，直接用瀏覽器開啟即可（純前端、無需後端）：
 
 - 左側為時間軸、上方為各會議室／主舞台，色塊長度對應場次時長；
@@ -16,6 +16,17 @@
 - 點擊任一色塊可看講者名單與官方場次連結。
 
 資料由 `agenda.csv` 產生（11/12–11/14 場次自動轉出，11/10–11/11 為含講者所屬機構的手動精修版）。
+
+### 線上部署（GitHub Pages）
+
+repo 內含 `.github/workflows/pages.yml`，推送到 `main` 後會自動把網站發佈到 GitHub Pages。
+首次使用需到 repo 的 **Settings → Pages → Build and deployment → Source** 選擇 **GitHub Actions**。
+之後任何人都能透過下列網址開啟議程表：
+
+```
+https://xian-ai-1057.github.io/sg-fintech-agenda/
+```
+
 
 該頁為 JavaScript 動態渲染，且：
 - 每次只顯示一天，透過 `?startDate=<epoch-ms>` 切換（10–14 Nov 2025）；
