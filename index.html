@@ -364,6 +364,174 @@ body {
   .brand .t1 { font-size: 15px; }
 }
 
+/* ============================================================
+   Mobile — responsive single-column timeline (g0v-inspired)
+   ============================================================ */
+.mapp { display: flex; flex-direction: column; height: 100%; background: var(--bg); overflow: hidden; }
+.mapp.framed {
+  max-width: 430px; margin: 0 auto;
+  border-left: 1px solid var(--separator-strong);
+  border-right: 1px solid var(--separator-strong);
+}
+
+.mtopbar {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 12px;
+  padding: calc(env(safe-area-inset-top, 0px) + 11px) 16px 11px;
+  background: var(--surface); border-bottom: 1px solid var(--separator);
+}
+.mbrand { display: flex; flex-direction: column; gap: 1px; margin-right: auto; min-width: 0; }
+.mbrand .mb1 { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; color: var(--text-strong); }
+.mbrand .mb2 {
+  font-size: 11px; color: var(--text-soft);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.micon {
+  flex: 0 0 auto; width: 38px; height: 38px; border-radius: 11px; border: none;
+  background: var(--surface-hover); color: var(--text); font-size: 17px; cursor: pointer;
+  display: grid; place-items: center;
+}
+.micon:active { background: var(--separator-strong); }
+
+.mdaystrip {
+  flex: 0 0 auto; display: flex; gap: 7px; overflow-x: auto;
+  padding: 9px 16px; background: var(--surface);
+  border-bottom: 1px solid var(--separator); scrollbar-width: none;
+}
+.mdaystrip::-webkit-scrollbar { display: none; }
+.mday {
+  flex: 0 0 auto; min-width: 56px;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  border: 1px solid var(--separator-strong); background: transparent;
+  border-radius: 12px; padding: 6px 12px; cursor: pointer; font: inherit; color: var(--text);
+  transition: background .14s, border-color .14s;
+}
+.mday .md-wd { font-size: 11px; color: var(--text-soft); font-weight: 500; }
+.mday .md-dt { font-size: 14.5px; font-weight: 700; color: var(--text-strong); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.mday.on { background: var(--accent); border-color: var(--accent); }
+.mday.on .md-wd { color: rgba(255,255,255,.85); }
+.mday.on .md-dt { color: #fff; }
+
+.mfilterbar {
+  flex: 0 0 auto; display: flex; gap: 8px; align-items: center;
+  padding: 9px 16px; background: var(--surface-2);
+  border-bottom: 1px solid var(--separator);
+}
+.msearch {
+  flex: 1; display: flex; align-items: center; gap: 7px; min-width: 0;
+  background: var(--surface-hover); border-radius: 10px; padding: 0 10px; height: 38px;
+}
+.msearch-i { font-size: 17px; color: var(--text-soft); }
+.msearch input {
+  flex: 1; min-width: 0; border: none; background: transparent; outline: none;
+  font: inherit; font-size: 14px; color: var(--text-strong);
+}
+.msearch input::placeholder { color: var(--text-faint); }
+.msearch-x { border: none; background: none; color: var(--text-soft); font-size: 19px; line-height: 1; cursor: pointer; padding: 0 2px; }
+.mfbtn {
+  flex: 0 0 auto; height: 38px; padding: 0 15px; border-radius: 10px;
+  border: 1px solid var(--separator-strong); background: var(--surface);
+  font: inherit; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer;
+  white-space: nowrap;
+}
+.mfbtn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.mlist {
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 44px);
+}
+.mgroup-h {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; align-items: center; gap: 10px; padding: 14px 2px 8px;
+  background: linear-gradient(var(--bg) 72%, transparent);
+}
+.mgroup-h .mh-time { font-size: 13px; font-weight: 700; color: var(--text-strong); letter-spacing: 0.02em; font-variant-numeric: tabular-nums; }
+.mgroup-h .mh-line { flex: 1; height: 1px; background: var(--separator); }
+.mgroup-h .mh-cnt { font-size: 11px; font-weight: 600; color: var(--text-faint); }
+
+.mcard {
+  display: block; width: 100%; text-align: left;
+  background: var(--surface); border: 1px solid var(--separator);
+  border-left: 3px solid var(--c); border-radius: 13px;
+  padding: 11px 13px 12px; margin-bottom: 8px;
+  cursor: pointer; font: inherit; color: var(--text-strong);
+  -webkit-tap-highlight-color: transparent; transition: transform .12s ease;
+}
+.mcard:active { transform: scale(.985); }
+.mc-top { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.mc-time { font-size: 12.5px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mc-dur { font-size: 11px; color: var(--text-faint); }
+.mc-mk { margin-left: auto; font-size: 11px; opacity: .75; }
+.mc-title {
+  font-size: 15px; font-weight: 600; line-height: 1.34; letter-spacing: -0.01em;
+  color: var(--text-strong); text-wrap: pretty;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+}
+.mc-meta { margin-top: 8px; display: flex; align-items: center; gap: 9px; min-width: 0; }
+.mc-topic { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-soft); font-weight: 500; white-space: nowrap; flex: 0 0 auto; }
+.mc-topic .dot { width: 8px; height: 8px; border-radius: 2.5px; background: var(--c); flex: 0 0 auto; }
+.mc-room {
+  margin-left: auto; flex: 0 1 auto; min-width: 0;
+  font-size: 11px; font-weight: 600; color: var(--text);
+  background: var(--surface-hover); padding: 2px 8px; border-radius: 6px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.mempty { padding: 76px 30px; text-align: center; color: var(--text); font-size: 15px; line-height: 1.9; }
+.mempty span { font-size: 13px; color: var(--text-soft); }
+
+/* filter bottom sheet */
+.msheet-ov {
+  position: fixed; inset: 0; z-index: 210; background: rgba(0,0,0,.34);
+  display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none; transition: opacity .2s ease;
+}
+.msheet-ov.show { opacity: 1; pointer-events: auto; }
+.msheet {
+  width: 100%; max-height: 82vh; overflow-y: auto;
+  background: var(--surface); border-radius: 20px 20px 0 0;
+  padding: 8px 18px calc(env(safe-area-inset-bottom, 0px) + 18px);
+  box-shadow: var(--shadow-pop);
+  transform: translateY(100%); transition: transform .26s cubic-bezier(.2,.7,.2,1);
+}
+.msheet-ov.show .msheet { transform: none; }
+.msheet-grab { width: 38px; height: 5px; border-radius: 3px; background: var(--separator-strong); margin: 6px auto 12px; }
+.msheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.msheet-head > span { font-size: 17px; font-weight: 700; color: var(--text-strong); }
+.msheet-clear { border: none; background: none; color: var(--accent); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.msheet-sec { margin-top: 16px; }
+.msheet-lab { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-soft); margin-bottom: 10px; }
+.msheet-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.fchip {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--separator-strong); background: var(--surface);
+  border-radius: var(--radius-pill); padding: 7px 13px;
+  font: inherit; font-size: 13px; color: var(--text); cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.fchip b { font-weight: 700; }
+.fchip .dot { width: 9px; height: 9px; border-radius: 3px; background: var(--c); }
+.fchip.on { background: var(--c); border-color: var(--c); color: #fff; }
+.fchip.on .dot { background: #fff; }
+.fchip.rchip.on { background: var(--accent); border-color: var(--accent); }
+.msheet-done {
+  margin-top: 22px; width: 100%; height: 48px; border: none; border-radius: 13px;
+  background: var(--accent); color: #fff; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+}
+
+/* event detail modal becomes a bottom sheet on phones */
+@media (max-width: 720px) {
+  .ov { align-items: flex-end; padding: 0; backdrop-filter: blur(4px); }
+  .modal {
+    max-width: none; width: 100%;
+    border-radius: 20px 20px 0 0; border-top-width: 4px;
+    padding: 22px 20px calc(env(safe-area-inset-bottom, 0px) + 24px);
+    max-height: 90vh; overflow-y: auto;
+    transform: translateY(100%);
+  }
+  .ov.show .modal { transform: none; }
+  .modal h2 { font-size: 19px; }
+}
+
 </style>
 </head>
 <body>
@@ -1353,6 +1521,8 @@ const durLabel = (a, b) => {
 };
 const colsOf = (day) => (day.cols === "stages" ? D.STAGES : D.ROOMS);
 const fullName = (code) => D.STAGE_FULL[code] || D.ROOM_FULL[code] || code;
+const COLS_ALL = [...D.ROOMS, ...D.STAGES];
+const shortRoom = (code) => { const f = COLS_ALL.find(([k]) => k === code); return f ? f[1].split(" ‧ ")[0] : code; };
 
 /* assign overlap lanes within a column */
 function computeLanes(evs) {
@@ -1543,6 +1713,175 @@ function Modal({ s, onClose }) {
   );
 }
 
+/* ============================================================
+   Mobile — responsive single-column timeline (g0v-inspired)
+   ============================================================ */
+function useMediaQuery(q) {
+  const [m, setM] = useState(() => window.matchMedia(q).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(q);
+    const fn = (e) => setM(e.matches);
+    mq.addEventListener("change", fn);
+    return () => mq.removeEventListener("change", fn);
+  }, [q]);
+  return m;
+}
+
+function MobileView({ sessions, search, topics, rooms, onSelect }) {
+  const list = useMemo(() => {
+    let arr = sessions;
+    if (topics.size) arr = arr.filter((s) => topics.has(s[5]));
+    if (rooms.size) arr = arr.filter((s) => rooms.has(s[1]));
+    const q = search.trim().toLowerCase();
+    if (q) arr = arr.filter((s) =>
+      s[6].toLowerCase().includes(q) ||
+      shortRoom(s[1]).toLowerCase().includes(q) ||
+      (s[8] || []).some((p) => p.toLowerCase().includes(q)));
+    return [...arr].sort((a, b) => mins(a[2]) - mins(b[2]) || mins(a[3]) - mins(b[3]) || a[1].localeCompare(b[1]));
+  }, [sessions, search, topics, rooms]);
+
+  if (!list.length)
+    return <div className="mempty">沒有符合條件的場次<br /><span>試著調整篩選或搜尋關鍵字</span></div>;
+
+  const groups = [];
+  let cur = null;
+  list.forEach((s) => {
+    const hr = Math.floor(mins(s[2]) / 60);
+    if (!cur || cur.hr !== hr) { cur = { hr, items: [] }; groups.push(cur); }
+    cur.items.push(s);
+  });
+
+  return (
+    <div className="mlist">
+      {groups.map((g) => (
+        <section className="mgroup" key={g.hr}>
+          <div className="mgroup-h">
+            <span className="mh-time">{pad2(g.hr)}:00</span>
+            <span className="mh-line" />
+            <span className="mh-cnt">{g.items.length} 場</span>
+          </div>
+          {g.items.map((s) => {
+            const tp = D.TOPICS[s[5]];
+            const acc = ACCESS[s[4]];
+            return (
+              <button className={"mcard tk-" + s[5]} key={s[7]} onClick={() => onSelect(s)}>
+                <div className="mc-top">
+                  <span className="mc-time">{clock(s[2])}–{clock(s[3])}</span>
+                  <span className="mc-dur">{durLabel(s[2], s[3])}</span>
+                  {acc.mk && <span className="mc-mk">{acc.mk}</span>}
+                </div>
+                <div className="mc-title">{s[6]}</div>
+                <div className="mc-meta">
+                  <span className="mc-topic"><span className="dot" />{tp[1]}</span>
+                  <span className="mc-room" title={fullName(s[1])}>{s[1]} · {shortRoom(s[1])}</span>
+                </div>
+              </button>
+            );
+          })}
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function MobileFilterSheet({ open, onClose, topicList, roomList, topics, rooms, setTopics, setRooms }) {
+  const toggle = (set, key, setter) => {
+    const n = new Set(set);
+    n.has(key) ? n.delete(key) : n.add(key);
+    setter(n);
+  };
+  return (
+    <div className={"msheet-ov" + (open ? " show" : "")}
+      onClick={(e) => { if (e.target.classList.contains("msheet-ov")) onClose(); }}>
+      <div className="msheet">
+        <div className="msheet-grab" />
+        <div className="msheet-head">
+          <span>篩選議程</span>
+          <button className="msheet-clear" onClick={() => { setTopics(new Set()); setRooms(new Set()); }}>清除全部</button>
+        </div>
+        <div className="msheet-sec">
+          <div className="msheet-lab">主題 Topic</div>
+          <div className="msheet-chips">
+            {topicList.map(([k, v]) => (
+              <button key={k} className={"fchip tk-" + k + (topics.has(k) ? " on" : "")}
+                onClick={() => toggle(topics, k, setTopics)}>
+                <span className="dot" />{v[1]}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="msheet-sec">
+          <div className="msheet-lab">場地 Room / Stage</div>
+          <div className="msheet-chips">
+            {roomList.map(([k, name]) => (
+              <button key={k} className={"fchip rchip" + (rooms.has(k) ? " on" : "")}
+                onClick={() => toggle(rooms, k, setRooms)}>
+                <b>{k}</b> {name.split(" ‧ ")[0]}
+              </button>
+            ))}
+          </div>
+        </div>
+        <button className="msheet-done" onClick={onClose}>完成</button>
+      </div>
+    </div>
+  );
+}
+
+function MobileShell({ framed, t, setTweak, cur, setCur, sel, setSel, search, setSearch, topics, setTopics, rooms, setRooms, filterOpen, setFilterOpen }) {
+  const day = D.DAYS.find((d) => d.k === cur);
+  const sessions = useMemo(() => D.S.filter((s) => s[0] === cur), [cur]);
+  const activeCount = topics.size + rooms.size + (search.trim() ? 1 : 0);
+  const topicList = Object.entries(D.TOPICS);
+  const roomList = colsOf(day).filter(([k]) => sessions.some((s) => s[1] === k));
+
+  return (
+    <div className={"mapp" + (framed ? " framed" : "")}>
+      <header className="mtopbar">
+        <div className="mbrand">
+          <span className="mb1">SFF 2025 議程</span>
+          <span className="mb2">Singapore FinTech Festival · 10–14 Nov</span>
+        </div>
+        <button className="micon" title="深色 / 淺色" onClick={() => setTweak("dark", !t.dark)}>{t.dark ? "☀" : "☾"}</button>
+      </header>
+
+      <div className="mdaystrip">
+        {D.DAYS.map((d) => {
+          const m = DAYMETA[d.k];
+          return (
+            <button key={d.k} className={"mday" + (d.k === cur ? " on" : "")} onClick={() => setCur(d.k)}>
+              <span className="md-wd">{m.zh.split(" ")[1]}</span>
+              <span className="md-dt">{m.date.replace("Nov ", "11/")}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mfilterbar">
+        <div className="msearch">
+          <span className="msearch-i">⌕</span>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="搜尋講題、講者…" />
+          {search && <button className="msearch-x" onClick={() => setSearch("")}>×</button>}
+        </div>
+        <button className={"mfbtn" + (activeCount ? " on" : "")} onClick={() => setFilterOpen(true)}>
+          篩選{activeCount ? " · " + activeCount : ""}
+        </button>
+      </div>
+
+      <MobileView sessions={sessions} search={search} topics={topics} rooms={rooms} onSelect={setSel} />
+
+      {sel && <Modal s={sel} onClose={() => setSel(null)} />}
+      <MobileFilterSheet open={filterOpen} onClose={() => setFilterOpen(false)}
+        topicList={topicList} roomList={roomList}
+        topics={topics} rooms={rooms} setTopics={setTopics} setRooms={setRooms} />
+
+      <TweaksPanel>
+        <TweakSection label="外觀 Appearance" />
+        <TweakToggle label="深色模式 Dark" value={t.dark} onChange={(v) => setTweak("dark", v)} />
+      </TweaksPanel>
+    </div>
+  );
+}
+
 /* ============================================================ */
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "dark": false,
@@ -1558,6 +1897,12 @@ function App() {
   const [cur, setCur] = useState("d1");
   const [view, setView] = useState("grid");
   const [sel, setSel] = useState(null);
+  const [search, setSearch] = useState("");
+  const [topics, setTopics] = useState(() => new Set());
+  const [rooms, setRooms] = useState(() => new Set());
+  const [filterOpen, setFilterOpen] = useState(false);
+  const forceMobile = useMemo(() => new URLSearchParams(location.search).get("m") === "1", []);
+  const isMobile = useMediaQuery("(max-width: 720px)") || forceMobile;
 
   const day = D.DAYS.find((d) => d.k === cur);
   const sessions = useMemo(() => D.S.filter((s) => s[0] === cur), [cur]);
@@ -1567,6 +1912,21 @@ function App() {
     r.setAttribute("data-theme", t.dark ? "dark" : "light");
     r.style.setProperty("--accent", t.accent);
   }, [t.dark, t.accent]);
+
+  if (isMobile) {
+    return (
+      <MobileShell
+        framed={forceMobile}
+        t={t} setTweak={setTweak}
+        cur={cur} setCur={setCur}
+        sel={sel} setSel={setSel}
+        search={search} setSearch={setSearch}
+        topics={topics} setTopics={setTopics}
+        rooms={rooms} setRooms={setRooms}
+        filterOpen={filterOpen} setFilterOpen={setFilterOpen}
+      />
+    );
+  }
 
   return (
     <div className="app" data-ci={t.colorIntensity}>
