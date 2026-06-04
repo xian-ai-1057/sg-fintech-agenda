@@ -1,113 +1,381 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>議程 | Singapore FinTech Festival 2025</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Agenda · Singapore FinTech Festival 2025</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{
-  --ink:#10142e; --paper:#f5f6f3; --card:#fff; --navy:#0b0e2a;
-  --accent:#00d3a7; --accent-dark:#00926f; --magenta:#e83e8c; --amber:#e0a23a;
-  --line:#dcdfd8; --muted:#6b7280; --slot:14px; /* 每15分鐘高度 */
+/* ============================================================
+   SFF 2025 Agenda — Apple Calendar inspired
+   Light + dark themes via CSS custom properties.
+   ============================================================ */
+
+:root {
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+          "Helvetica Neue", "PingFang TC", "PingFang SC", "Noto Sans TC",
+          "Microsoft JhengHei", system-ui, sans-serif;
+
+  /* surfaces */
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --surface-2: #fbfbfd;
+  --surface-hover: #f2f2f5;
+
+  /* text */
+  --text-strong: #1d1d1f;
+  --text: #43434a;
+  --text-soft: #86868b;
+  --text-faint: #aeaeb2;
+
+  /* lines */
+  --separator: rgba(60, 60, 67, 0.10);
+  --separator-strong: rgba(60, 60, 67, 0.18);
+  --hairline: rgba(60, 60, 67, 0.07);
+
+  /* interactive */
+  --accent: #0a84ff;
+  --accent-soft: rgba(10, 132, 255, 0.12);
+
+  /* shape */
+  --radius-chip: 7px;
+  --radius-card: 16px;
+  --radius-pill: 980px;
+
+  /* layout (overridden inline by tweaks) */
+  --gutter-w: 60px;
+  --head-h: 56px;
+  --shadow-pop: 0 1px 2px rgba(0,0,0,.04), 0 12px 40px rgba(0,0,0,.16);
+  --shadow-chip: 0 6px 20px rgba(0,0,0,.14);
+
+  color-scheme: light;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"Noto Sans TC",sans-serif;background:var(--paper);color:var(--ink);line-height:1.55}
-header{background:var(--navy);color:#fff;border-bottom:3px solid var(--accent);position:sticky;top:0;z-index:60}
-.hd{max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:24px;padding:12px 20px;flex-wrap:wrap}
-.logo{font-family:"Archivo";font-weight:900;font-size:1.2rem;color:#fff;text-decoration:none}
-.logo span{color:var(--accent)}
-.hd nav{display:flex;gap:16px}
-.hd nav a{color:#cfd3e8;text-decoration:none;font-size:.88rem}
-.hd nav a.active,.hd nav a:hover{color:var(--accent)}
-.reg{margin-left:auto;background:var(--accent);color:var(--navy);font-weight:700;font-size:.82rem;padding:7px 15px;border-radius:999px;text-decoration:none}
-.wrap{max-width:1280px;margin:0 auto;padding:30px 20px 70px}
-h1{font-family:"Archivo","Noto Sans TC";font-size:clamp(2rem,4.5vw,2.8rem);font-weight:900}
-h1::after{content:"";display:block;width:64px;height:6px;background:var(--accent);margin-top:8px;border-radius:3px}
-p.note{color:var(--muted);font-size:.92rem;margin-top:12px;max-width:880px}
-/* 日期頁籤 */
-.days{display:flex;gap:6px;margin-top:24px;flex-wrap:wrap}
-.days button{font-family:"Archivo","Noto Sans TC";font-weight:700;font-size:.92rem;padding:9px 16px;cursor:pointer;border:2px solid var(--ink);border-bottom:none;background:transparent;color:var(--ink);border-radius:10px 10px 0 0}
-.days button.active{background:var(--ink);color:var(--accent)}
-.days button small{display:block;font-weight:500;font-size:.68rem;opacity:.75}
-.bar{border-top:2px solid var(--ink);padding:10px 0;display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:.78rem}
-/* 主題圖例 */
-.lg{display:flex;gap:6px;align-items:center}
-.dot{width:11px;height:11px;border-radius:3px;display:inline-block}
-/* 日曆格 */
-.cal-scroll{overflow-x:auto;border:2px solid var(--ink);border-radius:14px;background:var(--card);box-shadow:0 10px 28px rgba(11,14,42,.07)}
-.cal{display:grid;position:relative}
-.corner{position:sticky;left:0;z-index:30;background:var(--navy);border-radius:12px 0 0 0}
-.rh{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;padding:10px 8px;text-align:center;border-left:1px solid #2a2f55}
-.rh b{font-family:"Archivo";font-size:1rem;color:var(--accent);display:block}
-.rh small{font-size:.66rem;color:#aeb3d4;font-weight:400;line-height:1.3;display:block;margin-top:2px}
-.tlabel{position:sticky;left:0;z-index:10;background:var(--card);border-top:1px solid var(--line);border-right:2px solid var(--ink);font-family:"Archivo";font-weight:800;font-size:.78rem;color:var(--muted);padding:2px 8px 0 0;text-align:right}
-.cell{border-left:1px solid #eef0ea;border-top:1px solid var(--line)}
-.cell.half{border-top:1px dashed #ebede6}
-/* 場次區塊 */
-.ev{position:relative;margin:1px 3px;border-radius:8px;padding:6px 8px;font-size:.74rem;line-height:1.35;cursor:pointer;overflow:hidden;border:1.5px solid;transition:.15s;z-index:5;display:flex;flex-direction:column}
-.ev:hover{transform:scale(1.02);z-index:15;box-shadow:0 6px 16px rgba(11,14,42,.18)}
-.ev .t{font-weight:700;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
-.ev .tm{font-family:"Archivo";font-weight:800;font-size:.66rem;opacity:.85;margin-bottom:2px}
-.ev .lock{position:absolute;top:4px;right:6px;font-size:.62rem;opacity:.85}
-/* 主題色 */
-.c-DA{background:#eef0fc;border-color:#5b6fd6;color:#2c3a8f}
-.c-NT{background:#e6f7f3;border-color:#0aa688;color:#066353}
-.c-SF{background:#fdecec;border-color:#e05656;color:#9c2424}
-.c-BG{background:#fdf3e3;border-color:#e0a23a;color:#8a5d0d}
-.c-AQ{background:#f4ecfb;border-color:#9b59d6;color:#5e2b91}
-.c-TT{background:#fdeef5;border-color:#e83e8c;color:#a01b5a}
-.c-SU{background:#eaf6e7;border-color:#56a843;color:#2f6b22}
-.c-EE{background:#fff0e8;border-color:#e8742a;color:#9c4308}
-.c-OT{background:#f1f2f0;border-color:#9aa0a6;color:#4b5057}
-/* 非格狀日提示 */
-.notice{border:2px dashed var(--line);border-radius:14px;background:var(--card);padding:50px 26px;text-align:center;color:var(--muted)}
-.notice b{color:var(--ink)}
-.notice a{color:var(--accent-dark);font-weight:700}
-/* 彈窗 */
-.ov{position:fixed;inset:0;background:rgba(11,14,42,.55);backdrop-filter:blur(3px);display:none;align-items:flex-start;justify-content:center;z-index:100;padding:40px 16px;overflow-y:auto}
-.ov.show{display:flex}
-.md{background:#fff;border-radius:18px;max-width:680px;width:100%;padding:30px 28px;position:relative;border-top:8px solid var(--accent);animation:pop .2s ease}
-@keyframes pop{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
-.md .x{position:absolute;top:12px;right:16px;border:none;background:none;font-size:1.5rem;cursor:pointer;color:var(--muted)}
-.md h2{font-size:1.25rem;font-weight:900;line-height:1.5;padding-right:28px}
-.md .meta{margin-top:12px;font-family:"Archivo","Noto Sans TC";font-weight:700;font-size:.93rem}
-.md .meta b{color:var(--accent-dark)}
-.md .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.tag{font-size:.72rem;font-weight:700;border-radius:999px;padding:3px 10px;border:1px solid}
-.tag.open{background:#e6f7f3;color:var(--accent-dark);border-color:var(--accent-dark)}
-.tag.invite{background:#fdeef5;color:var(--magenta);border-color:var(--magenta)}
-.tag.premium{background:#fdf3e3;color:#8a5d0d;border-color:var(--amber)}
-.md .sp{margin-top:16px;font-size:.88rem;color:#374151}
-.md .sp b{display:block;color:var(--ink);margin-bottom:6px;font-size:.8rem;letter-spacing:1px}
-.md a.ext{display:inline-block;margin-top:20px;border:2px solid var(--ink);border-radius:999px;padding:7px 18px;font-size:.84rem;font-weight:700;color:var(--ink);text-decoration:none}
-.md a.ext:hover{background:var(--ink);color:#fff}
-footer{background:var(--navy);color:#9aa0c0;text-align:center;padding:24px 20px;font-size:.78rem}
-footer b{color:var(--accent)}
+
+[data-theme="dark"] {
+  --bg: #000000;
+  --surface: #1c1c1e;
+  --surface-2: #161618;
+  --surface-hover: #2a2a2c;
+
+  --text-strong: #f5f5f7;
+  --text: #d6d6da;
+  --text-soft: #98989d;
+  --text-faint: #6c6c70;
+
+  --separator: rgba(120, 120, 128, 0.28);
+  --separator-strong: rgba(120, 120, 128, 0.42);
+  --hairline: rgba(120, 120, 128, 0.16);
+
+  --accent: #0a84ff;
+  --accent-soft: rgba(10, 132, 255, 0.22);
+
+  --shadow-pop: 0 1px 2px rgba(0,0,0,.3), 0 16px 48px rgba(0,0,0,.55);
+  --shadow-chip: 0 8px 26px rgba(0,0,0,.5);
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text-strong);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-variant-numeric: tabular-nums;
+}
+#root { height: 100%; }
+
+/* ---------- track colors ---------- */
+.tk-DA { --c: #2f6fe0; }
+.tk-NT { --c: #0e9fb3; }
+.tk-SF { --c: #df4d47; }
+.tk-BG { --c: #c2952a; }
+.tk-AQ { --c: #6a5ae0; }
+.tk-TT { --c: #db5793; }
+.tk-SU { --c: #2fa15a; }
+.tk-EE { --c: #e2743a; }
+.tk-OT { --c: #8a8a8e; }
+
+/* ============================================================
+   App shell
+   ============================================================ */
+.app { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+
+.topbar {
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--separator);
+}
+.brand { display: flex; flex-direction: column; gap: 1px; margin-right: auto; }
+.brand .t1 {
+  font-size: 17px; font-weight: 600; letter-spacing: -0.01em;
+  color: var(--text-strong);
+}
+.brand .t2 { font-size: 12px; color: var(--text-soft); letter-spacing: .01em; }
+
+/* segmented control (Apple style) */
+.seg {
+  display: inline-flex; background: var(--surface-hover);
+  border-radius: 9px; padding: 2px; gap: 2px;
+}
+.seg button {
+  font: inherit; font-size: 13px; font-weight: 500;
+  border: none; background: transparent; color: var(--text);
+  padding: 5px 14px; border-radius: 7px; cursor: pointer;
+  transition: background .15s, color .15s; white-space: nowrap;
+}
+.seg button.on {
+  background: var(--surface);
+  color: var(--text-strong);
+  box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 1px 1px rgba(0,0,0,.04);
+}
+[data-theme="dark"] .seg button.on { background: #48484a; }
+
+.icon-btn {
+  width: 34px; height: 34px; border-radius: 9px; border: none;
+  background: var(--surface-hover); color: var(--text);
+  cursor: pointer; font-size: 16px; display: grid; place-items: center;
+  transition: background .15s;
+}
+.icon-btn:hover { background: var(--separator-strong); }
+
+.reg-btn {
+  font: inherit; font-size: 13px; font-weight: 600;
+  background: var(--accent); color: #fff; text-decoration: none;
+  padding: 7px 16px; border-radius: var(--radius-pill);
+}
+
+/* ---------- day selector ---------- */
+.daybar {
+  display: flex; align-items: stretch; gap: 8px;
+  padding: 12px 24px; background: var(--surface);
+  border-bottom: 1px solid var(--separator);
+  overflow-x: auto;
+}
+.day {
+  flex: 0 0 auto; min-width: 116px;
+  border: 1px solid var(--separator-strong); background: transparent;
+  border-radius: 12px; padding: 8px 14px; cursor: pointer; text-align: left;
+  font: inherit; color: var(--text); transition: background .15s, border-color .15s;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.day:hover { background: var(--surface-hover); }
+.day .dn { font-size: 12px; font-weight: 500; color: var(--text-soft); }
+.day .dd { font-size: 16px; font-weight: 600; color: var(--text-strong); letter-spacing: -0.01em; }
+.day .dl { font-size: 11px; color: var(--text-soft); }
+.day.on {
+  background: var(--accent); border-color: var(--accent);
+}
+.day.on .dn, .day.on .dd, .day.on .dl { color: #fff; }
+.day.on .dn, .day.on .dl { color: rgba(255,255,255,.82); }
+
+/* ---------- legend ---------- */
+.legend {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 7px 16px;
+  padding: 10px 24px; background: var(--surface-2);
+  border-bottom: 1px solid var(--separator);
+  font-size: 12px; color: var(--text-soft);
+}
+.legend .lg { display: inline-flex; align-items: center; gap: 6px; }
+.legend .dot { width: 9px; height: 9px; border-radius: 3px; background: var(--c); display: inline-block; }
+.legend .sep { margin-left: auto; }
+.legend .mk { display: inline-flex; align-items: center; gap: 5px; }
+
+/* ============================================================
+   Calendar (grid) view
+   ============================================================ */
+.scroll { flex: 1; overflow: auto; background: var(--surface); position: relative; }
+
+.cal { display: grid; position: relative; }
+
+.corner {
+  position: sticky; top: 0; left: 0; z-index: 45;
+  height: var(--head-h); background: var(--surface);
+  border-right: 1px solid var(--separator);
+  border-bottom: 1px solid var(--separator-strong);
+}
+.colhead {
+  position: sticky; top: 0; z-index: 30;
+  height: var(--head-h); background: var(--surface);
+  border-bottom: 1px solid var(--separator-strong);
+  border-left: 1px solid var(--separator);
+  padding: 8px 10px; display: flex; flex-direction: column; justify-content: center;
+  gap: 1px; overflow: hidden;
+}
+.colhead .code { font-size: 13px; font-weight: 650; color: var(--text-strong); letter-spacing: -0.01em; }
+.colhead .name {
+  font-size: 11px; color: var(--text-soft); line-height: 1.25;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.gutter {
+  position: sticky; left: 0; z-index: 20;
+  background: var(--surface);
+  border-right: 1px solid var(--separator);
+}
+.hourlabel {
+  position: absolute; right: 8px;
+  font-size: 11px; font-weight: 500; color: var(--text-soft);
+  letter-spacing: 0.01em;
+}
+
+.colbody {
+  position: relative;
+  border-left: 1px solid var(--separator);
+  background-repeat: repeat;
+}
+
+/* event chip */
+.ev {
+  position: absolute;
+  height: var(--h);
+  border-radius: var(--radius-chip);
+  padding: 4px 7px 4px 8px;
+  overflow: hidden; cursor: pointer;
+  border-left: 3px solid var(--c);
+  background: color-mix(in srgb, var(--c) 13%, var(--surface));
+  color: var(--text-strong);
+  box-shadow: 0 0 0 1px var(--surface);
+  transition: box-shadow .14s ease, transform .14s ease;
+  display: flex; flex-direction: column; gap: 1px;
+}
+.ev:hover {
+  height: auto; min-height: var(--h);
+  z-index: 60; box-shadow: var(--shadow-chip);
+  transform: translateY(-1px);
+}
+.ev .etm {
+  font-size: 10.5px; font-weight: 500; color: var(--text-soft);
+  white-space: nowrap; line-height: 1.2;
+}
+.ev .ett {
+  font-size: 12px; font-weight: 600; line-height: 1.28; letter-spacing: -0.005em;
+  color: var(--text-strong);
+  display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;
+  -webkit-line-clamp: var(--lines, 2);
+}
+.ev:hover .ett { -webkit-line-clamp: unset; }
+.ev .mk { position: absolute; top: 4px; right: 5px; font-size: 9.5px; opacity: .8; }
+
+/* color intensity variants */
+[data-ci="subtle"] .ev { background: color-mix(in srgb, var(--c) 7%, var(--surface)); }
+[data-ci="vivid"]  .ev { background: color-mix(in srgb, var(--c) 24%, var(--surface)); }
+[data-ci="vivid"]  .ev .ett { color: color-mix(in srgb, var(--c) 62%, var(--text-strong)); }
+[data-ci="vivid"]  .ev .etm { color: color-mix(in srgb, var(--c) 45%, var(--text-soft)); }
+
+.empty {
+  padding: 70px 24px; text-align: center; color: var(--text-soft); font-size: 14px;
+}
+
+/* ============================================================
+   List / Agenda view
+   ============================================================ */
+.list { flex: 1; overflow: auto; background: var(--bg); }
+.list-inner { max-width: 860px; margin: 0 auto; padding: 18px 20px 80px; }
+
+.hourgroup { margin-top: 10px; }
+.hourgroup-h {
+  position: sticky; top: 0; z-index: 5;
+  font-size: 12px; font-weight: 600; color: var(--text-soft);
+  letter-spacing: 0.04em; padding: 12px 4px 8px;
+  background: linear-gradient(var(--bg) 70%, transparent);
+}
+
+.litem {
+  display: grid; grid-template-columns: 78px 1fr; gap: 14px;
+  background: var(--surface); border: 1px solid var(--separator);
+  border-radius: 14px; padding: 13px 16px; margin-bottom: 8px;
+  cursor: pointer; transition: border-color .14s, box-shadow .14s, transform .14s;
+}
+.litem:hover { box-shadow: 0 4px 16px rgba(0,0,0,.07); transform: translateY(-1px); }
+[data-theme="dark"] .litem:hover { box-shadow: 0 4px 16px rgba(0,0,0,.4); }
+.litem .ltime { display: flex; flex-direction: column; gap: 2px; border-left: 3px solid var(--c); padding-left: 10px; }
+.litem .ltime .s { font-size: 14px; font-weight: 600; color: var(--text-strong); }
+.litem .ltime .e { font-size: 12px; color: var(--text-soft); }
+.litem .ltime .dur { font-size: 10.5px; color: var(--text-faint); margin-top: 1px; }
+.litem .lbody { min-width: 0; }
+.litem .ltitle { font-size: 14.5px; font-weight: 600; line-height: 1.34; letter-spacing: -0.01em; color: var(--text-strong); }
+.litem .lmeta { margin-top: 5px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 12px; color: var(--text-soft); }
+.litem .lmeta .tk { display: inline-flex; align-items: center; gap: 5px; }
+.litem .lmeta .tk .dot { width: 8px; height: 8px; border-radius: 2.5px; background: var(--c); }
+.litem .lmeta .room { font-weight: 500; color: var(--text); }
+.litem .lspk { margin-top: 6px; font-size: 12px; color: var(--text-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ============================================================
+   Modal (event detail popover)
+   ============================================================ */
+.ov {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.32); backdrop-filter: blur(6px);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 7vh 16px 40px; overflow-y: auto;
+  opacity: 0; pointer-events: none; transition: opacity .18s ease;
+}
+.ov.show { opacity: 1; pointer-events: auto; }
+.modal {
+  width: 100%; max-width: 540px; background: var(--surface);
+  border-radius: var(--radius-card); box-shadow: var(--shadow-pop);
+  border-top: 4px solid var(--c);
+  padding: 26px 26px 24px; position: relative;
+  transform: translateY(10px) scale(.98); transition: transform .2s cubic-bezier(.2,.7,.2,1);
+}
+.ov.show .modal { transform: none; }
+.modal .x {
+  position: absolute; top: 16px; right: 16px; width: 28px; height: 28px;
+  border: none; border-radius: 50%; background: var(--surface-hover);
+  color: var(--text-soft); font-size: 16px; cursor: pointer; display: grid; place-items: center;
+}
+.modal .x:hover { background: var(--separator-strong); color: var(--text-strong); }
+.modal .mtrack { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: var(--c); letter-spacing: .01em; }
+.modal .mtrack .dot { width: 9px; height: 9px; border-radius: 3px; background: var(--c); }
+.modal h2 { margin-top: 10px; font-size: 21px; font-weight: 650; line-height: 1.32; letter-spacing: -0.02em; color: var(--text-strong); padding-right: 30px; }
+.modal .mrow { margin-top: 16px; display: flex; gap: 11px; align-items: flex-start; font-size: 14px; color: var(--text); }
+.modal .mrow .mi { width: 18px; flex: 0 0 18px; text-align: center; color: var(--text-faint); font-size: 13px; margin-top: 1px; }
+.modal .mrow b { color: var(--text-strong); font-weight: 600; }
+.modal .badges { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 7px; }
+.badge { font-size: 12px; font-weight: 500; padding: 4px 11px; border-radius: var(--radius-pill); border: 1px solid var(--separator-strong); color: var(--text); }
+.badge.open { color: #2fa15a; border-color: rgba(47,161,90,.4); background: rgba(47,161,90,.08); }
+.badge.invite { color: #db5793; border-color: rgba(219,87,147,.4); background: rgba(219,87,147,.08); }
+.badge.premium { color: #c2952a; border-color: rgba(194,149,42,.45); background: rgba(194,149,42,.10); }
+.modal .spk { margin-top: 18px; }
+.modal .spk .lab { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-soft); margin-bottom: 9px; }
+.modal .spk .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.modal .spk .chip { font-size: 12.5px; padding: 5px 11px; border-radius: var(--radius-pill); background: var(--surface-hover); color: var(--text); }
+.modal a.ext {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 20px;
+  background: var(--accent); color: #fff; text-decoration: none;
+  font-size: 14px; font-weight: 600; padding: 9px 18px; border-radius: var(--radius-pill);
+}
+
+/* scrollbars */
+.scroll::-webkit-scrollbar, .list::-webkit-scrollbar { width: 11px; height: 11px; }
+.scroll::-webkit-scrollbar-thumb, .list::-webkit-scrollbar-thumb {
+  background: var(--separator-strong); border-radius: 6px; border: 3px solid var(--surface);
+}
+.daybar::-webkit-scrollbar { height: 0; }
+
+@media (max-width: 640px) {
+  .topbar, .daybar, .legend { padding-left: 14px; padding-right: 14px; }
+  .brand .t1 { font-size: 15px; }
+}
+
 </style>
 </head>
 <body>
-<header><div class="hd">
-  <a class="logo" href="#">SFF<span>2025</span></a>
-  <nav><a class="active" href="#">議程</a><a href="https://www.fintechfestival.sg/speakers" target="_blank">講者</a><a href="https://www.fintechfestival.sg/exhibitors" target="_blank">展覽</a><a href="https://www.fintechfestival.sg/sponsors" target="_blank">贊助</a></nav>
-  <a class="reg" href="https://www.fintechfestival.sg/registration" target="_blank">參與活動</a>
-</div></header>
+<div id="root"></div>
 
-<div class="wrap">
-  <h1>議程</h1>
-  <p class="note">時間軸在左側、各會議室／舞台為欄位，色塊長度對應場次時長，點擊色塊可看完整資訊。11/10（一）與 11/11（二）為 Insights Forum 日，於 Sands Expo &amp; Convention Centre 各會議室舉行；11/12 ~ 11/14 移師 Singapore Expo，於 Festival、Founders、Catalyst、Impact、FutureMatters、Frontier 六大主舞台與各 Lounge 同步進行（全部五日場次已完整收錄）。</p>
-
-  <div class="days" id="days"></div>
-  <div class="bar" id="legend"></div>
-  <div id="view"></div>
-</div>
-
-<div class="ov" id="ov"><div class="md" id="md"></div></div>
-<footer>以 <b>g0v Summit</b> 議程表風格重新呈現 Singapore FinTech Festival 2025 議程 ‧ 資料來源：fintechfestival.sg</footer>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <script>
-/* 會議室（Insights Forum 日 d1/d2，Sands Expo & Convention Centre）*/
+/* SFF 2025 議程資料 — 由原始 index.html 抽出 */
+window.SFF = (function(){
 const ROOMS = [
   ["DT","Design Thinking Room"],
   ["W1","Workshop Room 1 ‧ L4"],
@@ -504,113 +772,871 @@ const DAYS=[
  {k:"d4",l:"Day 4",d:"11/13（四）主舞台",grid:true,cols:"stages"},
  {k:"d5",l:"Day 5",d:"11/14（五）主舞台",grid:true,cols:"stages"}
 ];
-let cur="d1";
+return { ROOMS, ROOM_FULL, STAGES, STAGE_FULL, TOPICS, U, S, DAYS };
+})();
 
-function mins(t){const[a,b]=t.split(":").map(Number);return a*60+b;}
-function fmt(m){return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");}
-function colsOf(day){return day.cols==="stages"?STAGES:ROOMS;}
-function fullName(code){return STAGE_FULL[code]||ROOM_FULL[code]||code;}
+</script>
+<script type="text/babel">
+// @ds-adherence-ignore -- omelette starter scaffold (raw elements/hex/px by design)
 
-/* 日期頁籤 */
-const daysEl=document.getElementById("days");
-daysEl.innerHTML=DAYS.map(d=>`<button data-k="${d.k}" class="${d.k===cur?'active':''}">${d.l}<small>${d.d}</small></button>`).join("");
-daysEl.onclick=e=>{const b=e.target.closest("button");if(!b)return;cur=b.dataset.k;
- daysEl.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===b));render();};
+/* BEGIN USAGE */
+// tweaks-panel.jsx
+// Reusable Tweaks shell + form-control helpers.
+// Exports (to window): useTweaks, TweaksPanel, TweakSection, TweakRow, TweakSlider,
+//   TweakToggle, TweakRadio, TweakSelect, TweakText, TweakNumber, TweakColor, TweakButton.
+//
+// Owns the host protocol (listens for __activate_edit_mode / __deactivate_edit_mode,
+// posts __edit_mode_available / __edit_mode_set_keys / __edit_mode_dismissed) so
+// individual prototypes don't re-roll it. Ships a consistent set of controls so you
+// don't hand-draw <input type="range">, segmented radios, steppers, etc.
+//
+// Usage (in an HTML file that loads React + Babel):
+//
+//   const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+//     "primaryColor": "#D97757",
+//     "palette": ["#D97757", "#29261b", "#f6f4ef"],
+//     "fontSize": 16,
+//     "density": "regular",
+//     "dark": false
+//   }/*EDITMODE-END*/;
+//
+//   function App() {
+//     const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+//     return (
+//       <div style={{ fontSize: t.fontSize, color: t.primaryColor }}>
+//         Hello
+//         <TweaksPanel>
+//           <TweakSection label="Typography" />
+//           <TweakSlider label="Font size" value={t.fontSize} min={10} max={32} unit="px"
+//                        onChange={(v) => setTweak('fontSize', v)} />
+//           <TweakRadio  label="Density" value={t.density}
+//                        options={['compact', 'regular', 'comfy']}
+//                        onChange={(v) => setTweak('density', v)} />
+//           <TweakSection label="Theme" />
+//           <TweakColor  label="Primary" value={t.primaryColor}
+//                        options={['#D97757', '#2A6FDB', '#1F8A5B', '#7A5AE0']}
+//                        onChange={(v) => setTweak('primaryColor', v)} />
+//           <TweakColor  label="Palette" value={t.palette}
+//                        options={[['#D97757', '#29261b', '#f6f4ef'],
+//                                  ['#475569', '#0f172a', '#f1f5f9']]}
+//                        onChange={(v) => setTweak('palette', v)} />
+//           <TweakToggle label="Dark mode" value={t.dark}
+//                        onChange={(v) => setTweak('dark', v)} />
+//         </TweaksPanel>
+//       </div>
+//     );
+//   }
+//
+// TweakRadio is the segmented control for 2–3 short options (auto-falls-back to
+// TweakSelect past ~16/~10 chars per label); reach for TweakSelect directly when
+// options are many or long. For color tweaks always curate 3-4 options rather than
+// a free picker; an option can also be a whole 2–5 color palette (the stored value
+// is the array). The Tweak* controls are a floor, not a ceiling — build custom
+// controls inside the panel if a tweak calls for UI they don't cover.
+/* END USAGE */
+// ─────────────────────────────────────────────────────────────────────────────
 
-/* 主題圖例 */
-document.getElementById("legend").innerHTML=
- Object.entries(TOPICS).map(([k,v])=>`<span class="lg"><span class="dot c-${k}" style="border:1.5px solid"></span>${v[0]}</span>`).join("")
- +`<span class="lg" style="margin-left:auto">🔒 邀請制 Invite-Only</span>`
- +`<span class="lg">◆ 付費 Premium</span>`;
+const __TWEAKS_STYLE = `
+  .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
+    max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+    transform:scale(var(--dc-inv-zoom,1));transform-origin:bottom right;
+    background:rgba(250,249,247,.78);color:#29261b;
+    -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+    border:.5px solid rgba(255,255,255,.6);border-radius:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);
+    font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+  .twk-hd{display:flex;align-items:center;justify-content:space-between;
+    padding:10px 8px 10px 14px;cursor:move;user-select:none}
+  .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}
+  .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
+    width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
+  .twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
+  .twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;
+    overflow-y:auto;overflow-x:hidden;min-height:0;
+    scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.15) transparent}
+  .twk-body::-webkit-scrollbar{width:8px}
+  .twk-body::-webkit-scrollbar-track{background:transparent;margin:2px}
+  .twk-body::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:4px;
+    border:2px solid transparent;background-clip:content-box}
+  .twk-body::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.25);
+    border:2px solid transparent;background-clip:content-box}
+  .twk-row{display:flex;flex-direction:column;gap:5px}
+  .twk-row-h{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+  .twk-lbl{display:flex;justify-content:space-between;align-items:baseline;
+    color:rgba(41,38,27,.72)}
+  .twk-lbl>span:first-child{font-weight:500}
+  .twk-val{color:rgba(41,38,27,.5);font-variant-numeric:tabular-nums}
 
-function render(){
- const day=DAYS.find(d=>d.k===cur);
- const view=document.getElementById("view");
- const list=S.filter(s=>s[0]===cur);
- if(!list.length){view.innerHTML=`<div class="notice"><b>${day.d}</b> 尚無可顯示的場次。</div>`;return;}
+  .twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:rgba(41,38,27,.45);padding:10px 0 0}
+  .twk-sect:first-child{padding-top:0}
 
- const master=colsOf(day);
- const usedRooms=master.filter(([k])=>list.some(s=>s[1]===k));
+  .twk-field{appearance:none;box-sizing:border-box;width:100%;min-width:0;height:26px;padding:0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;
+    background:rgba(255,255,255,.6);color:inherit;font:inherit;outline:none}
+  .twk-field:focus{border-color:rgba(0,0,0,.25);background:rgba(255,255,255,.85)}
+  select.twk-field{padding-right:22px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='rgba(0,0,0,.5)' d='M0 0h10L5 6z'/></svg>");
+    background-repeat:no-repeat;background-position:right 8px center}
 
- /* 同一欄位若有時間重疊的場次，拆成多個子欄（lane）並排 */
- const laneOf=new Map();        // session -> lane index
- const laneCount={};            // room code -> lane 數
- usedRooms.forEach(([k])=>{
-  const evs=list.filter(s=>s[1]===k).sort((a,b)=>mins(a[2])-mins(b[2])||mins(a[3])-mins(b[3]));
-  const laneEnd=[];
-  evs.forEach(ev=>{
-   let p=laneEnd.findIndex(end=>mins(ev[2])>=end);
-   if(p<0){p=laneEnd.length;laneEnd.push(0);}
-   laneEnd[p]=mins(ev[3]);
-   laneOf.set(ev,p);
-  });
-  laneCount[k]=Math.max(1,laneEnd.length);
- });
+  .twk-slider{appearance:none;-webkit-appearance:none;width:100%;height:4px;margin:6px 0;
+    border-radius:999px;background:rgba(0,0,0,.12);outline:none}
+  .twk-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+    width:14px;height:14px;border-radius:50%;background:#fff;
+    border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+  .twk-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
+    background:#fff;border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
 
- /* 累計子欄起點（grid-column；第 1 欄為時間軸）*/
- const colStart={};let totalCols=0;
- usedRooms.forEach(([k])=>{colStart[k]=totalCols+2;totalCols+=laneCount[k];});
+  .twk-seg{position:relative;display:flex;padding:2px;border-radius:8px;
+    background:rgba(0,0,0,.06);user-select:none}
+  .twk-seg-thumb{position:absolute;top:2px;bottom:2px;border-radius:6px;
+    background:rgba(255,255,255,.9);box-shadow:0 1px 2px rgba(0,0,0,.12);
+    transition:left .15s cubic-bezier(.3,.7,.4,1),width .15s}
+  .twk-seg.dragging .twk-seg-thumb{transition:none}
+  .twk-seg button{appearance:none;position:relative;z-index:1;flex:1;border:0;
+    background:transparent;color:inherit;font:inherit;font-weight:500;min-height:22px;
+    border-radius:6px;cursor:default;padding:4px 6px;line-height:1.2;
+    overflow-wrap:anywhere}
 
- const start=Math.floor(Math.min(...list.map(s=>mins(s[2])))/60)*60;
- const end=Math.ceil(Math.max(...list.map(s=>mins(s[3])))/60)*60;
- const slots=(end-start)/15;
- const minW=Math.max(1100,64+totalCols*150);
+  .twk-toggle{position:relative;width:32px;height:18px;border:0;border-radius:999px;
+    background:rgba(0,0,0,.15);transition:background .15s;cursor:default;padding:0}
+  .twk-toggle[data-on="1"]{background:#34c759}
+  .twk-toggle i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+  .twk-toggle[data-on="1"] i{transform:translateX(14px)}
 
- let html=`<div class="cal-scroll"><div class="cal" style="min-width:${minW}px;grid-template-columns:64px repeat(${totalCols},minmax(132px,1fr));grid-template-rows:54px repeat(${slots},var(--slot))">`;
- html+=`<div class="corner" style="grid-row:1;grid-column:1"></div>`;
- usedRooms.forEach(([k,n])=>{html+=`<div class="rh" style="grid-row:1;grid-column:${colStart[k]} / span ${laneCount[k]}"><b>${k}</b><small>${n}</small></div>`;});
- /* 時間標籤 + 背景格線（每個會議室一格、橫跨其子欄）*/
- for(let m=start;m<end;m+=15){
-  const r=(m-start)/15+2;
-  if(m%60===0) html+=`<div class="tlabel" style="grid-row:${r};grid-column:1">${fmt(m)}</div>`;
-  else html+=`<div class="tlabel" style="grid-row:${r};grid-column:1;border-top:none"></div>`;
-  usedRooms.forEach(([k])=>{
-   html+=`<div class="cell ${m%60!==0?'half':''}" style="grid-row:${r};grid-column:${colStart[k]} / span ${laneCount[k]}"></div>`;
-  });
- }
- /* 場次區塊 */
- list.forEach(s=>{
-  const idx=S.indexOf(s);
-  const col=colStart[s[1]]+(laneOf.get(s)||0);
-  const r1=(mins(s[2])-start)/15+2, r2=(mins(s[3])-start)/15+2;
-  const span=r2-r1;
-  const clamp=Math.max(1,Math.min(6,span-1));
-  const badge=s[4]==="I"?'<span class="lock">🔒</span>':(s[4]==="P"?'<span class="lock">◆</span>':'');
-  html+=`<div class="ev c-${s[5]}" data-i="${idx}" style="grid-column:${col};grid-row:${r1} / ${r2}">
-    ${badge}
-    <span class="tm">${s[2]} – ${s[3]}</span>
-    <span class="t" style="-webkit-line-clamp:${clamp}">${s[6]}</span>
-  </div>`;
- });
- html+=`</div></div>`;
- view.innerHTML=html;
+  .twk-num{display:flex;align-items:center;box-sizing:border-box;min-width:0;height:26px;padding:0 0 0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;background:rgba(255,255,255,.6)}
+  .twk-num-lbl{font-weight:500;color:rgba(41,38,27,.6);cursor:ew-resize;
+    user-select:none;padding-right:8px}
+  .twk-num input{flex:1;min-width:0;height:100%;border:0;background:transparent;
+    font:inherit;font-variant-numeric:tabular-nums;text-align:right;padding:0 8px 0 0;
+    outline:none;color:inherit;-moz-appearance:textfield}
+  .twk-num input::-webkit-inner-spin-button,.twk-num input::-webkit-outer-spin-button{
+    -webkit-appearance:none;margin:0}
+  .twk-num-unit{padding-right:8px;color:rgba(41,38,27,.45)}
+
+  .twk-btn{appearance:none;height:26px;padding:0 12px;border:0;border-radius:7px;
+    background:rgba(0,0,0,.78);color:#fff;font:inherit;font-weight:500;cursor:default}
+  .twk-btn:hover{background:rgba(0,0,0,.88)}
+  .twk-btn.secondary{background:rgba(0,0,0,.06);color:inherit}
+  .twk-btn.secondary:hover{background:rgba(0,0,0,.1)}
+
+  .twk-swatch{appearance:none;-webkit-appearance:none;width:56px;height:22px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:6px;padding:0;cursor:default;
+    background:transparent;flex-shrink:0}
+  .twk-swatch::-webkit-color-swatch-wrapper{padding:0}
+  .twk-swatch::-webkit-color-swatch{border:0;border-radius:5.5px}
+  .twk-swatch::-moz-color-swatch{border:0;border-radius:5.5px}
+
+  .twk-chips{display:flex;gap:6px}
+  .twk-chip{position:relative;appearance:none;flex:1;min-width:0;height:46px;
+    padding:0;border:0;border-radius:6px;overflow:hidden;cursor:default;
+    box-shadow:0 0 0 .5px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.06);
+    transition:transform .12s cubic-bezier(.3,.7,.4,1),box-shadow .12s}
+  .twk-chip:hover{transform:translateY(-1px);
+    box-shadow:0 0 0 .5px rgba(0,0,0,.18),0 4px 10px rgba(0,0,0,.12)}
+  .twk-chip[data-on="1"]{box-shadow:0 0 0 1.5px rgba(0,0,0,.85),
+    0 2px 6px rgba(0,0,0,.15)}
+  .twk-chip>span{position:absolute;top:0;bottom:0;right:0;width:34%;
+    display:flex;flex-direction:column;box-shadow:-1px 0 0 rgba(0,0,0,.1)}
+  .twk-chip>span>i{flex:1;box-shadow:0 -1px 0 rgba(0,0,0,.1)}
+  .twk-chip>span>i:first-child{box-shadow:none}
+  .twk-chip svg{position:absolute;top:6px;left:6px;width:13px;height:13px;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+`;
+
+// ── useTweaks ───────────────────────────────────────────────────────────────
+// Single source of truth for tweak values. setTweak persists via the host
+// (__edit_mode_set_keys → host rewrites the EDITMODE block on disk).
+function useTweaks(defaults) {
+  const [values, setValues] = React.useState(defaults);
+  // Accepts either setTweak('key', value) or setTweak({ key: value, ... }) so a
+  // useState-style call doesn't write a "[object Object]" key into the persisted
+  // JSON block.
+  const setTweak = React.useCallback((keyOrEdits, val) => {
+    const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null
+      ? keyOrEdits : { [keyOrEdits]: val };
+    setValues((prev) => ({ ...prev, ...edits }));
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*');
+    // Same-window signal so in-page listeners (deck-stage rail thumbnails)
+    // can react — the parent message only reaches the host, not peers.
+    window.dispatchEvent(new CustomEvent('tweakchange', { detail: edits }));
+  }, []);
+  return [values, setTweak];
 }
 
-/* 彈窗 */
-const ACCESS={O:['開放參加 Open','open'],I:['🔒 邀請制 Invite-Only','invite'],P:['◆ 付費 Premium','premium']};
-const ov=document.getElementById("ov"),md=document.getElementById("md");
-document.getElementById("view").addEventListener("click",e=>{
- const el=e.target.closest(".ev");if(!el)return;
- const s=S[+el.dataset.i];
- const day=DAYS.find(d=>d.k===s[0]);
- const stage=s[9]||"Insights Forum";
- const acc=ACCESS[s[4]]||ACCESS.O;
- md.innerHTML=`<button class="x" onclick="document.getElementById('ov').classList.remove('show')">×</button>
-  <h2>${s[6]}</h2>
-  <div class="tags">
-   <span class="tag" style="background:var(--ink);color:#fff;border-color:var(--ink)">${stage}</span>
-   <span class="tag ${acc[1]}">${acc[0]}</span>
-   <span class="tag c-${s[5]}">${TOPICS[s[5]][0]}（${TOPICS[s[5]][1]}）</span>
-  </div>
-  <div class="meta">${day.d.split("）")[0]}） ${s[2]} ~ ${s[3]} <b>@ ${s[1]}</b>　<span style="font-weight:500;color:var(--muted)">${fullName(s[1])}</span></div>
-  ${s[8]&&s[8].length?`<div class="sp"><b>講者 SPEAKERS</b>${s[8].join("、")}</div>`:""}
-  <a class="ext" href="${U+s[7]}" target="_blank">查看官方場次頁面 ↗</a>`;
- ov.classList.add("show");
-});
-ov.onclick=e=>{if(e.target===ov)ov.classList.remove("show");};
-document.addEventListener("keydown",e=>{if(e.key==="Escape")ov.classList.remove("show");});
+// ── TweaksPanel ─────────────────────────────────────────────────────────────
+// Floating shell. Registers the protocol listener BEFORE announcing
+// availability — if the announce ran first, the host's activate could land
+// before our handler exists and the toolbar toggle would silently no-op.
+// The close button posts __edit_mode_dismissed so the host's toolbar toggle
+// flips off in lockstep; the host echoes __deactivate_edit_mode back which
+// is what actually hides the panel.
+function TweaksPanel({ title = 'Tweaks', children }) {
+  const [open, setOpen] = React.useState(false);
+  const dragRef = React.useRef(null);
+  const offsetRef = React.useRef({ x: 16, y: 16 });
+  const PAD = 16;
 
-render();
+  const clampToViewport = React.useCallback(() => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    const maxRight = Math.max(PAD, window.innerWidth - w - PAD);
+    const maxBottom = Math.max(PAD, window.innerHeight - h - PAD);
+    offsetRef.current = {
+      x: Math.min(maxRight, Math.max(PAD, offsetRef.current.x)),
+      y: Math.min(maxBottom, Math.max(PAD, offsetRef.current.y)),
+    };
+    panel.style.right = offsetRef.current.x + 'px';
+    panel.style.bottom = offsetRef.current.y + 'px';
+  }, []);
+
+  React.useEffect(() => {
+    if (!open) return;
+    clampToViewport();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', clampToViewport);
+      return () => window.removeEventListener('resize', clampToViewport);
+    }
+    const ro = new ResizeObserver(clampToViewport);
+    ro.observe(document.documentElement);
+    return () => ro.disconnect();
+  }, [open, clampToViewport]);
+
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      const t = e?.data?.type;
+      if (t === '__activate_edit_mode') setOpen(true);
+      else if (t === '__deactivate_edit_mode') setOpen(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const dismiss = () => {
+    setOpen(false);
+    window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
+  };
+
+  const onDragStart = (e) => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const r = panel.getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY;
+    const startRight = window.innerWidth - r.right;
+    const startBottom = window.innerHeight - r.bottom;
+    const move = (ev) => {
+      offsetRef.current = {
+        x: startRight - (ev.clientX - sx),
+        y: startBottom - (ev.clientY - sy),
+      };
+      clampToViewport();
+    };
+    const up = () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  };
+
+  if (!open) return null;
+  return (
+    <>
+      <style>{__TWEAKS_STYLE}</style>
+      <div ref={dragRef} className="twk-panel" data-omelette-chrome=""
+           style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
+        <div className="twk-hd" onMouseDown={onDragStart}>
+          <b>{title}</b>
+          <button className="twk-x" aria-label="Close tweaks"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={dismiss}>✕</button>
+        </div>
+        <div className="twk-body">
+          {children}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ── Layout helpers ──────────────────────────────────────────────────────────
+
+function TweakSection({ label, children }) {
+  return (
+    <>
+      <div className="twk-sect">{label}</div>
+      {children}
+    </>
+  );
+}
+
+function TweakRow({ label, value, children, inline = false }) {
+  return (
+    <div className={inline ? 'twk-row twk-row-h' : 'twk-row'}>
+      <div className="twk-lbl">
+        <span>{label}</span>
+        {value != null && <span className="twk-val">{value}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// ── Controls ────────────────────────────────────────────────────────────────
+
+function TweakSlider({ label, value, min = 0, max = 100, step = 1, unit = '', onChange }) {
+  return (
+    <TweakRow label={label} value={`${value}${unit}`}>
+      <input type="range" className="twk-slider" min={min} max={max} step={step}
+             value={value} onChange={(e) => onChange(Number(e.target.value))} />
+    </TweakRow>
+  );
+}
+
+function TweakToggle({ label, value, onChange }) {
+  return (
+    <div className="twk-row twk-row-h">
+      <div className="twk-lbl"><span>{label}</span></div>
+      <button type="button" className="twk-toggle" data-on={value ? '1' : '0'}
+              role="switch" aria-checked={!!value}
+              onClick={() => onChange(!value)}><i /></button>
+    </div>
+  );
+}
+
+function TweakRadio({ label, value, options, onChange }) {
+  const trackRef = React.useRef(null);
+  const [dragging, setDragging] = React.useState(false);
+  // The active value is read by pointer-move handlers attached for the lifetime
+  // of a drag — ref it so a stale closure doesn't fire onChange for every move.
+  const valueRef = React.useRef(value);
+  valueRef.current = value;
+
+  // Segments wrap mid-word once per-segment width runs out. The track is
+  // ~248px (280 panel − 28 body pad − 4 seg pad), each button loses 12px
+  // to its own padding, and 11.5px system-ui averages ~6.3px/char — so 2
+  // options fit ~16 chars each, 3 fit ~10. Past that (or >3 options), fall
+  // back to a dropdown rather than wrap.
+  const labelLen = (o) => String(typeof o === 'object' ? o.label : o).length;
+  const maxLen = options.reduce((m, o) => Math.max(m, labelLen(o)), 0);
+  const fitsAsSegments = maxLen <= ({ 2: 16, 3: 10 }[options.length] ?? 0);
+  if (!fitsAsSegments) {
+    // <select> emits strings — map back to the original option value so the
+    // fallback stays type-preserving (numbers, booleans) like the segment path.
+    const resolve = (s) => {
+      const m = options.find((o) => String(typeof o === 'object' ? o.value : o) === s);
+      return m === undefined ? s : typeof m === 'object' ? m.value : m;
+    };
+    return <TweakSelect label={label} value={value} options={options}
+                        onChange={(s) => onChange(resolve(s))} />;
+  }
+  const opts = options.map((o) => (typeof o === 'object' ? o : { value: o, label: o }));
+  const idx = Math.max(0, opts.findIndex((o) => o.value === value));
+  const n = opts.length;
+
+  const segAt = (clientX) => {
+    const r = trackRef.current.getBoundingClientRect();
+    const inner = r.width - 4;
+    const i = Math.floor(((clientX - r.left - 2) / inner) * n);
+    return opts[Math.max(0, Math.min(n - 1, i))].value;
+  };
+
+  const onPointerDown = (e) => {
+    setDragging(true);
+    const v0 = segAt(e.clientX);
+    if (v0 !== valueRef.current) onChange(v0);
+    const move = (ev) => {
+      if (!trackRef.current) return;
+      const v = segAt(ev.clientX);
+      if (v !== valueRef.current) onChange(v);
+    };
+    const up = () => {
+      setDragging(false);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+
+  return (
+    <TweakRow label={label}>
+      <div ref={trackRef} role="radiogroup" onPointerDown={onPointerDown}
+           className={dragging ? 'twk-seg dragging' : 'twk-seg'}>
+        <div className="twk-seg-thumb"
+             style={{ left: `calc(2px + ${idx} * (100% - 4px) / ${n})`,
+                      width: `calc((100% - 4px) / ${n})` }} />
+        {opts.map((o) => (
+          <button key={o.value} type="button" role="radio" aria-checked={o.value === value}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </TweakRow>
+  );
+}
+
+function TweakSelect({ label, value, options, onChange }) {
+  return (
+    <TweakRow label={label}>
+      <select className="twk-field" value={value} onChange={(e) => onChange(e.target.value)}>
+        {options.map((o) => {
+          const v = typeof o === 'object' ? o.value : o;
+          const l = typeof o === 'object' ? o.label : o;
+          return <option key={v} value={v}>{l}</option>;
+        })}
+      </select>
+    </TweakRow>
+  );
+}
+
+function TweakText({ label, value, placeholder, onChange }) {
+  return (
+    <TweakRow label={label}>
+      <input className="twk-field" type="text" value={value} placeholder={placeholder}
+             onChange={(e) => onChange(e.target.value)} />
+    </TweakRow>
+  );
+}
+
+function TweakNumber({ label, value, min, max, step = 1, unit = '', onChange }) {
+  const clamp = (n) => {
+    if (min != null && n < min) return min;
+    if (max != null && n > max) return max;
+    return n;
+  };
+  const startRef = React.useRef({ x: 0, val: 0 });
+  const onScrubStart = (e) => {
+    e.preventDefault();
+    startRef.current = { x: e.clientX, val: value };
+    const decimals = (String(step).split('.')[1] || '').length;
+    const move = (ev) => {
+      const dx = ev.clientX - startRef.current.x;
+      const raw = startRef.current.val + dx * step;
+      const snapped = Math.round(raw / step) * step;
+      onChange(clamp(Number(snapped.toFixed(decimals))));
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+  return (
+    <div className="twk-num">
+      <span className="twk-num-lbl" onPointerDown={onScrubStart}>{label}</span>
+      <input type="number" value={value} min={min} max={max} step={step}
+             onChange={(e) => onChange(clamp(Number(e.target.value)))} />
+      {unit && <span className="twk-num-unit">{unit}</span>}
+    </div>
+  );
+}
+
+// Relative-luminance contrast pick — checkmarks drawn over a swatch need to
+// read on both #111 and #fafafa without per-option configuration. Hex input
+// only (#rgb / #rrggbb); named or rgb()/hsl() colors fall through to "light".
+function __twkIsLight(hex) {
+  const h = String(hex).replace('#', '');
+  const x = h.length === 3 ? h.replace(/./g, (c) => c + c) : h.padEnd(6, '0');
+  const n = parseInt(x.slice(0, 6), 16);
+  if (Number.isNaN(n)) return true;
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return r * 299 + g * 587 + b * 114 > 148000;
+}
+
+const __TwkCheck = ({ light }) => (
+  <svg viewBox="0 0 14 14" aria-hidden="true">
+    <path d="M3 7.2 5.8 10 11 4.2" fill="none" strokeWidth="2.2"
+          strokeLinecap="round" strokeLinejoin="round"
+          stroke={light ? 'rgba(0,0,0,.78)' : '#fff'} />
+  </svg>
+);
+
+// TweakColor — curated color/palette picker. Each option is either a single
+// hex string or an array of 1-5 hex strings; the card adapts — a lone color
+// renders solid, a palette renders colors[0] as the hero (left ~2/3) with the
+// rest stacked in a sharp column on the right. onChange emits the
+// option in the shape it was passed (string stays string, array stays array).
+// Without options it falls back to the native color input for back-compat.
+function TweakColor({ label, value, options, onChange }) {
+  if (!options || !options.length) {
+    return (
+      <div className="twk-row twk-row-h">
+        <div className="twk-lbl"><span>{label}</span></div>
+        <input type="color" className="twk-swatch" value={value}
+               onChange={(e) => onChange(e.target.value)} />
+      </div>
+    );
+  }
+  // Native <input type=color> emits lowercase hex per the HTML spec, so
+  // compare case-insensitively. String() guards JSON.stringify(undefined),
+  // which returns the primitive undefined (no .toLowerCase).
+  const key = (o) => String(JSON.stringify(o)).toLowerCase();
+  const cur = key(value);
+  return (
+    <TweakRow label={label}>
+      <div className="twk-chips" role="radiogroup">
+        {options.map((o, i) => {
+          const colors = Array.isArray(o) ? o : [o];
+          const [hero, ...rest] = colors;
+          const sup = rest.slice(0, 4);
+          const on = key(o) === cur;
+          return (
+            <button key={i} type="button" className="twk-chip" role="radio"
+                    aria-checked={on} data-on={on ? '1' : '0'}
+                    aria-label={colors.join(', ')} title={colors.join(' · ')}
+                    style={{ background: hero }}
+                    onClick={() => onChange(o)}>
+              {sup.length > 0 && (
+                <span>
+                  {sup.map((c, j) => <i key={j} style={{ background: c }} />)}
+                </span>
+              )}
+              {on && <__TwkCheck light={__twkIsLight(hero)} />}
+            </button>
+          );
+        })}
+      </div>
+    </TweakRow>
+  );
+}
+
+function TweakButton({ label, onClick, secondary = false }) {
+  return (
+    <button type="button" className={secondary ? 'twk-btn secondary' : 'twk-btn'}
+            onClick={onClick}>{label}</button>
+  );
+}
+
+Object.assign(window, {
+  useTweaks, TweaksPanel, TweakSection, TweakRow,
+  TweakSlider, TweakToggle, TweakRadio, TweakSelect,
+  TweakText, TweakNumber, TweakColor, TweakButton,
+});
+
+</script>
+<script type="text/babel">
+/* ============================================================
+   SFF 2025 Agenda — React app (Apple Calendar inspired)
+   ============================================================ */
+const { useState, useEffect, useMemo, useRef } = React;
+const D = window.SFF;
+
+/* ---- day metadata (English-first) ---- */
+const DAYMETA = {
+  d1: { wd: "Mon", date: "Nov 10", label: "Insights Forum", zh: "11/10 一" },
+  d2: { wd: "Tue", date: "Nov 11", label: "Insights Forum", zh: "11/11 二" },
+  d3: { wd: "Wed", date: "Nov 12", label: "Main Stages", zh: "11/12 三" },
+  d4: { wd: "Thu", date: "Nov 13", label: "Main Stages", zh: "11/13 四" },
+  d5: { wd: "Fri", date: "Nov 14", label: "Main Stages", zh: "11/14 五" },
+};
+const ACCESS = {
+  O: { en: "Open", zh: "開放參加", cls: "open", mk: "" },
+  I: { en: "Invite-Only", zh: "邀請制", cls: "invite", mk: "🔒" },
+  P: { en: "Premium", zh: "付費", cls: "premium", mk: "◆" },
+};
+
+/* ---- helpers ---- */
+const mins = (t) => { const [a, b] = t.split(":").map(Number); return a * 60 + b; };
+const pad2 = (n) => String(n).padStart(2, "0");
+const clock = (t) => { const [h, m] = t.split(":"); return pad2(+h) + ":" + m; };
+const fmtMin = (m) => pad2(Math.floor(m / 60)) + ":" + pad2(m % 60);
+const durLabel = (a, b) => {
+  const d = mins(b) - mins(a);
+  if (d >= 60) { const h = Math.floor(d / 60), mm = d % 60; return h + "h" + (mm ? " " + mm + "m" : ""); }
+  return d + "m";
+};
+const colsOf = (day) => (day.cols === "stages" ? D.STAGES : D.ROOMS);
+const fullName = (code) => D.STAGE_FULL[code] || D.ROOM_FULL[code] || code;
+
+/* assign overlap lanes within a column */
+function computeLanes(evs) {
+  const sorted = [...evs].sort((a, b) => mins(a[2]) - mins(b[2]) || mins(a[3]) - mins(b[3]));
+  const laneEnd = []; const laneOf = new Map();
+  sorted.forEach((ev) => {
+    let p = laneEnd.findIndex((end) => mins(ev[2]) >= end);
+    if (p < 0) { p = laneEnd.length; laneEnd.push(0); }
+    laneEnd[p] = mins(ev[3]); laneOf.set(ev, p);
+  });
+  return { laneOf, count: Math.max(1, laneEnd.length) };
+}
+
+/* ============================================================ */
+function EventChip({ s, lane, lanes, dayStart, pxPerMin, minH, onSelect }) {
+  const top = (mins(s[2]) - dayStart) * pxPerMin;
+  const h = Math.max(minH, (mins(s[3]) - mins(s[2])) * pxPerMin);
+  const lines = Math.max(1, Math.min(6, Math.floor((h - 16) / 15)));
+  const mk = ACCESS[s[4]].mk;
+  return (
+    <div
+      className={"ev tk-" + s[5]}
+      style={{
+        top: top + "px",
+        left: `calc(${(lane / lanes) * 100}% + 2px)`,
+        width: `calc(${100 / lanes}% - 4px)`,
+        "--h": h + "px",
+        "--lines": lines,
+      }}
+      onClick={() => onSelect(s)}
+    >
+      {mk && <span className="mk">{mk}</span>}
+      <span className="etm">{clock(s[2])}</span>
+      <span className="ett">{s[6]}</span>
+    </div>
+  );
+}
+
+function CalendarView({ day, sessions, hourHeight, colWidth, quarterLines, onSelect }) {
+  const pxPerMin = hourHeight / 60;
+  const minH = Math.max(20, hourHeight * 0.3);
+
+  const master = colsOf(day);
+  const used = master.filter(([k]) => sessions.some((s) => s[1] === k));
+  if (!used.length) return <div className="empty">尚無可顯示的場次。</div>;
+
+  const dayStart = Math.floor(Math.min(...sessions.map((s) => mins(s[2]))) / 60) * 60;
+  const dayEnd = Math.ceil(Math.max(...sessions.map((s) => mins(s[3]))) / 60) * 60;
+  const totalMin = dayEnd - dayStart;
+  const bodyH = totalMin * pxPerMin;
+
+  const laneData = {};
+  used.forEach(([k]) => { laneData[k] = computeLanes(sessions.filter((s) => s[1] === k)); });
+
+  const hours = [];
+  for (let m = dayStart; m <= dayEnd; m += 60) hours.push(m);
+
+  const bg = (() => {
+    const layers = [`linear-gradient(var(--separator) 1px, transparent 1px)`];
+    const sizes = [`100% ${60 * pxPerMin}px`];
+    if (quarterLines) { layers.push(`linear-gradient(var(--hairline) 1px, transparent 1px)`); sizes.push(`100% ${15 * pxPerMin}px`); }
+    return { backgroundImage: layers.join(","), backgroundSize: sizes.join(",") };
+  })();
+
+  const n = used.length;
+  const tpl = `var(--gutter-w) repeat(${n}, minmax(${colWidth}px, 1fr))`;
+
+  return (
+    <div className="scroll">
+      <div className="cal" style={{ gridTemplateColumns: tpl }}>
+        <div className="corner" style={{ gridColumn: 1, gridRow: 1 }} />
+        {used.map(([k, name], i) => (
+          <div className="colhead" key={"h" + k} style={{ gridColumn: i + 2, gridRow: 1 }}>
+            <span className="code">{k}</span>
+            <span className="name" title={name}>{name}</span>
+          </div>
+        ))}
+        <div className="gutter" style={{ gridColumn: 1, gridRow: 2, height: bodyH + "px" }}>
+          {hours.map((m, i) => (
+            <span className="hourlabel" key={m}
+              style={{ top: (m - dayStart) * pxPerMin + "px", transform: i === 0 ? "translateY(2px)" : "translateY(-50%)" }}>
+              {fmtMin(m)}
+            </span>
+          ))}
+        </div>
+        {used.map(([k], i) => {
+          const { laneOf, count } = laneData[k];
+          return (
+            <div className="colbody" key={"b" + k} style={{ gridColumn: i + 2, gridRow: 2, height: bodyH + "px", ...bg }}>
+              {sessions.filter((s) => s[1] === k).map((s) => (
+                <EventChip key={s[7]} s={s} lane={laneOf.get(s) || 0} lanes={count}
+                  dayStart={dayStart} pxPerMin={pxPerMin} minH={minH} onSelect={onSelect} />
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================ */
+function ListView({ day, sessions, onSelect }) {
+  const sorted = useMemo(
+    () => [...sessions].sort((a, b) => mins(a[2]) - mins(b[2]) || mins(a[3]) - mins(b[3]) || a[1].localeCompare(b[1])),
+    [sessions]
+  );
+  if (!sorted.length) return <div className="empty">尚無可顯示的場次。</div>;
+
+  // group by start hour
+  const groups = [];
+  let cur = null;
+  sorted.forEach((s) => {
+    const hr = Math.floor(mins(s[2]) / 60);
+    if (!cur || cur.hr !== hr) { cur = { hr, items: [] }; groups.push(cur); }
+    cur.items.push(s);
+  });
+
+  return (
+    <div className="list">
+      <div className="list-inner">
+        {groups.map((g) => (
+          <div className="hourgroup" key={g.hr}>
+            <div className="hourgroup-h">{pad2(g.hr)}:00</div>
+            {g.items.map((s) => {
+              const room = s[9] || fullName(s[1]);
+              const tp = D.TOPICS[s[5]];
+              return (
+                <div className={"litem tk-" + s[5]} key={s[7]} onClick={() => onSelect(s)}>
+                  <div className="ltime">
+                    <span className="s">{clock(s[2])}</span>
+                    <span className="e">{clock(s[3])}</span>
+                    <span className="dur">{durLabel(s[2], s[3])}</span>
+                  </div>
+                  <div className="lbody">
+                    <div className="ltitle">{ACCESS[s[4]].mk ? ACCESS[s[4]].mk + " " : ""}{s[6]}</div>
+                    <div className="lmeta">
+                      <span className="room">{room}</span>
+                      <span className="tk"><span className="dot" />{tp[1]}</span>
+                    </div>
+                    {s[8] && s[8].length > 0 && (
+                      <div className="lspk">{s[8].slice(0, 6).join(" · ")}{s[8].length > 6 ? " …" : ""}</div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================ */
+function Modal({ s, onClose }) {
+  useEffect(() => {
+    const k = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", k);
+    return () => document.removeEventListener("keydown", k);
+  }, [onClose]);
+  if (!s) return <div className="ov" />;
+  const dm = DAYMETA[s[0]];
+  const stage = s[9] || "Insights Forum";
+  const acc = ACCESS[s[4]];
+  const tp = D.TOPICS[s[5]];
+  return (
+    <div className={"ov show"} onClick={(e) => { if (e.target.classList.contains("ov")) onClose(); }}>
+      <div className={"modal tk-" + s[5]}>
+        <button className="x" onClick={onClose}>×</button>
+        <span className="mtrack"><span className="dot" />{tp[1]} · {tp[0]}</span>
+        <h2>{s[6]}</h2>
+        <div className="badges">
+          <span className="badge" style={{ borderColor: "var(--c)", color: "var(--c)" }}>{stage}</span>
+          <span className={"badge " + acc.cls}>{acc.mk} {acc.en} · {acc.zh}</span>
+        </div>
+        <div className="mrow"><span className="mi">◷</span><span><b>{dm.wd}, {dm.date}</b> &nbsp;{clock(s[2])} – {clock(s[3])} &nbsp;<span style={{ color: "var(--text-soft)" }}>({durLabel(s[2], s[3])})</span></span></div>
+        <div className="mrow"><span className="mi">⚲</span><span><b>{s[1]}</b> · {fullName(s[1])}</span></div>
+        {s[8] && s[8].length > 0 && (
+          <div className="spk">
+            <div className="lab">Speakers · 講者 ({s[8].length})</div>
+            <div className="chips">{s[8].map((p, i) => <span className="chip" key={i}>{p}</span>)}</div>
+          </div>
+        )}
+        <a className="ext" href={D.U + s[7]} target="_blank" rel="noreferrer">官方場次頁面 Official page ↗</a>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================ */
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "dark": false,
+  "colorIntensity": "tinted",
+  "accent": "#0a84ff",
+  "hourHeight": 84,
+  "colWidth": 150,
+  "quarterLines": false
+}/*EDITMODE-END*/;
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [cur, setCur] = useState("d1");
+  const [view, setView] = useState("grid");
+  const [sel, setSel] = useState(null);
+
+  const day = D.DAYS.find((d) => d.k === cur);
+  const sessions = useMemo(() => D.S.filter((s) => s[0] === cur), [cur]);
+
+  useEffect(() => {
+    const r = document.documentElement;
+    r.setAttribute("data-theme", t.dark ? "dark" : "light");
+    r.style.setProperty("--accent", t.accent);
+  }, [t.dark, t.accent]);
+
+  return (
+    <div className="app" data-ci={t.colorIntensity}>
+      <header className="topbar">
+        <div className="brand">
+          <span className="t1">Singapore FinTech Festival 2025</span>
+          <span className="t2">Agenda · 議程 — 10–14 November · Singapore</span>
+        </div>
+        <div className="seg">
+          <button className={view === "grid" ? "on" : ""} onClick={() => setView("grid")}>Calendar</button>
+          <button className={view === "list" ? "on" : ""} onClick={() => setView("list")}>List</button>
+        </div>
+        <button className="icon-btn" title="切換深色 / 淺色" onClick={() => setTweak("dark", !t.dark)}>
+          {t.dark ? "☀" : "☾"}
+        </button>
+        <a className="reg-btn" href="https://www.fintechfestival.sg/registration" target="_blank" rel="noreferrer">Register</a>
+      </header>
+
+      <div className="daybar">
+        {D.DAYS.map((d) => {
+          const m = DAYMETA[d.k];
+          return (
+            <button key={d.k} className={"day" + (d.k === cur ? " on" : "")} onClick={() => setCur(d.k)}>
+              <span className="dn">{m.wd}</span>
+              <span className="dd">{m.date}</span>
+              <span className="dl">{m.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="legend">
+        {Object.entries(D.TOPICS).map(([k, v]) => (
+          <span className={"lg tk-" + k} key={k}><span className="dot" />{v[1]}</span>
+        ))}
+        <span className="sep" />
+        <span className="mk">🔒 Invite-Only</span>
+        <span className="mk">◆ Premium</span>
+      </div>
+
+      {view === "grid"
+        ? <CalendarView day={day} sessions={sessions} hourHeight={t.hourHeight}
+            colWidth={t.colWidth} quarterLines={t.quarterLines} onSelect={setSel} />
+        : <ListView day={day} sessions={sessions} onSelect={setSel} />}
+
+      {sel && <Modal s={sel} onClose={() => setSel(null)} />}
+
+      <TweaksPanel>
+        <TweakSection label="外觀 Appearance" />
+        <TweakToggle label="深色模式 Dark" value={t.dark} onChange={(v) => setTweak("dark", v)} />
+        <TweakColor label="強調色 Accent" value={t.accent}
+          options={["#0a84ff", "#1d1d1f", "#2fa15a", "#e2743a", "#6a5ae0"]}
+          onChange={(v) => setTweak("accent", v)} />
+        <TweakRadio label="色彩濃度 Color" value={t.colorIntensity}
+          options={["subtle", "tinted", "vivid"]}
+          onChange={(v) => setTweak("colorIntensity", v)} />
+
+        <TweakSection label="網格 Grid" />
+        <TweakSlider label="時段高度 Hour height" value={t.hourHeight} min={52} max={150} step={2} unit="px"
+          onChange={(v) => setTweak("hourHeight", v)} />
+        <TweakSlider label="欄寬 Column width" value={t.colWidth} min={112} max={260} step={2} unit="px"
+          onChange={(v) => setTweak("colWidth", v)} />
+        <TweakToggle label="15 分鐘格線 Quarter lines" value={t.quarterLines} onChange={(v) => setTweak("quarterLines", v)} />
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
 </script>
 </body>
 </html>
