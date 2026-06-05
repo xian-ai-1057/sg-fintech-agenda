@@ -2462,7 +2462,10 @@ function ChatBot({ open, mobile, lang, onClose, onSelect }) {
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") send(); }}
+            onKeyDown={(e) => {
+              // 擋輸入法組字中的 Enter（注音/拼音選字），避免半成品誤送
+              if (e.key === "Enter" && !e.nativeEvent.isComposing && e.keyCode !== 229) send();
+            }}
             placeholder={T.placeholder}
           />
           <button className="bot-send" onClick={send}>{T.send}</button>
