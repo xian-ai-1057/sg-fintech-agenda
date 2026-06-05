@@ -675,6 +675,8 @@ body {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   .bot-ov.show .bot-panel { transform: none; }
+  /* iOS：輸入框字級需 ≥16px，聚焦時才不會自動放大、裁切畫面 */
+  .bot-input-row input, .msearch input { font-size: 16px; }
   /* 拖曳區獨佔手勢；訊息區 .bot-log 維持原生捲動，互不干擾 */
   .bot-draghandle { touch-action: none; cursor: grab; }
   .bot-grab {
