@@ -590,12 +590,14 @@ body {
 .bot-head-t { display: flex; flex-direction: column; flex: 1; min-width: 0; }
 .bot-h1 { font-size: 15px; font-weight: 700; color: var(--text-strong); }
 .bot-h2 { font-size: 12px; color: var(--text-soft); }
-.bot-x {
+.bot-x, .bot-clear {
   width: 30px; height: 30px; border-radius: 50%; border: none; flex: none;
-  background: var(--surface-hover); color: var(--text); font-size: 19px; line-height: 1;
+  background: var(--surface-hover); color: var(--text); line-height: 1;
   cursor: pointer; display: grid; place-items: center;
 }
-.bot-x:hover { background: var(--separator-strong); }
+.bot-x { font-size: 19px; }
+.bot-clear { font-size: 16px; }
+.bot-x:hover, .bot-clear:hover { background: var(--separator-strong); }
 
 .bot-log {
   flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
@@ -1841,6 +1843,7 @@ const BOT_T = {
     generic: (n) => `Here ${n === 1 ? "is 1 session" : "are " + n + " sessions"} that might fit:`,
     topical: (n, names) => `Here ${n === 1 ? "is 1 session" : "are " + n + " sessions"} on ${names}:`,
     close: "Close",
+    clear: "Clear conversation",
   },
   zh: {
     launch: "問問議程小幫手",
@@ -1854,6 +1857,7 @@ const BOT_T = {
     generic: (n) => `為你推薦這 ${n} 場可能相關的議程：`,
     topical: (n, names) => `為你推薦這 ${n} 場關於${names}的議程：`,
     close: "關閉",
+    clear: "清除對話",
   },
 };
 
@@ -2387,6 +2391,11 @@ function ChatBot({ open, mobile, lang, onClose, onSelect }) {
     setQuery("");
   };
 
+  const clearChat = () => {
+    setMessages([{ role: "bot", kind: "greet" }]);
+    setQuery("");
+  };
+
   const browseTrack = (code) => {
     const { items, topicHits } = recommend(D.TOPICS[code][1]);
     setMessages((m) => [
@@ -2439,6 +2448,9 @@ function ChatBot({ open, mobile, lang, onClose, onSelect }) {
               <span className="bot-h1">{T.title}</span>
               <span className="bot-h2">{T.sub}</span>
             </div>
+            {messages.length > 1 && (
+              <button className="bot-clear" title={T.clear} aria-label={T.clear} onClick={clearChat}>↺</button>
+            )}
             <button className="bot-x" title={T.close} aria-label={T.close} onClick={onClose}>×</button>
           </div>
         </div>
