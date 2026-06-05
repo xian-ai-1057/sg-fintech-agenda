@@ -581,25 +581,28 @@ body {
 .bot-ov.show .bot-panel { transform: none; opacity: 1; }
 .bot-grab { display: none; }
 
+.bot-draghandle { flex: none; }
 .bot-head {
-  flex: none; display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 10px;
   padding: 14px 16px; border-bottom: 1px solid var(--separator);
   background: var(--surface-2);
 }
 .bot-head-t { display: flex; flex-direction: column; flex: 1; min-width: 0; }
 .bot-h1 { font-size: 15px; font-weight: 700; color: var(--text-strong); }
 .bot-h2 { font-size: 12px; color: var(--text-soft); }
-.bot-x {
+.bot-x, .bot-clear {
   width: 30px; height: 30px; border-radius: 50%; border: none; flex: none;
-  background: var(--surface-hover); color: var(--text); font-size: 19px; line-height: 1;
+  background: var(--surface-hover); color: var(--text); line-height: 1;
   cursor: pointer; display: grid; place-items: center;
 }
-.bot-x:hover { background: var(--separator-strong); }
+.bot-x { font-size: 19px; }
+.bot-clear { font-size: 16px; }
+.bot-x:hover, .bot-clear:hover { background: var(--separator-strong); }
 
 .bot-log {
   flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
   padding: 14px; display: flex; flex-direction: column; gap: 10px;
-  -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch; touch-action: pan-y;
 }
 .bot-msg { font-size: 14px; line-height: 1.5; max-width: 92%; }
 .bot-msg.user {
@@ -672,6 +675,8 @@ body {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   .bot-ov.show .bot-panel { transform: none; }
+  /* 拖曳區獨佔手勢；訊息區 .bot-log 維持原生捲動，互不干擾 */
+  .bot-draghandle { touch-action: none; cursor: grab; }
   .bot-grab {
     display: block; width: 38px; height: 5px; border-radius: 3px;
     background: var(--separator-strong); margin: 8px auto 2px; flex: none;
@@ -1838,6 +1843,7 @@ const BOT_T = {
     generic: (n) => `Here ${n === 1 ? "is 1 session" : "are " + n + " sessions"} that might fit:`,
     topical: (n, names) => `Here ${n === 1 ? "is 1 session" : "are " + n + " sessions"} on ${names}:`,
     close: "Close",
+    clear: "Clear conversation",
   },
   zh: {
     launch: "問問議程小幫手",
@@ -1851,6 +1857,7 @@ const BOT_T = {
     generic: (n) => `為你推薦這 ${n} 場可能相關的議程：`,
     topical: (n, names) => `為你推薦這 ${n} 場關於${names}的議程：`,
     close: "關閉",
+    clear: "清除對話",
   },
 };
 
@@ -2384,6 +2391,11 @@ function ChatBot({ open, mobile, lang, onClose, onSelect }) {
     setQuery("");
   };
 
+  const clearChat = () => {
+    setMessages([{ role: "bot", kind: "greet" }]);
+    setQuery("");
+  };
+
   const browseTrack = (code) => {
     const { items, topicHits } = recommend(D.TOPICS[code][1]);
     setMessages((m) => [
@@ -2423,24 +2435,26 @@ function ChatBot({ open, mobile, lang, onClose, onSelect }) {
     );
   };
 
-  // 手勢偵測指向真正會捲動的 .bot-log：捲到最頂再下拉才關閉，否則正常捲動
-  const setLogRef = (el) => { logRef.current = el; drag.ref.current = el; };
-  const panelProps = mobile
-    ? { style: drag.style, ...drag.handlers }
-    : {};
+  // 下拉關閉手勢只掛在「握把＋標題列」拖曳區；.bot-log 維持純原生捲動，不受干擾。
+  const dragZone = mobile ? { ref: drag.ref, ...drag.handlers } : {};
 
   return (
     <div className={"bot-ov" + (open ? " show" : "")} onClick={onClose}>
-      <div className="bot-panel" onClick={(e) => e.stopPropagation()} {...panelProps}>
-        {mobile && <div className="bot-grab" />}
-        <div className="bot-head">
-          <div className="bot-head-t">
-            <span className="bot-h1">{T.title}</span>
-            <span className="bot-h2">{T.sub}</span>
+      <div className="bot-panel" onClick={(e) => e.stopPropagation()} style={mobile ? drag.style : undefined}>
+        <div className="bot-draghandle" {...dragZone}>
+          {mobile && <div className="bot-grab" />}
+          <div className="bot-head">
+            <div className="bot-head-t">
+              <span className="bot-h1">{T.title}</span>
+              <span className="bot-h2">{T.sub}</span>
+            </div>
+            {messages.length > 1 && (
+              <button className="bot-clear" title={T.clear} aria-label={T.clear} onClick={clearChat}>↺</button>
+            )}
+            <button className="bot-x" title={T.close} aria-label={T.close} onClick={onClose}>×</button>
           </div>
-          <button className="bot-x" title={T.close} aria-label={T.close} onClick={onClose}>×</button>
         </div>
-        <div className="bot-log" ref={setLogRef}>
+        <div className="bot-log" ref={logRef}>
           {messages.map(renderMsg)}
         </div>
         <div className="bot-input-row">
@@ -2448,7 +2462,10 @@ function ChatBot({ open, mobile, lang, onClose, onSelect }) {
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") send(); }}
+            onKeyDown={(e) => {
+              // 擋輸入法組字中的 Enter（注音/拼音選字），避免半成品誤送
+              if (e.key === "Enter" && !e.nativeEvent.isComposing && e.keyCode !== 229) send();
+            }}
             placeholder={T.placeholder}
           />
           <button className="bot-send" onClick={send}>{T.send}</button>
