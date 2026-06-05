@@ -581,8 +581,9 @@ body {
 .bot-ov.show .bot-panel { transform: none; opacity: 1; }
 .bot-grab { display: none; }
 
+.bot-draghandle { flex: none; }
 .bot-head {
-  flex: none; display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 10px;
   padding: 14px 16px; border-bottom: 1px solid var(--separator);
   background: var(--surface-2);
 }
@@ -599,7 +600,7 @@ body {
 .bot-log {
   flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
   padding: 14px; display: flex; flex-direction: column; gap: 10px;
-  -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch; touch-action: pan-y;
 }
 .bot-msg { font-size: 14px; line-height: 1.5; max-width: 92%; }
 .bot-msg.user {
@@ -672,6 +673,8 @@ body {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   .bot-ov.show .bot-panel { transform: none; }
+  /* 拖曳區獨佔手勢；訊息區 .bot-log 維持原生捲動，互不干擾 */
+  .bot-draghandle { touch-action: none; cursor: grab; }
   .bot-grab {
     display: block; width: 38px; height: 5px; border-radius: 3px;
     background: var(--separator-strong); margin: 8px auto 2px; flex: none;
@@ -2423,24 +2426,23 @@ function ChatBot({ open, mobile, lang, onClose, onSelect }) {
     );
   };
 
-  // 手勢偵測指向真正會捲動的 .bot-log：捲到最頂再下拉才關閉，否則正常捲動
-  const setLogRef = (el) => { logRef.current = el; drag.ref.current = el; };
-  const panelProps = mobile
-    ? { style: drag.style, ...drag.handlers }
-    : {};
+  // 下拉關閉手勢只掛在「握把＋標題列」拖曳區；.bot-log 維持純原生捲動，不受干擾。
+  const dragZone = mobile ? { ref: drag.ref, ...drag.handlers } : {};
 
   return (
     <div className={"bot-ov" + (open ? " show" : "")} onClick={onClose}>
-      <div className="bot-panel" onClick={(e) => e.stopPropagation()} {...panelProps}>
-        {mobile && <div className="bot-grab" />}
-        <div className="bot-head">
-          <div className="bot-head-t">
-            <span className="bot-h1">{T.title}</span>
-            <span className="bot-h2">{T.sub}</span>
+      <div className="bot-panel" onClick={(e) => e.stopPropagation()} style={mobile ? drag.style : undefined}>
+        <div className="bot-draghandle" {...dragZone}>
+          {mobile && <div className="bot-grab" />}
+          <div className="bot-head">
+            <div className="bot-head-t">
+              <span className="bot-h1">{T.title}</span>
+              <span className="bot-h2">{T.sub}</span>
+            </div>
+            <button className="bot-x" title={T.close} aria-label={T.close} onClick={onClose}>×</button>
           </div>
-          <button className="bot-x" title={T.close} aria-label={T.close} onClick={onClose}>×</button>
         </div>
-        <div className="bot-log" ref={setLogRef}>
+        <div className="bot-log" ref={logRef}>
           {messages.map(renderMsg)}
         </div>
         <div className="bot-input-row">
