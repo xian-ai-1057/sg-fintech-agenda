@@ -54,10 +54,11 @@ DAYS = [
 
 CARD = "div.custom-agenda-listing-box"
 
-# CSV column order.
+# CSV column order. `description_zh`（繁中說明）不來自官網爬取，而是由
+# merge_zh_desc.py 從 index.html 的 SFF_DESC 依 slug 回填；列在此維持 schema 一致。
 FIELDS = [
     "day", "datetime", "title", "stage", "location",
-    "event_type", "track", "speakers", "description", "url",
+    "event_type", "track", "speakers", "description", "description_zh", "url",
 ]
 
 
