@@ -582,7 +582,7 @@ body {
 .bot-grab { display: none; }
 
 .bot-head {
-  display: flex; align-items: center; gap: 10px;
+  flex: none; display: flex; align-items: center; gap: 10px;
   padding: 14px 16px; border-bottom: 1px solid var(--separator);
   background: var(--surface-2);
 }
@@ -597,7 +597,7 @@ body {
 .bot-x:hover { background: var(--separator-strong); }
 
 .bot-log {
-  flex: 1; overflow-y: auto; overscroll-behavior: contain;
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
   padding: 14px; display: flex; flex-direction: column; gap: 10px;
   -webkit-overflow-scrolling: touch;
 }
@@ -645,7 +645,7 @@ body {
 .bot-track-chip:hover .dot { background: #fff; }
 
 .bot-input-row {
-  display: flex; gap: 8px; padding: 12px 14px;
+  flex: none; display: flex; gap: 8px; padding: 12px 14px;
   border-top: 1px solid var(--separator); background: var(--surface-2);
 }
 .bot-input-row input {
@@ -2423,8 +2423,10 @@ function ChatBot({ open, mobile, lang, onClose, onSelect }) {
     );
   };
 
+  // 手勢偵測指向真正會捲動的 .bot-log：捲到最頂再下拉才關閉，否則正常捲動
+  const setLogRef = (el) => { logRef.current = el; drag.ref.current = el; };
   const panelProps = mobile
-    ? { ref: drag.ref, style: drag.style, ...drag.handlers }
+    ? { style: drag.style, ...drag.handlers }
     : {};
 
   return (
@@ -2438,7 +2440,7 @@ function ChatBot({ open, mobile, lang, onClose, onSelect }) {
           </div>
           <button className="bot-x" title={T.close} aria-label={T.close} onClick={onClose}>×</button>
         </div>
-        <div className="bot-log" ref={logRef}>
+        <div className="bot-log" ref={setLogRef}>
           {messages.map(renderMsg)}
         </div>
         <div className="bot-input-row">
