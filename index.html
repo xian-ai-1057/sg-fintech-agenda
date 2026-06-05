@@ -549,6 +549,136 @@ body {
   .modal h2 { font-size: 19px; }
 }
 
+/* ============================================================
+   小幫手 Bot — 浮動鈕 + 聊天面板（沿用主題變數，深色自動套用）
+   ============================================================ */
+.bot-fab {
+  position: fixed; left: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  z-index: 195; width: 52px; height: 52px; border-radius: 50%; border: none;
+  background: var(--accent); color: #fff; font-size: 24px; cursor: pointer;
+  display: grid; place-items: center; box-shadow: var(--shadow-chip);
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+.bot-fab:hover { box-shadow: 0 8px 26px rgba(0,0,0,.22); }
+.bot-fab:active { transform: scale(.94); }
+
+.bot-ov {
+  position: fixed; inset: 0; z-index: 190;
+  background: rgba(0,0,0,.28); backdrop-filter: blur(3px);
+  opacity: 0; pointer-events: none; transition: opacity .18s ease;
+}
+.bot-ov.show { opacity: 1; pointer-events: auto; }
+
+.bot-panel {
+  position: fixed; left: 16px; bottom: 80px;
+  width: 380px; max-width: calc(100vw - 32px); height: 560px; max-height: calc(100vh - 110px);
+  background: var(--surface); border-radius: var(--radius-card);
+  box-shadow: var(--shadow-pop); border: 1px solid var(--separator);
+  display: flex; flex-direction: column; overflow: hidden;
+  transform: translateY(10px) scale(.98); opacity: 0;
+  transition: transform .2s cubic-bezier(.2,.7,.2,1), opacity .18s ease;
+}
+.bot-ov.show .bot-panel { transform: none; opacity: 1; }
+.bot-grab { display: none; }
+
+.bot-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; border-bottom: 1px solid var(--separator);
+  background: var(--surface-2);
+}
+.bot-head-t { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.bot-h1 { font-size: 15px; font-weight: 700; color: var(--text-strong); }
+.bot-h2 { font-size: 12px; color: var(--text-soft); }
+.bot-x {
+  width: 30px; height: 30px; border-radius: 50%; border: none; flex: none;
+  background: var(--surface-hover); color: var(--text); font-size: 19px; line-height: 1;
+  cursor: pointer; display: grid; place-items: center;
+}
+.bot-x:hover { background: var(--separator-strong); }
+
+.bot-log {
+  flex: 1; overflow-y: auto; overscroll-behavior: contain;
+  padding: 14px; display: flex; flex-direction: column; gap: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+.bot-msg { font-size: 14px; line-height: 1.5; max-width: 92%; }
+.bot-msg.user {
+  align-self: flex-end; background: var(--accent); color: #fff;
+  padding: 8px 13px; border-radius: 15px 15px 4px 15px;
+}
+.bot-msg.bot {
+  align-self: flex-start; background: var(--surface-hover); color: var(--text-strong);
+  padding: 10px 13px; border-radius: 15px 15px 15px 4px; width: 100%; box-sizing: border-box;
+}
+.bot-intro { font-weight: 600; margin-bottom: 9px; color: var(--text-strong); }
+.bot-cards { display: flex; flex-direction: column; gap: 8px; }
+
+.bot-card {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--separator);
+  border-left: 3px solid var(--c, var(--accent)); border-radius: 10px;
+  padding: 9px 11px; font: inherit; color: var(--text-strong);
+  transition: background .12s ease, box-shadow .12s ease;
+}
+.bot-card:hover { background: var(--surface-hover); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+.bc-title { font-size: 13.5px; font-weight: 600; line-height: 1.35; }
+.bc-meta {
+  display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center;
+  margin-top: 5px; font-size: 11.5px; color: var(--text-soft);
+}
+.bc-tk { display: inline-flex; align-items: center; gap: 5px; color: var(--c, var(--text)); font-weight: 600; }
+.bc-tk .dot { width: 8px; height: 8px; border-radius: 2.5px; background: var(--c, var(--accent)); }
+.bc-desc {
+  margin-top: 6px; font-size: 12px; color: var(--text); line-height: 1.45;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.bot-tracks { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.bot-track-chip {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  border: 1px solid var(--separator-strong); background: var(--surface);
+  border-radius: var(--radius-pill); padding: 6px 11px; font: inherit; font-size: 12.5px;
+  color: var(--text); transition: background .12s, border-color .12s, color .12s;
+}
+.bot-track-chip .dot { width: 8px; height: 8px; border-radius: 2.5px; background: var(--c, var(--accent)); }
+.bot-track-chip:hover { background: var(--c, var(--accent)); border-color: var(--c, var(--accent)); color: #fff; }
+.bot-track-chip:hover .dot { background: #fff; }
+
+.bot-input-row {
+  display: flex; gap: 8px; padding: 12px 14px;
+  border-top: 1px solid var(--separator); background: var(--surface-2);
+}
+.bot-input-row input {
+  flex: 1; min-width: 0; height: 40px; border: 1px solid var(--separator-strong);
+  background: var(--surface); border-radius: 11px; padding: 0 13px;
+  font: inherit; font-size: 14px; color: var(--text-strong); outline: none;
+}
+.bot-input-row input::placeholder { color: var(--text-faint); }
+.bot-input-row input:focus { border-color: var(--accent); }
+.bot-send {
+  flex: none; height: 40px; padding: 0 16px; border: none; border-radius: 11px;
+  background: var(--accent); color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.bot-send:active { transform: scale(.97); }
+
+/* 手機：聊天面板改為底部抽屜 */
+@media (max-width: 720px) {
+  .bot-ov { display: flex; align-items: flex-end; }
+  .bot-panel {
+    position: relative; left: auto; bottom: auto;
+    width: 100%; max-width: none; height: auto; max-height: 86vh;
+    border-radius: 20px 20px 0 0; border: none;
+    transform: translateY(100%); opacity: 1;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .bot-ov.show .bot-panel { transform: none; }
+  .bot-grab {
+    display: block; width: 38px; height: 5px; border-radius: 3px;
+    background: var(--separator-strong); margin: 8px auto 2px; flex: none;
+  }
+  .bot-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); }
+}
+
 </style>
 </head>
 <body>
@@ -1565,6 +1695,175 @@ const fullName = (code) => D.STAGE_FULL[code] || D.ROOM_FULL[code] || code;
 const COLS_ALL = [...D.ROOMS, ...D.STAGES];
 const shortRoom = (code) => { const f = COLS_ALL.find(([k]) => k === code); return f ? f[1].split(" ‧ ")[0] : code; };
 
+/* ============================================================
+   小幫手 Bot — 純前端關鍵字推薦引擎（無 API / 無對外請求）
+   ============================================================ */
+
+/* topic code -> 觸發詞（全小寫，中英 + 縮寫）。刻意不含 OT。 */
+const BOT_SYN = {
+  AQ: ["ai", "a.i", "artificial intelligence", "人工智慧", "人工智能", "智能", "quantum", "量子",
+       "agentic", "agent", "machine learning", "機器學習", "深度學習", "llm", "genai", "generative",
+       "生成式", "大模型", "模型", "automation", "自動化"],
+  DA: ["crypto", "cryptocurrency", "加密貨幣", "區塊鏈", "blockchain", "數位資產", "digital asset",
+       "token", "tokenis", "tokeniz", "代幣", "通證", "stablecoin", "穩定幣", "defi", "ethereum",
+       "以太坊", "bitcoin", "比特幣", "web3", "custody", "託管", "ledger", "rwa"],
+  NT: ["payment", "支付", "付款", "cross-border", "跨境", "交易", "transaction", "settlement",
+       "清算", "結算", "merchant", "商戶", "cbdc", "remittance", "匯款", "real-time", "即時支付",
+       "wallet", "錢包", "card", "acquiring", "qr"],
+  SF: ["security", "資安", "資訊安全", "cyber", "網路安全", "fraud", "詐騙", "詐欺", "scam", "aml",
+       "cft", "kyc", "反洗錢", "洗錢", "compliance", "合規", "監理", "regulation", "risk", "風險",
+       "crime", "金融犯罪", "privacy", "隱私", "資料保護", "resilience", "韌性"],
+  BG: ["inclusion", "普惠", "金融包容", "financial gap", "sme", "中小企業", "小微", "access to finance",
+       "dpi", "underserved", "弱勢", "microfinance", "微型金融", "credit", "信貸", "rural", "農村"],
+  SU: ["sustainab", "永續", "esg", "green", "綠色", "climate", "氣候", "carbon", "碳", "net zero",
+       "net-zero", "淨零", "transition", "綠色金融", "biodiversity", "生物多樣性", "nature"],
+  TT: ["talent", "人才", "skills", "技能", "education", "教育", "workforce", "勞動力", "future of work",
+       "未來工作", "培訓", "訓練", "leadership", "領導", "diversity", "多元", "women", "女性"],
+  EE: ["entrepreneur", "創業", "startup", "新創", "unicorn", "獨角獸", "venture", "創投", "vc",
+       "投資", "funding", "募資", "scaling", "founder", "創辦人", "ecosystem", "生態系", "growth"],
+};
+
+/* 泛詞：不參與標題/說明評分（仍可參與主題/同義詞比對），避免泛查淹沒 */
+const BOT_STOP = new Set(["finance", "financial", "session", "sessions", "singapore", "fintech",
+  "future", "digital", "global", "world", "the", "and", "for", "with", "金融", "未來", "場次", "活動"]);
+
+/* CJK 偵測（用於片語子字串比對） */
+const HAS_CJK = (s) => /[㐀-鿿]/.test(s);
+
+/* 拆解查詢：raw 全字串 + latin 英數 token 陣列 */
+const botTokens = (q) => {
+  const raw = (q || "").toLowerCase().trim();
+  const latin = raw.split(/[^a-z0-9]+/i).filter((t) => t.length >= 2);
+  return { raw, latin };
+};
+
+/* 推斷主題：回傳 Map<code, 命中觸發詞數> */
+const botTopicHits = (qInfo) => {
+  const { raw, latin } = qInfo;
+  const latinSet = new Set(latin);
+  const hits = new Map();
+  for (const code in BOT_SYN) {
+    let n = 0;
+    for (const trig of BOT_SYN[code]) {
+      const isShortLatin = trig.length <= 3 && /^[a-z0-9.]+$/.test(trig);
+      const hit = isShortLatin ? latinSet.has(trig) : raw.includes(trig);
+      if (hit) n++;
+    }
+    if (n > 0) hits.set(code, n);
+  }
+  return hits;
+};
+
+/* 對單一場次評分 */
+const scoreSession = (s, qInfo) => {
+  const { raw, latin, topicHits } = qInfo;
+  const code = s[5];
+  let score = 0;
+
+  // 主題命中（最高權重）
+  if (topicHits.has(code)) score += 50 + 5 * topicHits.get(code);
+
+  // 主題標籤字面（中/英）
+  const tp = D.TOPICS[code];
+  if (tp) {
+    const labelZh = tp[0].toLowerCase(), labelEn = tp[1].toLowerCase();
+    if (latin.some((t) => labelEn.includes(t)) || (HAS_CJK(raw) && (labelZh.includes(raw) || raw.includes(labelZh))))
+      score += 20;
+  }
+
+  // 標題關鍵字（英文 token，去泛詞）
+  const title = (s[6] || "").toLowerCase();
+  let titleHits = 0;
+  for (const t of new Set(latin)) {
+    if (t.length >= 3 && !BOT_STOP.has(t) && title.includes(t)) titleHits++;
+  }
+  score += Math.min(36, titleHits * 12);
+  // 標題 CJK 片語
+  if (HAS_CJK(raw) && !BOT_STOP.has(raw) && title.includes(raw)) score += 12;
+
+  // 說明關鍵字（兩語都查）
+  const desc = ((descText(s[7], "en") || "") + "\n" + (descText(s[7], "zh") || "")).toLowerCase();
+  if (desc) {
+    let descHits = 0;
+    for (const t of new Set(latin)) {
+      if (t.length >= 3 && !BOT_STOP.has(t) && desc.includes(t)) descHits++;
+    }
+    score += Math.min(20, descHits * 5);
+    if (HAS_CJK(raw) && !BOT_STOP.has(raw) && desc.includes(raw)) score += 5;
+  }
+
+  // 講者
+  const spk = (s[8] || []).join(" · ").toLowerCase();
+  if (spk) {
+    let spkHits = 0;
+    for (const t of new Set(latin)) {
+      if (t.length >= 3 && spk.includes(t)) spkHits++;
+    }
+    if (HAS_CJK(raw) && spk.includes(raw)) spkHits++;
+    score += Math.min(24, spkHits * 8);
+  }
+
+  // Open 場次微調（僅在已有內容匹配時，避免無關場次靠此上榜）
+  if (score > 0 && s[4] === "O") score += 1;
+
+  return score;
+};
+
+/* 推薦：對全部 5 天場次評分，回傳前 N 名 */
+const recommend = (query, N = 6) => {
+  const base = botTokens(query);
+  if (!base.raw) return { items: [], topicHits: [] };
+  const topicHits = botTopicHits(base);
+  const qInfo = { ...base, topicHits };
+  const scored = [];
+  for (const s of D.S) {
+    const sc = scoreSession(s, qInfo);
+    if (sc > 0) scored.push({ s, sc });
+  }
+  scored.sort((a, b) => b.sc - a.sc || mins(a.s[2]) - mins(b.s[2]) || a.s[0].localeCompare(b.s[0]));
+  return { items: scored.slice(0, N).map((x) => x.s), topicHits: [...topicHits.keys()] };
+};
+
+/* 雙語 UI 字串 */
+const BOT_T = {
+  en: {
+    launch: "Ask the agenda bot",
+    title: "Agenda helper",
+    sub: "Tell me a topic, I'll suggest sessions",
+    placeholder: "e.g. AI, payments, sustainability…",
+    send: "Send",
+    greet: "Hi! What topics interest you? Type something like “AI”, “crypto”, “payments” or “sustainability” and I'll recommend sessions across all 5 days.",
+    emptyHint: "Type a topic or keyword and I'll find matching sessions.",
+    noMatch: "I couldn't find a strong match. Try browsing one of these tracks:",
+    generic: (n) => `Here ${n === 1 ? "is 1 session" : "are " + n + " sessions"} that might fit:`,
+    topical: (n, names) => `Here ${n === 1 ? "is 1 session" : "are " + n + " sessions"} on ${names}:`,
+    close: "Close",
+  },
+  zh: {
+    launch: "問問議程小幫手",
+    title: "議程小幫手",
+    sub: "說個主題，我幫你推薦場次",
+    placeholder: "例如：AI、支付、永續…",
+    send: "送出",
+    greet: "嗨！你對哪些主題有興趣？輸入像「AI」「區塊鏈」「支付」或「永續」之類的關鍵字，我會從全部 5 天的議程裡幫你推薦相關場次。",
+    emptyHint: "輸入一個主題或關鍵字，我就幫你找相關場次。",
+    noMatch: "找不到很合適的場次，試試瀏覽這些主題：",
+    generic: (n) => `為你推薦這 ${n} 場可能相關的議程：`,
+    topical: (n, names) => `為你推薦這 ${n} 場關於${names}的議程：`,
+    close: "關閉",
+  },
+};
+
+/* 組裝開場句（render 時依 lang 重算） */
+const botIntro = (topicHits, count, lang) => {
+  const T = BOT_T[lang] || BOT_T.en;
+  const codes = (topicHits || []).filter((c) => c !== "OT" && D.TOPICS[c]);
+  if (!codes.length) return T.generic(count);
+  const sep = lang === "zh" ? "、" : ", ";
+  const names = codes.map((c) => D.TOPICS[c][lang === "zh" ? 0 : 1]).join(sep);
+  return T.topical(count, names);
+};
+
 /* assign overlap lanes within a column */
 function computeLanes(evs) {
   const sorted = [...evs].sort((a, b) => mins(a[2]) - mins(b[2]) || mins(a[3]) - mins(b[3]));
@@ -1939,7 +2238,7 @@ function MobileFilterSheet({ open, onClose, topicList, roomList, topics, rooms, 
   );
 }
 
-function MobileShell({ framed, t, setTweak, cur, setCur, sel, setSel, search, setSearch, topics, setTopics, rooms, setRooms, filterOpen, setFilterOpen, lang, setLang }) {
+function MobileShell({ framed, t, setTweak, cur, setCur, sel, setSel, search, setSearch, topics, setTopics, rooms, setRooms, filterOpen, setFilterOpen, botOpen, setBotOpen, lang, setLang }) {
   const day = D.DAYS.find((d) => d.k === cur);
   const sessions = useMemo(() => D.S.filter((s) => s[0] === cur), [cur]);
   const activeCount = topics.size + rooms.size + (search.trim() ? 1 : 0);
@@ -1994,6 +2293,10 @@ function MobileShell({ framed, t, setTweak, cur, setCur, sel, setSel, search, se
         <TweakSection label="外觀 Appearance" />
         <TweakToggle label="深色模式 Dark" value={t.dark} onChange={(v) => setTweak("dark", v)} />
       </TweaksPanel>
+
+      {!botOpen && <BotLauncher lang={lang} onClick={() => setBotOpen(true)} />}
+      <ChatBot open={botOpen} mobile={true} lang={lang}
+        onClose={() => setBotOpen(false)} onSelect={setSel} />
     </div>
   );
 }
@@ -2008,6 +2311,151 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "quarterLines": false
 }/*EDITMODE-END*/;
 
+/* ============================================================
+   小幫手 Bot — UI 元件
+   ============================================================ */
+
+/* 精簡推薦卡（沿用 .litem/.mcard 視覺，點擊呼叫共用 onSelect=setSel） */
+function BotCard({ s, lang, onSelect }) {
+  const tp = D.TOPICS[s[5]] || ["", ""];
+  const acc = ACCESS[s[4]] || {};
+  const dm = DAYMETA[s[0]] || {};
+  const desc = descText(s[7], lang);
+  return (
+    <button className={"bot-card tk-" + s[5]} onClick={() => onSelect(s)}>
+      <div className="bc-title">{acc.mk ? acc.mk + " " : ""}{s[6]}</div>
+      <div className="bc-meta">
+        <span className="bc-tk"><span className="dot" />{tp[lang === "zh" ? 0 : 1]}</span>
+        <span className="bc-when">{(lang === "zh" ? dm.zh : (dm.wd + " " + dm.date))} · {clock(s[2])}–{clock(s[3])}</span>
+        <span className="bc-room">{shortRoom(s[1])}</span>
+      </div>
+      {desc && <div className="bc-desc">{desc}</div>}
+    </button>
+  );
+}
+
+/* 浮動圓鈕 */
+function BotLauncher({ onClick, lang }) {
+  const T = BOT_T[lang] || BOT_T.en;
+  return (
+    <button className="bot-fab" title={T.launch} aria-label={T.launch} onClick={onClick}>
+      <span aria-hidden="true">💬</span>
+    </button>
+  );
+}
+
+/* 聊天面板（桌機固定卡片 / 手機 bottom-sheet）。常駐掛載，用 open 控制顯示。 */
+function ChatBot({ open, mobile, lang, onClose, onSelect }) {
+  const [messages, setMessages] = useState([]);
+  const [query, setQuery] = useState("");
+  const logRef = useRef(null);
+  const inputRef = useRef(null);
+  const drag = useSwipeDismiss(onClose);
+
+  // 首次開啟 → 問候
+  useEffect(() => {
+    if (open && messages.length === 0) {
+      setMessages([{ role: "bot", kind: "greet" }]);
+    }
+    if (open && inputRef.current) {
+      setTimeout(() => { try { inputRef.current.focus(); } catch (e) {} }, 60);
+    }
+  }, [open]);
+
+  // 新訊息 → 捲到底
+  useEffect(() => {
+    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
+  }, [messages, open]);
+
+  const send = () => {
+    const q = query.trim();
+    if (!q) {
+      setMessages((m) => [...m, { role: "bot", kind: "hint" }]);
+      return;
+    }
+    const { items, topicHits } = recommend(q);
+    setMessages((m) => [
+      ...m,
+      { role: "user", text: q },
+      items.length
+        ? { role: "bot", kind: "result", items, topicHits }
+        : { role: "bot", kind: "nomatch" },
+    ]);
+    setQuery("");
+  };
+
+  const browseTrack = (code) => {
+    const { items, topicHits } = recommend(D.TOPICS[code][1]);
+    setMessages((m) => [
+      ...m,
+      { role: "user", text: D.TOPICS[code][lang === "zh" ? 0 : 1] },
+      items.length ? { role: "bot", kind: "result", items, topicHits } : { role: "bot", kind: "nomatch" },
+    ]);
+  };
+
+  const T = BOT_T[lang] || BOT_T.en;
+  const trackCodes = Object.keys(D.TOPICS).filter((c) => c !== "OT");
+
+  const renderMsg = (m, i) => {
+    if (m.role === "user") return <div className="bot-msg user" key={i}>{m.text}</div>;
+    if (m.kind === "greet") return <div className="bot-msg bot" key={i}>{T.greet}</div>;
+    if (m.kind === "hint") return <div className="bot-msg bot" key={i}>{T.emptyHint}</div>;
+    if (m.kind === "nomatch") return (
+      <div className="bot-msg bot" key={i}>
+        <div>{T.noMatch}</div>
+        <div className="bot-tracks">
+          {trackCodes.map((c) => (
+            <button className={"bot-track-chip tk-" + c} key={c} onClick={() => browseTrack(c)}>
+              <span className="dot" />{D.TOPICS[c][lang === "zh" ? 0 : 1]}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+    // result
+    return (
+      <div className="bot-msg bot" key={i}>
+        <div className="bot-intro">{botIntro(m.topicHits, m.items.length, lang)}</div>
+        <div className="bot-cards">
+          {m.items.map((s) => <BotCard key={s[7]} s={s} lang={lang} onSelect={onSelect} />)}
+        </div>
+      </div>
+    );
+  };
+
+  const panelProps = mobile
+    ? { ref: drag.ref, style: drag.style, ...drag.handlers }
+    : {};
+
+  return (
+    <div className={"bot-ov" + (open ? " show" : "")} onClick={onClose}>
+      <div className="bot-panel" onClick={(e) => e.stopPropagation()} {...panelProps}>
+        {mobile && <div className="bot-grab" />}
+        <div className="bot-head">
+          <div className="bot-head-t">
+            <span className="bot-h1">{T.title}</span>
+            <span className="bot-h2">{T.sub}</span>
+          </div>
+          <button className="bot-x" title={T.close} aria-label={T.close} onClick={onClose}>×</button>
+        </div>
+        <div className="bot-log" ref={logRef}>
+          {messages.map(renderMsg)}
+        </div>
+        <div className="bot-input-row">
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") send(); }}
+            placeholder={T.placeholder}
+          />
+          <button className="bot-send" onClick={send}>{T.send}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [cur, setCur] = useState("d1");
@@ -2017,6 +2465,7 @@ function App() {
   const [topics, setTopics] = useState(() => new Set());
   const [rooms, setRooms] = useState(() => new Set());
   const [filterOpen, setFilterOpen] = useState(false);
+  const [botOpen, setBotOpen] = useState(false);
   const [lang, setLang] = useLang();
   const forceMobile = useMemo(() => new URLSearchParams(location.search).get("m") === "1", []);
   const isMobile = useMediaQuery("(max-width: 720px)") || forceMobile;
@@ -2041,6 +2490,7 @@ function App() {
         topics={topics} setTopics={setTopics}
         rooms={rooms} setRooms={setRooms}
         filterOpen={filterOpen} setFilterOpen={setFilterOpen}
+        botOpen={botOpen} setBotOpen={setBotOpen}
         lang={lang} setLang={setLang}
       />
     );
@@ -2113,6 +2563,10 @@ function App() {
           onChange={(v) => setTweak("colWidth", v)} />
         <TweakToggle label="15 分鐘格線 Quarter lines" value={t.quarterLines} onChange={(v) => setTweak("quarterLines", v)} />
       </TweaksPanel>
+
+      {!botOpen && <BotLauncher lang={lang} onClick={() => setBotOpen(true)} />}
+      <ChatBot open={botOpen} mobile={false} lang={lang}
+        onClose={() => setBotOpen(false)} onSelect={setSel} />
     </div>
   );
 }
