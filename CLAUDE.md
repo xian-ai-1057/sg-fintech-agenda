@@ -80,7 +80,11 @@ Two stages, because the listing cards lack descriptions and venue:
    description, stage, room/location, and event type.
 
 Output is `agenda.csv` (UTF-8 **with BOM**, `utf-8-sig`, so Excel renders
-non-ASCII correctly). Columns are defined by `FIELDS`. The CSS selectors
+non-ASCII correctly). Columns are defined by `FIELDS`. `description_zh` is
+**hand-maintained** — the site has no Chinese text to scrape — so before writing,
+`carry_over_zh()` reads the existing CSV and copies each translation onto the
+matching new row (by `url`, falling back to `slug_of()`). Re-running the scraper
+therefore never wipes the translations. The CSS selectors
 (`CARD`, `.custom-agenda-*`) are coupled to the live site's markup — if scraping
 breaks, these are the first thing to re-check.
 
@@ -128,11 +132,17 @@ transpiled in-browser. Organised as four scripts in order:
   static CSS.
 
 **`window.SFF` shape**: `{ VENUES, VENUE_FULL, TOPICS, U, S, DAYS, DAYMETA }`.
-`S` rows are **positional tuples**, unchanged from the 2025 version:
-`[day, venueCode, start, end, access, topic, title, slug, speakers[], stageName]`
+`S` rows are **positional tuples**:
+`[day, venueCode, start, end, access, topic, title, slug, speakers[], stageName, url]`
 — `day` is `"d1".."dN"`; `access` is `O`/`I`/`P` (Open / Invite-Only 🔒 /
 Premium ◆); times are `"H:MM"` 24-hour. `window.SFF_DESC` maps
 `slug -> [English, 繁體中文]`; `_word_` markers render as `<em>`.
+
+**Always link with `s[10]`, never rebuild the URL.** The official site has used
+two URL shapes — `…/agenda/<slug>` (2025) and `…/agenda?session=<slug>` (2026) —
+so `U + slug` silently produces a broken link on the query-string form. `slugOf()`
+normalises both into a clean, percent-decoded key for `SFF_DESC`; `D.U` survives
+only as a fallback for rows with no `url`.
 
 **Async mount handshake**: the loader is async but the React block is
 `text/babel` (transpiled on DOMContentLoaded), so neither can assume it runs
@@ -156,6 +166,9 @@ Other runtime behaviour in `App`:
   (`sff-lang`, `useLang`, defaults to English) and Tweaks settings (`useTweaks`).
 - Use the `accOf(code)` / `dayMeta(key)` helpers rather than indexing `ACCESS` /
   `DAYMETA` directly — CSV data can contain values the tables don't cover.
+- Anything rendering a track name or a date should honour `lang`
+  (`TOPICS[code][lang === "zh" ? 0 : 1]`, `dm.md + " " + dm.wdz`). The 中/EN
+  toggle switches descriptions **and** these labels.
 
 ## Deploy
 

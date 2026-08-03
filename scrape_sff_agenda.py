@@ -31,8 +31,10 @@ from __future__ import annotations
 
 import argparse
 import csv
+import re
 import sys
 import time
+from urllib.parse import unquote
 
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, WebDriverException
@@ -209,6 +211,48 @@ def scrape_detail(driver, url: str) -> dict:
     return out
 
 
+def slug_of(url: str) -> str:
+    """場次網址 -> 唯一識別。官網用過兩種格式，兩種都要吃得下：
+         2026  https://…/agenda?session=AGND441-welcome-…
+         2025  https://…/agenda/agn90-trusted-data-…
+    （index.html 的 slugOf() 是同一套規則）"""
+    m = re.search(r"[?&]session=([^&#]+)", url or "", re.I)
+    slug = m.group(1) if m else (url or "").split("?")[0].rstrip("/").rsplit("/", 1)[-1]
+    return unquote(slug)
+
+
+def carry_over_zh(path: str, rows: list[dict]) -> int:
+    """把現有 CSV 的 description_zh 搬到這次抓到的資料列上。
+
+    中文說明是人工維護的、官網沒有這個欄位，所以每次重跑都得從舊檔接手，
+    否則翻譯會被整批洗掉。以網址比對為主、slug 為輔。
+    """
+    try:
+        with open(path, newline="", encoding="utf-8-sig") as fh:
+            old = list(csv.DictReader(fh))
+    except (FileNotFoundError, OSError, UnicodeDecodeError):
+        return 0
+
+    by_url, by_slug = {}, {}
+    for r in old:
+        zh = (r.get("description_zh") or "").strip()
+        if not zh:
+            continue
+        if r.get("url"):
+            by_url[r["url"]] = zh
+            by_slug[slug_of(r["url"])] = zh
+
+    kept = 0
+    for row in rows:
+        if row.get("description_zh", "").strip():
+            continue
+        zh = by_url.get(row.get("url", "")) or by_slug.get(slug_of(row.get("url", "")))
+        if zh:
+            row["description_zh"] = zh
+            kept += 1
+    return kept
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Scrape SFF agenda into a CSV.")
     ap.add_argument("-o", "--output", default="agenda.csv", help="output CSV path")
@@ -268,6 +312,10 @@ def main() -> int:
     for row in rows:
         for f in FIELDS:
             row.setdefault(f, "")
+
+    kept = carry_over_zh(args.output, rows)
+    if kept:
+        print(f"  保留了 {kept} 筆既有的 description_zh（中文說明不會被這次抓取覆蓋）")
 
     with open(args.output, "w", newline="", encoding="utf-8-sig") as fh:
         writer = csv.DictWriter(fh, fieldnames=FIELDS, extrasaction="ignore")

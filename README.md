@@ -104,6 +104,10 @@ python3 scrape_sff_agenda.py -o out.csv --max-sessions 5   # 快速測試
 
 抓完重新整理網頁即可看到新資料。
 
+**重跑不會洗掉中文翻譯**：`description_zh` 是人工維護的欄位，官網沒有這個資料。
+腳本寫檔前會先讀現有的 `agenda.csv`，依場次網址把既有翻譯搬到新資料列上，
+並印出保留了幾筆。只有全新的場次會是空的，補翻譯後同樣會被保留下去。
+
 一筆場次都沒抓到時，腳本會**以非零狀態碼結束、且不覆蓋現有的 `agenda.csv`**，
 並列出該檢查的 CSS 選擇器 —— 官網一改版通常就是這些選擇器失效。
 
@@ -133,8 +137,8 @@ python3 -c "from datetime import datetime,timezone,timedelta; \
 | `track` | 主題分類（如 `Next-Gen Transactions`） |
 | `speakers` | 講者姓名，以 `; ` 分隔 |
 | `description` | 詳情頁完整活動內容 |
-| `description_zh` | 繁體中文說明；爬蟲不會產生，留白時介面自動顯示英文 |
-| `url` | 詳情頁網址（結尾的 slug 同時是場次的唯一識別）|
+| `description_zh` | 繁體中文說明；**人工維護**，爬蟲不會產生也不會覆蓋（見下），留白時介面自動顯示英文 |
+| `url` | 詳情頁網址。**介面的「官方場次頁面」連結直接用這一欄**，不會自行拼接；網址尾端的 slug 同時是場次的唯一識別 |
 
 CSV 以 `utf-8-sig`（帶 BOM）編碼輸出，Excel 開啟不會亂碼。
 
