@@ -7,8 +7,9 @@ JavaScript, so we drive a real Chrome via Selenium.
 Two stages:
   1. Listing — the agenda shows one festival day at a time, selected via the
      ?startDate=<epoch-ms> query param, and loads more sessions on scroll
-     (infinite scroll, not a button). We iterate the 5 days (10-14 Nov 2025),
-     scroll each to the bottom, and read each session card:
+     (infinite scroll, not a button). We iterate the festival days
+     (18-20 Nov 2026, see FESTIVAL_DAYS), scroll each to the bottom, and read
+     each session card:
          title, datetime, track, speakers, detail-page URL.
   2. Detail — the listing card has no description or venue, so we open each
      session's detail page and read:
@@ -42,22 +43,30 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 AGENDA_URL = "https://www.fintechfestival.sg/agenda"
 
-# Festival days -> SGT-midnight epoch (ms), which is what the page's
-# ?startDate filter expects. Verified against the live site.
-DAYS = [
-    ("Mon, 10 Nov", 1762704000000),
-    ("Tue, 11 Nov", 1762790400000),
-    ("Wed, 12 Nov", 1762876800000),
-    ("Thu, 13 Nov", 1762963200000),
-    ("Fri, 14 Nov", 1763049600000),
+# ---------------------------------------------------------------------------
+# 換年份只要改這一段
+# ---------------------------------------------------------------------------
+# Singapore FinTech Festival 2026：11/18–11/20，Singapore Expo。
+# 每天用 SGT（UTC+8）午夜的 epoch 毫秒當作議程頁 ?startDate 的值。
+# 要算新的日期：
+#   python3 -c "from datetime import datetime,timezone,timedelta; \
+#     print(int(datetime(2026,11,18,tzinfo=timezone(timedelta(hours=8))).timestamp()*1000))"
+FESTIVAL_YEAR = 2026
+FESTIVAL_DAYS = [
+    # (ISO 日期, 議程頁顯示的日期標籤, SGT 午夜 epoch ms)
+    ("2026-11-18", "Wed, 18 Nov", 1794931200000),
+    ("2026-11-19", "Thu, 19 Nov", 1795017600000),
+    ("2026-11-20", "Fri, 20 Nov", 1795104000000),
 ]
 
 CARD = "div.custom-agenda-listing-box"
 
-# CSV column order. `description_zh`（繁中說明）不來自官網爬取，而是由
-# merge_zh_desc.py 從 index.html 的 SFF_DESC 依 slug 回填；列在此維持 schema 一致。
+# CSV 欄位順序。
+#   date            ISO 日期（2026-11-18），index.html 用它排序日期、算星期，
+#                   不必從 "Wed, 18 Nov" 猜年份。
+#   description_zh  不從官網爬取，留白；index.html 在沒有中文時會自動顯示英文。
 FIELDS = [
-    "day", "datetime", "title", "stage", "location",
+    "date", "day", "datetime", "title", "stage", "location",
     "event_type", "track", "speakers", "description", "description_zh", "url",
 ]
 
@@ -149,8 +158,8 @@ def parse_card(card) -> dict | None:
 def scrape_listing(driver, days) -> list[dict]:
     """Stage 1: collect every session card across the given days, deduped by URL."""
     by_url: dict[str, dict] = {}
-    for label, ts in days:
-        print(f"  Day {label} ...")
+    for iso, label, ts in days:
+        print(f"  Day {label} ({iso}) ...")
         driver.get(f"{AGENDA_URL}?startDate={ts}")
         try:
             WebDriverWait(driver, 30).until(
@@ -160,15 +169,18 @@ def scrape_listing(driver, days) -> list[dict]:
             continue
         time.sleep(2)
         scroll_to_load_all(driver, label)
+        found = 0
         for card in driver.find_elements(By.CSS_SELECTOR, CARD):
             row = parse_card(card)
             if not row:
                 continue
-            row.setdefault("day", label)
+            found += 1
             # First day a session appears under wins for `day`.
             if row["url"] not in by_url:
+                row["date"] = iso
                 row["day"] = label
                 by_url[row["url"]] = row
+        print(f"    {label}: parsed {found} cards")
     return list(by_url.values())
 
 
@@ -209,10 +221,12 @@ def main() -> int:
                     help="skip detail pages (no description / venue)")
     args = ap.parse_args()
 
-    days = DAYS[: args.limit_days] if args.limit_days else DAYS
+    days = FESTIVAL_DAYS[: args.limit_days] if args.limit_days else FESTIVAL_DAYS
 
     driver = build_driver(headless=not args.no_headless)
     try:
+        print(f"Scraping Singapore FinTech Festival {FESTIVAL_YEAR} "
+              f"({len(days)} day(s))")
         print("Stage 1/2: collecting session listing ...")
         rows = scrape_listing(driver, days)
         if args.max_sessions:
@@ -232,6 +246,24 @@ def main() -> int:
     finally:
         driver.quit()
 
+    # 一筆都沒抓到通常代表官網改版、選擇器失效 —— 這種時候寧可大聲失敗，
+    # 也不要用一個空檔覆蓋掉現有的 agenda.csv。
+    if not rows:
+        print(
+            "\n找不到任何場次，沒有寫出檔案（保留現有的 "
+            f"{args.output}）。\nNo sessions found — {args.output} left untouched.\n\n"
+            "可能原因：\n"
+            f"  1. {FESTIVAL_YEAR} 年的議程還沒上線，或 FESTIVAL_DAYS 的日期／epoch 不對；\n"
+            "  2. 官網改版，CSS 選擇器失效 —— 先檢查這幾個：\n"
+            f"       CARD = {CARD!r}\n"
+            "       .custom-agenda-listing-title a / h3\n"
+            "       .custom-listing-agenda-date、.custom-agenda-listing-topic li\n"
+            "       .custom-agenda-post-content、.custom-agenda-post-location\n"
+            "  用 --no-headless 開著瀏覽器跑一次最快找出是哪一種。",
+            file=sys.stderr,
+        )
+        return 1
+
     # Normalise rows to the full field set.
     for row in rows:
         for f in FIELDS:
@@ -242,7 +274,10 @@ def main() -> int:
         writer.writeheader()
         writer.writerows(rows)
 
+    no_desc = sum(1 for r in rows if not r["description"])
     print(f"\nDone. Wrote {len(rows)} sessions to {args.output}")
+    if no_desc:
+        print(f"  注意：{no_desc} 筆沒有 description（詳情頁可能載入失敗）")
     return 0
 
 
