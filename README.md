@@ -9,8 +9,10 @@
 ## 資料流
 
 ```
-scrape_sff_agenda.py  ──►  agenda.csv  ──►  index.html（開啟網頁時載入）
-     （Selenium 爬蟲）        （唯一資料來源）        （純前端介面）
+                                        ┌──►  index.html（開啟網頁時載入）
+scrape_sff_agenda.py  ──►  agenda.csv  ─┤          （純前端介面）
+     （Selenium 爬蟲）        （唯一資料來源）  └──►  agent/（自然語言問答）
+                                                   （LangChain + OpenAI）
 ```
 
 **議程內容一律改 `agenda.csv`，不要改 `index.html`。**
@@ -122,6 +124,27 @@ python3 -c "from datetime import datetime,timezone,timedelta; \
 ```
 
 `index.html` 不需要跟著改 —— 日期、天數、舞台欄位、主題配色都是從 CSV 推導出來的。
+
+## 議程問答 Agent（`agent/`）
+
+除了網頁介面，另外有一支用自然語言問議程的小工具：「我對穩定幣有興趣，有哪些場次？」
+「AGND329 在講什麼？」中英文皆可，它會用你提問的語言回答。
+
+```bash
+python3 -m pip install -r agent/requirements.txt
+cp agent/.env.example agent/.env      # 填入 OPENAI_API_KEY
+
+python3 -m agent.cli                  # 終端機互動
+python3 -m agent.web                  # Web UI，開 http://127.0.0.1:7860
+```
+
+底層是 LangChain + OpenAI 的最簡 RAG：一場議程一份 Document，中英文說明放在一起 embed，
+索引存在本機、CSV 一改就自動重建。資料一樣只來自 `agenda.csv`，而且是**唯讀**。
+
+詳細說明見 [`agent/README.md`](agent/README.md)。
+
+> `index.html` 裡的「小幫手 Bot」是另一回事 —— 純前端關鍵字比對、零相依、可離線，
+> 不需要 API key。兩者並存。
 
 ## CSV 欄位
 
