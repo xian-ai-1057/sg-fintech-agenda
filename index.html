@@ -1225,8 +1225,8 @@ function showFileFallback(reason) {
     '<p class="boot-msg">Load <code>agenda.csv</code> to continue</p>' +
     '<p class="boot-body">瀏覽器不允許 <code>file://</code> 頁面讀取旁邊的 CSV（CORS 限制），' +
     '所以直接雙擊開啟時讀不到 <code>agenda.csv</code>。兩種解法：</p>' +
-    '<p class="boot-body"><b>1. 起一個本機伺服器</b>（推薦，功能完全正常）：</p>' +
-    '<pre class="boot-pre">python3 -m http.server 8000\n# 然後開 http://localhost:8000/</pre>' +
+    '<p class="boot-body"><b>1. 起完整的本機服務</b>（推薦，前端與 Agent API 共用同一個網址）：</p>' +
+    '<pre class="boot-pre">uvicorn agent.main:app --host 127.0.0.1 --port 8765\n# 然後開 http://127.0.0.1:8765/</pre>' +
     '<p class="boot-body"><b>2. 直接把 <code>agenda.csv</code> 拖進來</b>，或點下面的按鈕選檔：</p>' +
     '<label class="boot-drop" id="sff-drop">' +
     '  <input type="file" accept=".csv,text/csv" id="sff-file" hidden>' +
@@ -2120,9 +2120,9 @@ const BOT_T = {
    所以這個檔案單獨開、放在 GitHub Pages 上都照常能用，也不會有金鑰進到前端。
    ============================================================ */
 
-/* 本機開發時的預設位址（python3 -m agent.api）。線上沒有後端，預設就是「沒有」。
-   要指到別台機器：在網址加 ?agent=http://192.168.1.5:8765，會記在 localStorage；
-   ?agent= 留空則清掉設定。 */
+/* uvicorn agent.main:app 會把前端與 Agent API 放在同一個 origin，桌機與手機都可
+   直接連線且不需要 CORS 設定。靜態開啟時仍可用 ?agent=<url> 指定外部 Agent；
+   ?agent= 留空則清掉既有設定。 */
 const AGENT_DEFAULT = "http://127.0.0.1:8765";
 const AGENT_LS = "sff-agent-url", THREAD_LS = "sff-agent-thread", MODE_LS = "sff-bot-mode";
 
@@ -2136,8 +2136,9 @@ function agentEndpoint() {
   if (AGENT_URL !== null) return AGENT_URL;
   const q = new URLSearchParams(location.search).get("agent");
   if (q !== null) lsSet(AGENT_LS, q.trim() || null);
-  const local = ["localhost", "127.0.0.1", "[::1]", ""].indexOf(location.hostname) >= 0;
-  AGENT_URL = (lsGet(AGENT_LS) || (local ? AGENT_DEFAULT : "")).replace(/\/+$/, "");
+  const sameOrigin = /^https?:$/.test(location.protocol) ? location.origin : "";
+  const fileFallback = location.protocol === "file:" ? AGENT_DEFAULT : "";
+  AGENT_URL = (lsGet(AGENT_LS) || sameOrigin || fileFallback).replace(/\/+$/, "");
   return AGENT_URL;
 }
 
@@ -2878,7 +2879,7 @@ function ChatBot({ open, mobile, docked, width, lang, onClose, onSelect }) {
 
   const helpNote = (
     <div className="bot-note">
-      {T.aiHelp} <code>python3 -m agent.api</code> — {T.aiHelpTail}
+      {T.aiHelp} <code>uvicorn agent.main:app --host 127.0.0.1 --port 8765</code> — {T.aiHelpTail}
     </div>
   );
 

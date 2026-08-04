@@ -40,7 +40,7 @@
 <body>
   <div class="cap">
     <b>手機版預覽</b>
-    <span>實際開啟 index.html 時會依螢幕寬度自動切換版型<br>需透過本機伺服器開啟（<code>python3 -m http.server 8000</code>），才讀得到 agenda.csv</span>
+    <span>實際開啟 index.html 時會依螢幕寬度自動切換版型<br>請先執行 <code>uvicorn agent.main:app --host 127.0.0.1 --port 8765</code>，再開啟本預覽</span>
   </div>
   <div class="phone">
     <div class="notch"></div>

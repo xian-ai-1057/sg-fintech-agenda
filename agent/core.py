@@ -102,7 +102,13 @@ def build_agent(
     # 任何 OpenAI 相容端點（自架 vLLM、公司內部閘道）都只要設 OPENAI_BASE_URL。
     model_name = model or os.getenv("OPENAI_MODEL", DEFAULT_MODEL)
     endpoint = api_base_url()
-    chat = ChatOpenAI(model=model_name, base_url=endpoint)
+    # OpenAI 的 reasoning model 搭配 function tools 應走 Responses API；自架的
+    # OpenAI 相容端點不一定實作 /v1/responses，因此仍保留 Chat Completions。
+    chat = ChatOpenAI(
+        model=model_name,
+        base_url=endpoint,
+        use_responses_api=endpoint is None,
+    )
 
     sessions = load_sessions(csv_path)
     store, cached = get_store(sessions, csv_path=csv_path, rebuild=rebuild)
@@ -132,4 +138,6 @@ def ask(agent, text: str, thread_id: str = "default") -> str:
         {"messages": [{"role": "user", "content": text}]},
         config={"configurable": {"thread_id": thread_id}},
     )
-    return result["messages"][-1].content
+    # Chat Completions 的 content 是字串；Responses API 則可能是 content blocks。
+    # BaseMessage.text 會把兩種格式都正規化成前端 API 所需的純文字。
+    return str(result["messages"][-1].text)
