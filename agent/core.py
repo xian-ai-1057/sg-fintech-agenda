@@ -13,7 +13,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from .agenda import CSV_PATH, load_sessions, overview
+if __package__:  # 見 rag.py 的說明
+    from .agenda import CSV_PATH, load_sessions, overview
+else:
+    from agenda import CSV_PATH, load_sessions, overview
 
 DEFAULT_MODEL = "gpt-5.6-terra"
 
@@ -60,16 +63,20 @@ HOW TO ANSWER
 """
 
 
+ENV_PATH = Path(__file__).resolve().parent / ".env"
+
+
 def load_env() -> None:
-    load_dotenv(Path(__file__).resolve().parent / ".env")
+    load_dotenv(ENV_PATH)
 
 
 def require_api_key() -> None:
     """在載入 CSV、建索引之前就擋下來，不要讓使用者看到 embedding 打到一半跳 401。"""
     if not os.getenv("OPENAI_API_KEY"):
+        # 路徑照實印出來，程式在 repo 裡或被單獨拉出來用時都指得對。
         sys.exit(
-            "OPENAI_API_KEY 未設定 —— 請複製 agent/.env.example 成 agent/.env 並填入金鑰。\n"
-            "OPENAI_API_KEY not set — copy agent/.env.example to agent/.env and fill it in."
+            f"OPENAI_API_KEY 未設定 —— 請把 .env.example 複製成 {ENV_PATH} 並填入金鑰。\n"
+            f"OPENAI_API_KEY not set — copy .env.example to {ENV_PATH} and fill it in."
         )
 
 
@@ -83,8 +90,12 @@ def build_agent(
     from langchain.agents import create_agent
     from langgraph.checkpoint.memory import InMemorySaver
 
-    from .rag import embed_model_name, get_store
-    from .tools import build_tools
+    if __package__:
+        from .rag import embed_model_name, get_store
+        from .tools import build_tools
+    else:
+        from rag import embed_model_name, get_store
+        from tools import build_tools
 
     model_name = model or f"openai:{os.getenv('OPENAI_MODEL', DEFAULT_MODEL)}"
     sessions = load_sessions(csv_path)

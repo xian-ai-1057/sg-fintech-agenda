@@ -201,6 +201,13 @@ Six small modules, in dependency order:
   to `build_agent()` on purpose.
 - `cli.py` / `web.py` — thin shells over `core.py`.
 
+The modules must keep running **both** as the `agent` package (`python3 -m agent.cli`
+in the repo) and flattened into a bare directory with no `__init__.py`
+(`python -m cli`), because the folder gets copied out to be used standalone. That is
+why every sibling import is guarded by `if __package__:` and why `CSV_PATH` searches
+next to the module before the parent, with a `SFF_AGENDA_CSV` override. Keep both
+paths working when adding a module.
+
 The festival stats in the system prompt come from `overview(sessions)` at startup, so
 **a new year's CSV needs no prompt edit** — same derive-everything-from-CSV rule as
 the viewer. Model IDs are env-configurable (`OPENAI_MODEL`, `OPENAI_EMBED_MODEL`).

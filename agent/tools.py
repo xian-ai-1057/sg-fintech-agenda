@@ -9,7 +9,10 @@ from langchain_core.documents import Document
 from langchain_core.tools import tool
 from langchain_core.vectorstores import InMemoryVectorStore
 
-from .agenda import TIMEZONE_LABEL, Session, by_id, matches, resolve_day
+if __package__:  # 見 rag.py 的說明
+    from .agenda import TIMEZONE_LABEL, Session, by_id, matches, resolve_day
+else:
+    from agenda import TIMEZONE_LABEL, Session, by_id, matches, resolve_day
 
 LIST_LIMIT = 60  # list_sessions 最多列幾行（107 行大約 4k tokens）
 SNIPPET_CHARS = 150  # search_sessions 每筆附的說明摘要長度

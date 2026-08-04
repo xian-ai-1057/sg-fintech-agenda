@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import os
 import re
 from collections import Counter
 from dataclasses import dataclass
@@ -16,7 +17,27 @@ from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import unquote
 
-CSV_PATH = Path(__file__).resolve().parents[1] / "agenda.csv"
+
+def _default_csv() -> Path:
+    """找 agenda.csv，支援兩種擺法：
+
+    1. 在 repo 裡 —— agent/ 的上一層（原本的位置）
+    2. 單獨把這幾支 .py 拉出來用 —— 跟程式同一層
+
+    都不對就設 SFF_AGENDA_CSV 環境變數指到實際路徑。
+    """
+    override = os.getenv("SFF_AGENDA_CSV")
+    if override:
+        return Path(override).expanduser()
+
+    here = Path(__file__).resolve().parent
+    for candidate in (here / "agenda.csv", here.parent / "agenda.csv"):
+        if candidate.exists():
+            return candidate
+    return here.parent / "agenda.csv"  # 都找不到，留原路徑讓錯誤訊息指得出來
+
+
+CSV_PATH = _default_csv()
 
 # 議程時間全部是新加坡時間。活動只在一個場地、一個時區，所以用 naive datetime
 # 就夠了，不引進 tzinfo —— 之後要算衝堂也只是 a.start < b.end and b.start < a.end。
@@ -72,6 +93,12 @@ def _parse_times(date_iso: str, datetime_cell: str) -> tuple[datetime, datetime]
 
 def load_sessions(csv_path: Path | str = CSV_PATH) -> list[Session]:
     """讀 agenda.csv（UTF-8 with BOM），依開始時間排序。"""
+    if not Path(csv_path).exists():
+        raise FileNotFoundError(
+            f"找不到議程資料 {csv_path}。\n"
+            "請把 agenda.csv 放在程式同一層（或上一層），"
+            "或用 --csv 指定路徑、設定 SFF_AGENDA_CSV 環境變數。"
+        )
     with open(csv_path, newline="", encoding="utf-8-sig") as fh:
         rows = list(csv.DictReader(fh))
 

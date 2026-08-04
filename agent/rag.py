@@ -10,7 +10,12 @@ from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_openai import OpenAIEmbeddings
 
-from .agenda import CSV_PATH, Session, csv_fingerprint
+# 在 repo 裡是 agent 這個 package（python3 -m agent.cli）；把這幾支 .py 單獨拉出來
+# 攤平放時就沒有 package 了（python -m cli），兩種都要能跑。
+if __package__:
+    from .agenda import CSV_PATH, Session, csv_fingerprint
+else:
+    from agenda import CSV_PATH, Session, csv_fingerprint
 
 INDEX_DIR = Path(__file__).resolve().parent / ".index"
 DEFAULT_EMBED_MODEL = "text-embedding-3-small"
