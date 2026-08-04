@@ -51,7 +51,8 @@ python3 -m http.server 8000
 - **講者名單只先顯示前 5 位**，其餘以「… +N」收合，點一下即可展開全部，再點即收合；
 - **中／英雙語說明切換**：右上角 `中／EN` 一鍵切換活動說明語言，偏好記在
   `localStorage`，**預設英文**；某場次若沒有中文翻譯，會自動顯示英文；
-- **小幫手 Bot**：純前端關鍵字推薦，不對外送任何請求。
+- **小幫手 Bot**：預設是純前端關鍵字推薦，不對外送任何請求；本機把
+  `agent/api.py` 跑起來之後，同一個對話框會自動切成 **AI 模式**（見下）。
 
 場次以**分鐘級絕對定位**排版，任何時長（含 5／10 分鐘快講）都精準對位。
 
@@ -135,16 +136,34 @@ python3 -m pip install -r agent/requirements.txt
 cp agent/.env.example agent/.env      # 填入 OPENAI_API_KEY
 
 python3 -m agent.cli                  # 終端機互動
-python3 -m agent.web                  # Web UI，開 http://127.0.0.1:7860
+python3 -m agent.web                  # Gradio Web UI，開 http://127.0.0.1:7860
+python3 -m agent.api                  # HTTP API，給議程網頁的對話框用
 ```
 
 底層是 LangChain + OpenAI 的最簡 RAG：一場議程一份 Document，中英文說明放在一起 embed，
 索引存在本機、CSV 一改就自動重建。資料一樣只來自 `agenda.csv`，而且是**唯讀**。
 
-詳細說明見 [`agent/README.md`](agent/README.md)。
+用自架的 OpenAI 相容端點（vLLM、公司內部閘道）就設 `OPENAI_BASE_URL`，chat 與 embedding
+共用，程式不必改。詳細說明見 [`agent/README.md`](agent/README.md)。
 
-> `index.html` 裡的「小幫手 Bot」是另一回事 —— 純前端關鍵字比對、零相依、可離線，
-> 不需要 API key。兩者並存。
+### 接到議程網頁的對話框
+
+`index.html` 右下角的小幫手可以直接用這個 agent 回答：
+
+```bash
+python3 -m agent.api      # 一個終端機：agent（http://127.0.0.1:8765）
+python3 -m http.server 8000   # 另一個：網頁，然後開 http://localhost:8000/
+```
+
+網頁開啟對話框時會自己探測 `/health`，探到就切成 **AI 模式**（標題列的膠囊鈕顯示
+`AI`），回答裡的場次編號可以直接點開詳情；探不到、或中途連線失敗，就自動退回原本的
+關鍵字比對，一樣答得出東西。膠囊鈕可以隨時手動切換兩種模式。
+
+agent 跑在別台機器時，在網址加 `?agent=http://192.168.1.5:8765`（會記在 `localStorage`），
+並在 `agent/.env` 的 `SFF_AGENT_ORIGINS` 把網頁的來源加進白名單。
+
+> **API key 只留在跑 `agent.api` 的那台機器上**，前端拿到的永遠只有問答文字。
+> 線上版（GitHub Pages）沒有後端，所以維持純關鍵字模式 —— 這也是為什麼保留關鍵字引擎。
 
 ## CSV 欄位
 

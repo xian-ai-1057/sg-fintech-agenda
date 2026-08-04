@@ -3,6 +3,12 @@
     python3 -m agent.web        然後開 http://127.0.0.1:7860
 
 跟 cli.py 共用同一個 build_agent() / ask()，這裡只負責介面。
+
+要對外開放時不必改程式，Gradio 自己就吃這幾個環境變數：
+GRADIO_SERVER_NAME（預設 127.0.0.1，內網分享設 0.0.0.0）、GRADIO_SERVER_PORT、
+GRADIO_SHARE=True（開臨時公開網址；會把服務暴露到公網，確定要再開）。
+
+議程網頁 index.html 要接的是 api.py，不是這一支。
 """
 
 from __future__ import annotations
@@ -44,7 +50,7 @@ def main() -> None:
         )
         gr.ChatInterface(fn=respond, additional_inputs=[name, browser_session])
 
-    demo.launch()
+    demo.launch()  # 主機／連接埠／share 都走 GRADIO_* 環境變數（見檔頭）
 
 
 if __name__ == "__main__":

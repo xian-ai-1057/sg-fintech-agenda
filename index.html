@@ -686,7 +686,8 @@ body {
 }
 .bot-head-t { display: flex; flex-direction: column; flex: 1; min-width: 0; }
 .bot-h1 { font-size: 15px; font-weight: 700; color: var(--text-strong); }
-.bot-h2 { font-size: 12px; color: var(--text-soft); }
+/* 標題列右邊還要塞模式鈕，副標一律單行截字，面板高度才不會忽高忽低 */
+.bot-h2 { font-size: 12px; color: var(--text-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bot-x, .bot-clear {
   width: 30px; height: 30px; border-radius: 50%; border: none; flex: none;
   background: var(--surface-hover); color: var(--text); line-height: 1;
@@ -760,6 +761,46 @@ body {
   background: var(--accent); color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
 }
 .bot-send:active { transform: scale(.97); }
+
+/* AI 模式：模式切換鈕、思考中、Agent 回覆裡的場次連結 */
+.bot-mode {
+  flex: none; display: inline-flex; align-items: center; gap: 5px;
+  height: 26px; padding: 0 10px; border-radius: var(--radius-pill);
+  border: 1px solid var(--separator-strong); background: var(--surface);
+  font: inherit; font-size: 11.5px; font-weight: 600; color: var(--text-soft);
+  cursor: pointer; white-space: nowrap;
+}
+.bot-mode .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); }
+.bot-mode.on { border-color: var(--accent); color: var(--accent); }
+.bot-mode.on .dot { background: var(--accent); }
+.bot-mode:hover { background: var(--surface-hover); }
+
+/* Agent 回的是純文字：一行一段，「- 」開頭的做成懸掛縮排的項目 */
+.bot-p { margin: 0 0 7px; }
+.bot-li { margin: 0 0 5px; padding-left: 14px; text-indent: -14px; }
+.bot-p:last-child, .bot-li:last-child { margin-bottom: 0; }
+
+.bot-sid {
+  border: none; background: none; padding: 0; margin: 0; font: inherit;
+  font-weight: 700; color: var(--accent); cursor: pointer;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.bot-sid:hover { opacity: .72; }
+
+.bot-note { margin-top: 7px; font-size: 12.5px; color: var(--text-soft); line-height: 1.5; }
+.bot-note code {
+  font-size: 11.5px; background: var(--surface-2); border: 1px solid var(--separator);
+  border-radius: 5px; padding: 1px 5px;
+}
+
+.bot-typing { display: inline-flex; align-items: center; gap: 4px; height: 18px; }
+.bot-typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--text-faint); animation: bot-blink 1.1s infinite; }
+.bot-typing i:nth-child(2) { animation-delay: .18s; }
+.bot-typing i:nth-child(3) { animation-delay: .36s; }
+@keyframes bot-blink { 0%, 60%, 100% { opacity: .25; } 30% { opacity: 1; } }
+
+.bot-input-row input:disabled { opacity: .6; }
+.bot-send:disabled { opacity: .55; cursor: progress; }
 
 /* 手機：聊天面板改為底部抽屜 */
 @media (max-width: 720px) {
@@ -2033,6 +2074,18 @@ const BOT_T = {
     topical: (n, names) => `Here ${n === 1 ? "is 1 session" : "are " + n + " sessions"} on ${names}:`,
     close: "Close",
     clear: "Clear conversation",
+    /* AI 模式 */
+    aiSub: "Ask anything — answered by the agenda agent",
+    aiPlaceholder: "e.g. What should I catch on Day 2?",
+    modeAi: "AI",
+    modeKw: "Keyword",
+    modeTitle: "Switch between the AI agent and offline keyword matching",
+    aiGreet: "Hi! Ask me anything about the SFF 2026 agenda — what's on a given day, what a session is about, or what fits your interests. English or 中文. Tap any session ID to open its details.",
+    aiOn: "AI mode on. Answers now come from the agenda agent, with the whole agenda behind it.",
+    aiOff: "Keyword mode. Offline matching, no server needed.",
+    aiFailed: "I couldn't reach the agenda agent, so here's what keyword matching finds instead.",
+    aiHelp: "AI mode needs the agent running locally:",
+    aiHelpTail: "then reload this page (or add ?agent=<url> if it runs elsewhere).",
   },
   zh: {
     launch: "問問議程小幫手",
@@ -2047,8 +2100,142 @@ const BOT_T = {
     topical: (n, names) => `為你推薦這 ${n} 場關於${names}的議程：`,
     close: "關閉",
     clear: "清除對話",
+    /* AI 模式 */
+    aiSub: "什麼都能問，由議程 Agent 回答",
+    aiPlaceholder: "例如：第二天有什麼值得聽的？",
+    modeAi: "AI",
+    modeKw: "關鍵字",
+    modeTitle: "切換 AI Agent／離線關鍵字比對",
+    aiGreet: "嗨！SFF 2026 的議程什麼都可以問 —— 哪一天有什麼、某一場在講什麼、哪些場次適合你。中英文皆可。回答裡的場次編號可以直接點開看詳情。",
+    aiOn: "已切換到 AI 模式，由議程 Agent 回答，看得到完整議程。",
+    aiOff: "已切換到關鍵字模式，純離線比對，不需要伺服器。",
+    aiFailed: "連不上議程 Agent，先用關鍵字比對找到這些：",
+    aiHelp: "AI 模式需要在本機把 agent 跑起來：",
+    aiHelpTail: "然後重新整理這一頁（跑在別台機器就在網址加 ?agent=<位址>）。",
   },
 };
+
+/* ============================================================
+   小幫手 Bot — AI 模式：接 agent/api.py。連不上就退回上面的關鍵字引擎，
+   所以這個檔案單獨開、放在 GitHub Pages 上都照常能用，也不會有金鑰進到前端。
+   ============================================================ */
+
+/* 本機開發時的預設位址（python3 -m agent.api）。線上沒有後端，預設就是「沒有」。
+   要指到別台機器：在網址加 ?agent=http://192.168.1.5:8765，會記在 localStorage；
+   ?agent= 留空則清掉設定。 */
+const AGENT_DEFAULT = "http://127.0.0.1:8765";
+const AGENT_LS = "sff-agent-url", THREAD_LS = "sff-agent-thread", MODE_LS = "sff-bot-mode";
+
+const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const lsSet = (k, v) => {
+  try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {}
+};
+
+let AGENT_URL = null;
+function agentEndpoint() {
+  if (AGENT_URL !== null) return AGENT_URL;
+  const q = new URLSearchParams(location.search).get("agent");
+  if (q !== null) lsSet(AGENT_LS, q.trim() || null);
+  const local = ["localhost", "127.0.0.1", "[::1]", ""].indexOf(location.hostname) >= 0;
+  AGENT_URL = (lsGet(AGENT_LS) || (local ? AGENT_DEFAULT : "")).replace(/\/+$/, "");
+  return AGENT_URL;
+}
+
+/* 這個瀏覽器的對話識別；清除對話就換一組，等於開一段新的記憶。 */
+function agentThread(fresh) {
+  let id = fresh ? null : lsGet(THREAD_LS);
+  if (!id) { id = "web-" + Math.random().toString(36).slice(2, 10); lsSet(THREAD_LS, id); }
+  return id;
+}
+
+function agentFetch(url, path, init, ms) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url + path, { ...init, signal: ctrl.signal })
+    .finally(() => clearTimeout(timer));
+}
+
+const agentHealth = (url) =>
+  agentFetch(url, "/health", {}, 4000).then((r) => r.ok).catch(() => false);
+
+function agentAsk(url, question, thread) {
+  return agentFetch(url, "/ask", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question: question, thread_id: thread }),
+  }, 120000).then((r) => {
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then((data) => {
+    const answer = String((data && data.answer) || "").trim();
+    if (!answer) throw new Error("empty answer");
+    return answer;
+  });
+}
+
+/* "AGND441" -> 場次列。slug 的第一段就是 agent 的 session_id，兩邊同一個來源。 */
+let SID_MAP = null;
+function sessionById(id) {
+  if (!SID_MAP) {
+    SID_MAP = new Map();
+    D.S.forEach((s) => {
+      const k = String(s[7] || "").split("-")[0].toUpperCase();
+      if (k && !SID_MAP.has(k)) SID_MAP.set(k, s);
+    });
+  }
+  return SID_MAP.get(String(id).toUpperCase()) || null;
+}
+
+/* Agent 回的是純文字，只會夾三種東西：場次 ID、**粗體**、「- 」開頭的清單。
+   就處理這三種，其餘原樣呈現 —— 不為了聊天框引進 markdown 套件。 */
+const AGENT_SID_RE = /\b(AGND\d+)\b/g;
+
+/* 把文字裡的場次 ID 換成可點的連結（點了開共用的場次詳情） */
+function agentIds(text, key, onSelect) {
+  const out = []; let last = 0, m;
+  AGENT_SID_RE.lastIndex = 0;
+  while ((m = AGENT_SID_RE.exec(text))) {
+    const s = sessionById(m[1]);
+    if (!s) continue;  // 講到不存在的 ID 就當普通文字，不做成死連結
+    if (m.index > last) out.push(text.slice(last, m.index));
+    out.push(
+      <button className="bot-sid" key={key + "s" + m.index} title={s[6]} onClick={() => onSelect(s)}>
+        {m[1]}
+      </button>
+    );
+    last = m.index + m[1].length;
+  }
+  if (last < text.length) out.push(text.slice(last));
+  return out;
+}
+
+/* **粗體** 切段，段內再處理場次 ID */
+function agentRich(text, key, onSelect) {
+  return String(text).split(/\*\*(.+?)\*\*/g).map((chunk, i) => (
+    i % 2
+      ? <strong key={key + "b" + i}>{agentIds(chunk, key + "b" + i, onSelect)}</strong>
+      : <React.Fragment key={key + "t" + i}>{agentIds(chunk, key + "t" + i, onSelect)}</React.Fragment>
+  ));
+}
+
+function AgentAnswer({ text, onSelect }) {
+  const lines = String(text).replace(/\r/g, "").split("\n");
+  return (
+    <React.Fragment>
+      {lines.map((line, i) => {
+        const t = line.trim();
+        if (!t) return null;
+        const bullet = /^[-*•]\s+/.test(t);
+        return (
+          <div className={bullet ? "bot-li" : "bot-p"} key={i}>
+            {bullet ? "• " : ""}
+            {agentRich(bullet ? t.replace(/^[-*•]\s+/, "") : t, "l" + i, onSelect)}
+          </div>
+        );
+      })}
+    </React.Fragment>
+  );
+}
 
 /* 組裝開場句（render 時依 lang 重算） */
 const botIntro = (topicHits, count, lang) => {
@@ -2583,9 +2770,15 @@ function BotLauncher({ onClick, lang }) {
 function ChatBot({ open, mobile, docked, width, lang, onClose, onSelect }) {
   const [messages, setMessages] = useState([]);
   const [query, setQuery] = useState("");
+  const [busy, setBusy] = useState(false);          // 正在等 agent 回答
+  const [aiOk, setAiOk] = useState(null);           // null = 還沒探測過
+  const [mode, setMode] = useState(() => (lsGet(MODE_LS) === "ai" ? "ai" : "kw"));
   const logRef = useRef(null);
   const inputRef = useRef(null);
+  const threadRef = useRef(null);
   const drag = useSwipeDismiss(onClose);
+  const endpoint = agentEndpoint();
+  const thread = () => threadRef.current || (threadRef.current = agentThread(false));
 
   // 首次開啟 → 問候
   useEffect(() => {
@@ -2597,29 +2790,76 @@ function ChatBot({ open, mobile, docked, width, lang, onClose, onSelect }) {
     }
   }, [open]);
 
+  // 首次開啟時探一下 agent 在不在；在的話（且使用者沒特別選過關鍵字）就預設用 AI。
+  useEffect(() => {
+    if (!open || !endpoint || aiOk !== null) return;
+    let alive = true;
+    agentHealth(endpoint).then((ok) => {
+      if (!alive) return;
+      setAiOk(ok);
+      if (ok && lsGet(MODE_LS) !== "kw") setMode("ai");
+    });
+    return () => { alive = false; };
+  }, [open, endpoint, aiOk]);
+
   // 新訊息 → 捲到底
   useEffect(() => {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [messages, open]);
 
+  const aiReady = !!endpoint && aiOk !== false;
+  const aiMode = mode === "ai" && aiReady;
+
+  const keywordAnswer = (q) => {
+    const { items, topicHits } = recommend(q);
+    return items.length
+      ? { role: "bot", kind: "result", items, topicHits }
+      : { role: "bot", kind: "nomatch" };
+  };
+
   const send = () => {
     const q = query.trim();
+    if (busy) return;
     if (!q) {
       setMessages((m) => [...m, { role: "bot", kind: "hint" }]);
       return;
     }
-    const { items, topicHits } = recommend(q);
-    setMessages((m) => [
-      ...m,
-      { role: "user", text: q },
-      items.length
-        ? { role: "bot", kind: "result", items, topicHits }
-        : { role: "bot", kind: "nomatch" },
-    ]);
     setQuery("");
+
+    if (!aiMode) {
+      setMessages((m) => [...m, { role: "user", text: q }, keywordAnswer(q)]);
+      return;
+    }
+
+    // AI 模式：先掛上打字中的泡泡，回來再換掉。失敗就退回關鍵字，至少給得出東西。
+    setBusy(true);
+    setMessages((m) => [...m, { role: "user", text: q }, { role: "bot", kind: "typing" }]);
+    agentAsk(endpoint, q, thread()).then(
+      (answer) => setMessages((m) => [
+        ...m.filter((x) => x.kind !== "typing"),
+        { role: "bot", kind: "agent", text: answer },
+      ]),
+      () => setMessages((m) => [
+        ...m.filter((x) => x.kind !== "typing"),
+        { role: "bot", kind: "agentfail" },
+        keywordAnswer(q),
+      ])
+    ).finally(() => setBusy(false));
+  };
+
+  const toggleMode = () => {
+    if (!aiReady) {  // 沒有位址或探測失敗：說明怎麼把 agent 跑起來，模式不動
+      setMessages((m) => [...m, { role: "bot", kind: "aihelp" }]);
+      return;
+    }
+    const next = mode === "ai" ? "kw" : "ai";
+    setMode(next);
+    lsSet(MODE_LS, next);
+    setMessages((m) => [...m, { role: "bot", kind: next === "ai" ? "aion" : "aioff" }]);
   };
 
   const clearChat = () => {
+    threadRef.current = agentThread(true);  // 換一組 thread_id，agent 那邊的記憶也跟著重來
     setMessages([{ role: "bot", kind: "greet" }]);
     setQuery("");
   };
@@ -2636,10 +2876,30 @@ function ChatBot({ open, mobile, docked, width, lang, onClose, onSelect }) {
   const T = BOT_T[lang] || BOT_T.en;
   const trackCodes = Object.keys(D.TOPICS).filter((c) => c !== "OT");
 
+  const helpNote = (
+    <div className="bot-note">
+      {T.aiHelp} <code>python3 -m agent.api</code> — {T.aiHelpTail}
+    </div>
+  );
+
   const renderMsg = (m, i) => {
     if (m.role === "user") return <div className="bot-msg user" key={i}>{m.text}</div>;
-    if (m.kind === "greet") return <div className="bot-msg bot" key={i}>{T.greet}</div>;
+    if (m.kind === "greet") return <div className="bot-msg bot" key={i}>{aiMode ? T.aiGreet : T.greet}</div>;
     if (m.kind === "hint") return <div className="bot-msg bot" key={i}>{T.emptyHint}</div>;
+    if (m.kind === "typing") return (
+      <div className="bot-msg bot" key={i}>
+        <span className="bot-typing" aria-label={T.modeAi}><i /><i /><i /></span>
+      </div>
+    );
+    if (m.kind === "agent") return (
+      <div className="bot-msg bot" key={i}><AgentAnswer text={m.text} onSelect={onSelect} /></div>
+    );
+    if (m.kind === "agentfail") return (
+      <div className="bot-msg bot" key={i}>{T.aiFailed}{helpNote}</div>
+    );
+    if (m.kind === "aihelp") return <div className="bot-msg bot" key={i}>{helpNote}</div>;
+    if (m.kind === "aion") return <div className="bot-msg bot" key={i}>{T.aiOn}</div>;
+    if (m.kind === "aioff") return <div className="bot-msg bot" key={i}>{T.aiOff}</div>;
     if (m.kind === "nomatch") return (
       <div className="bot-msg bot" key={i}>
         <div>{T.noMatch}</div>
@@ -2673,8 +2933,12 @@ function ChatBot({ open, mobile, docked, width, lang, onClose, onSelect }) {
         <div className="bot-head">
           <div className="bot-head-t">
             <span className="bot-h1">{T.title}</span>
-            <span className="bot-h2">{T.sub}</span>
+            <span className="bot-h2">{aiMode ? T.aiSub : T.sub}</span>
           </div>
+          <button className={"bot-mode" + (aiMode ? " on" : "")} title={T.modeTitle}
+            aria-pressed={aiMode} onClick={toggleMode}>
+            <span className="dot" />{aiMode ? T.modeAi : T.modeKw}
+          </button>
           {messages.length > 1 && (
             <button className="bot-clear" title={T.clear} aria-label={T.clear} onClick={clearChat}>↺</button>
           )}
@@ -2688,14 +2952,15 @@ function ChatBot({ open, mobile, docked, width, lang, onClose, onSelect }) {
         <input
           ref={inputRef}
           value={query}
+          disabled={busy}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
             // 擋輸入法組字中的 Enter（注音/拼音選字），避免半成品誤送
             if (e.key === "Enter" && !e.nativeEvent.isComposing && e.keyCode !== 229) send();
           }}
-          placeholder={T.placeholder}
+          placeholder={aiMode ? T.aiPlaceholder : T.placeholder}
         />
-        <button className="bot-send" onClick={send}>{T.send}</button>
+        <button className="bot-send" onClick={send} disabled={busy}>{T.send}</button>
       </div>
     </React.Fragment>
   );

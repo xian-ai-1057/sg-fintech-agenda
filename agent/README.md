@@ -6,11 +6,14 @@
 資料來源就是上一層的 `agenda.csv`，**唯讀**，不會去動它，也不會動 `index.html`。
 
 ```
-agenda.csv ──► agent/（LangChain + OpenAI，語意檢索）──► CLI / Web UI
+agenda.csv ──► agent/（LangChain + OpenAI，語意檢索）──► CLI / Gradio / HTTP API
+                                                                        │
+                                            index.html 的對話框 ────────┘
 ```
 
 > `index.html` 裡本來就有一個「小幫手 Bot」，那是**純前端關鍵字比對**、零相依、可離線。
-> 這支 Agent 是另一回事：需要 API key，但看得懂語意。兩者並存，各有各的用途。
+> 這支 Agent 需要 API key，但看得懂語意。兩者並存：`api.py` 有跑，網頁就用 Agent 回答；
+> 沒跑就退回關鍵字，網頁單獨開、放在 GitHub Pages 上都照常能用。
 
 ## 安裝
 
@@ -32,6 +35,9 @@ python3 -m agent.cli "有哪些跟穩定幣和代幣化資產有關的場次？"
 
 # 最小 Web UI，然後開 http://127.0.0.1:7860
 python3 -m agent.web
+
+# HTTP API，給 index.html 的對話框用（見下）
+python3 -m agent.api
 ```
 
 其他選項：
@@ -42,6 +48,39 @@ python3 -m agent.web
 | `--rebuild-index` | 強制重建向量索引 |
 | `--csv path.csv` | 換一份議程資料，測試用 |
 
+## 接到議程網頁的對話框
+
+`index.html` 右下角的小幫手可以直接用這支 Agent 回答。開兩個終端機：
+
+```bash
+python3 -m agent.api           # Agent，預設 http://127.0.0.1:8765
+python3 -m http.server 8000    # 議程網頁，然後開 http://localhost:8000/
+```
+
+網頁開啟對話框時會先打 `GET /health`：通了就切成 **AI 模式**（標題列膠囊鈕顯示 `AI`），
+提問改走 `POST /ask`；沒通、或問到一半失敗，就自動退回內建的關鍵字比對，不會開天窗。
+膠囊鈕可以手動切回關鍵字模式，選擇記在 `localStorage`。
+
+回答裡的場次編號（`AGND441`）會變成可點的連結，點了開網頁本來就有的場次詳情 ——
+system prompt 已經要求每一場都要附編號，所以不用另外設計一套回傳格式。
+
+| 端點 | 進 | 出 |
+|---|---|---|
+| `GET /health` | — | `{"ok": true, "status": "已載入 107 場議程 …"}` |
+| `POST /ask` | `{"question": "…", "thread_id": "…"}` | `{"answer": "…", "thread_id": "…"}` |
+
+| 設定 | 預設 | 說明 |
+|---|---|---|
+| `--host` / `--port` | `127.0.0.1` / `8765` | 要讓同網段的手機連得到就 `--host 0.0.0.0` |
+| `SFF_AGENT_ORIGINS` | 空 | 允許連進來的網頁來源，逗號分隔。**本機來源預設就通** |
+| 網頁端 `?agent=<url>` | 本機 `http://127.0.0.1:8765` | Agent 跑在別台機器時用，會記在 `localStorage` |
+
+Agent 每個瀏覽器帶一組 `thread_id`（清除對話就換一組），對應到 `ask()` 的同一個參數 ——
+跟 CLI 的 `--user`、Gradio 的名字欄位是同一條通道。
+
+**API key 只留在跑 `api.py` 的這一側**，前端拿到的永遠只有問答文字。線上版
+（GitHub Pages）沒有後端，網頁就維持純關鍵字模式。
+
 ### 把這幾支程式單獨拉出來用
 
 不一定要留在這個 repo 裡。把 `.py`、`requirements.txt`、`.env.example` 連同
@@ -50,19 +89,33 @@ python3 -m agent.web
 ```bash
 python -m cli               # 或 python cli.py
 python -m web
+python -m api
 ```
 
 `agenda.csv` 會**先找程式同一層、再找上一層**；都不在的話用 `--csv` 指路徑，
 或設 `SFF_AGENDA_CSV` 環境變數。`.env` 一律讀程式同一層的那份。
 
-模型都走環境變數，寫在 `agent/.env`：
+模型與端點都走環境變數，寫在 `agent/.env`：
 
-| 變數 | 預設 |
-|---|---|
-| `OPENAI_MODEL` | `gpt-5.6-terra` |
-| `OPENAI_EMBED_MODEL` | `text-embedding-3-small` |
+| 變數 | 預設 | 說明 |
+|---|---|---|
+| `OPENAI_MODEL` | `gpt-5.6-terra` | |
+| `OPENAI_EMBED_MODEL` | `text-embedding-3-small` | |
+| `OPENAI_BASE_URL` | OpenAI 官方 | OpenAI 相容端點，chat 與 embedding 共用 |
 
 > OpenAI 的 model id 會換。遇到 `model not found` 就把 `OPENAI_MODEL` 改成你帳號可用的。
+
+要接自架的 vLLM 或公司內部閘道，就這三行：
+
+```bash
+OPENAI_BASE_URL=http://<你的主機>:<port>/v1
+OPENAI_MODEL=<該端點上的 chat model>
+OPENAI_EMBED_MODEL=<該端點上的 embedding model>
+```
+
+這種端點多半不驗金鑰，`OPENAI_API_KEY` 隨便填一個非空字串即可（例如 `EMPTY`）——
+程式在做任何事之前會先檢查它有沒有設，免得跑到一半才跳 401。端點也算進索引指紋，
+所以換端點會自動重建向量索引：同一個模型名稱在不同服務上吐的向量並不通用。
 
 ## 它怎麼運作
 
@@ -141,6 +194,7 @@ US$0.0005），之後都走本機快取。每次提問是一次本機相似度�
 | `core.py` | system prompt、`build_agent()`、`ask()` |
 | `cli.py` | 終端機介面 |
 | `web.py` | Gradio Web UI |
+| `api.py` | HTTP API，`index.html` 的對話框接這一支 |
 
 資料層可以不花錢單獨驗證：
 
