@@ -166,41 +166,73 @@ body {
   padding: 7px 16px; border-radius: var(--radius-pill);
 }
 
-/* ---------- day selector ---------- */
+/* ---------- day selector ----------
+   Deliberately compact: a single-line pill row, so the calendar below it
+   gets the vertical space and the visual weight. The day's stage label
+   lives in the button's title — the calendar's column headers already
+   name the stages. */
 .daybar {
-  display: flex; align-items: stretch; gap: 8px;
-  padding: 12px 24px; background: var(--surface);
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 24px; background: var(--surface);
   border-bottom: 1px solid var(--separator);
   overflow-x: auto;
 }
 .day {
-  flex: 0 0 auto; min-width: 116px;
+  flex: 0 0 auto;
   border: 1px solid var(--separator-strong); background: transparent;
-  border-radius: 12px; padding: 8px 14px; cursor: pointer; text-align: left;
+  border-radius: var(--radius-pill); padding: 4px 13px; cursor: pointer;
   font: inherit; color: var(--text); transition: background .15s, border-color .15s;
-  display: flex; flex-direction: column; gap: 2px;
+  display: flex; align-items: baseline; gap: 6px;
 }
 .day:hover { background: var(--surface-hover); }
-.day .dn { font-size: 12px; font-weight: 500; color: var(--text-soft); }
-.day .dd { font-size: 16px; font-weight: 600; color: var(--text-strong); letter-spacing: -0.01em; }
-.day .dl { font-size: 11px; color: var(--text-soft); }
+.day .dn { font-size: 11px; font-weight: 500; color: var(--text-soft); }
+.day .dd {
+  font-size: 13px; font-weight: 600; color: var(--text-strong);
+  letter-spacing: -0.01em; font-variant-numeric: tabular-nums;
+}
 .day.on {
   background: var(--accent); border-color: var(--accent);
 }
-.day.on .dn, .day.on .dd, .day.on .dl { color: #fff; }
-.day.on .dn, .day.on .dl { color: rgba(255,255,255,.82); }
+.day.on .dd { color: #fff; }
+.day.on .dn { color: rgba(255,255,255,.82); }
 
 /* ---------- legend ---------- */
 .legend {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 7px 16px;
-  padding: 10px 24px; background: var(--surface-2);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px;
+  padding: 6px 20px; background: var(--surface-2);
   border-bottom: 1px solid var(--separator);
   font-size: 12px; color: var(--text-soft);
 }
-.legend .lg { display: inline-flex; align-items: center; gap: 6px; }
 .legend .dot { width: 9px; height: 9px; border-radius: 3px; background: var(--c); display: inline-block; }
 .legend .sep { margin-left: auto; }
-.legend .mk { display: inline-flex; align-items: center; gap: 5px; }
+/* 圖例同時就是篩選器：點主題或參加資格即可過濾，不另外佔一列 */
+.legend .lg, .legend .mk {
+  font: inherit; font-size: 12px; color: var(--text-soft);
+  background: transparent; border: 1px solid transparent;
+  border-radius: var(--radius-pill); padding: 3px 9px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: background .15s, border-color .15s, color .15s, opacity .15s;
+}
+.legend .lg:hover, .legend .mk:hover {
+  background: var(--surface-hover); border-color: var(--separator-strong);
+}
+.legend .lg.on {
+  background: color-mix(in srgb, var(--c) 16%, var(--surface));
+  border-color: var(--c); color: var(--text-strong); font-weight: 500;
+}
+.legend .mk.on {
+  background: var(--surface-hover); border-color: var(--separator-strong);
+  color: var(--text-strong); font-weight: 600;
+}
+/* 有篩選時，未選中的項目退到背景 */
+.legend.filtering .lg:not(.on), .legend.filtering .mk:not(.on) { opacity: .4; }
+.lg-clear {
+  font: inherit; font-size: 11.5px; font-weight: 500;
+  color: var(--accent); background: transparent;
+  border: 1px solid var(--separator-strong); border-radius: var(--radius-pill);
+  padding: 3px 10px; cursor: pointer; margin-left: 4px;
+}
+.lg-clear:hover { background: var(--surface-hover); }
 
 /* ============================================================
    Calendar (grid) view
@@ -1793,6 +1825,30 @@ const ACCESS = {
 };
 /* CSV 若出現沒見過的 event_type，也不該讓整個畫面炸掉 */
 const accOf = (code) => ACCESS[code] || ACCESS.O;
+
+/* 篩選用的 Set 切換：回傳新的 Set，不就地修改 */
+const toggleIn = (set, key) => {
+  const n = new Set(set);
+  n.has(key) ? n.delete(key) : n.add(key);
+  return n;
+};
+
+/* 議程篩選：主題 + 參加資格（🔒 邀請制 / ◆ 付費）。
+   兩組條件是 AND，組內是 OR；空的 Set 代表不篩選。 */
+const applyFilters = (arr, topics, access) => {
+  if (topics.size) arr = arr.filter((s) => topics.has(s[5]));
+  if (access.size) arr = arr.filter((s) => access.has(s[4]));
+  return arr;
+};
+
+/* 桌機圖例 / 手機篩選面板共用的參加資格選項。
+   只列出 CSV 裡真的出現過的代碼 — 否則會冒出永遠篩不到東西的按鈕
+   （例如 2026 的資料完全沒有邀請制場次）。 */
+const ACCESS_FILTERS = [["I", "Invite-Only", "邀請制"], ["P", "Premium", "付費"]];
+const accessOptions = () => {
+  const present = new Set(D.S.map((s) => s[4]));
+  return ACCESS_FILTERS.filter(([k]) => present.has(k));
+};
 const dayMeta = (k) => DAYMETA[k] || { wd: "", wdz: "", date: k, md: k, label: "" };
 
 /* ---- helpers ---- */
@@ -2278,10 +2334,9 @@ function useSwipeDismiss(onClose) {
   return { ref, style, handlers: { onTouchStart, onTouchMove, onTouchEnd } };
 }
 
-function MobileView({ sessions, search, topics, rooms, onSelect, lang }) {
+function MobileView({ sessions, search, topics, rooms, access, onSelect, lang }) {
   const list = useMemo(() => {
-    let arr = sessions;
-    if (topics.size) arr = arr.filter((s) => topics.has(s[5]));
+    let arr = applyFilters(sessions, topics, access);
     if (rooms.size) arr = arr.filter((s) => rooms.has(s[1]));
     const q = search.trim().toLowerCase();
     if (q) arr = arr.filter((s) =>
@@ -2289,7 +2344,7 @@ function MobileView({ sessions, search, topics, rooms, onSelect, lang }) {
       shortRoom(s[1]).toLowerCase().includes(q) ||
       (s[8] || []).some((p) => p.toLowerCase().includes(q)));
     return [...arr].sort((a, b) => mins(a[2]) - mins(b[2]) || mins(a[3]) - mins(b[3]) || a[1].localeCompare(b[1]));
-  }, [sessions, search, topics, rooms]);
+  }, [sessions, search, topics, rooms, access]);
 
   if (!list.length)
     return <div className="mempty">沒有符合條件的場次<br /><span>試著調整篩選或搜尋關鍵字</span></div>;
@@ -2338,12 +2393,8 @@ function MobileView({ sessions, search, topics, rooms, onSelect, lang }) {
   );
 }
 
-function MobileFilterSheet({ open, onClose, topicList, roomList, topics, rooms, setTopics, setRooms, lang }) {
-  const toggle = (set, key, setter) => {
-    const n = new Set(set);
-    n.has(key) ? n.delete(key) : n.add(key);
-    setter(n);
-  };
+function MobileFilterSheet({ open, onClose, topicList, roomList, accessList, topics, rooms, access, setTopics, setRooms, setAccess, lang }) {
+  const toggle = (set, key, setter) => setter(toggleIn(set, key));
   const drag = useSwipeDismiss(onClose);
   return (
     <div className={"msheet-ov" + (open ? " show" : "")}
@@ -2352,7 +2403,7 @@ function MobileFilterSheet({ open, onClose, topicList, roomList, topics, rooms, 
         <div className="msheet-grab" />
         <div className="msheet-head">
           <span>篩選議程</span>
-          <button className="msheet-clear" onClick={() => { setTopics(new Set()); setRooms(new Set()); }}>清除全部</button>
+          <button className="msheet-clear" onClick={() => { setTopics(new Set()); setRooms(new Set()); setAccess(new Set()); }}>清除全部</button>
         </div>
         <div className="msheet-sec">
           <div className="msheet-lab">主題 Topic</div>
@@ -2365,6 +2416,19 @@ function MobileFilterSheet({ open, onClose, topicList, roomList, topics, rooms, 
             ))}
           </div>
         </div>
+        {accessList.length > 0 && (
+          <div className="msheet-sec">
+            <div className="msheet-lab">參加資格 Access</div>
+            <div className="msheet-chips">
+              {accessList.map(([k, en, zh]) => (
+                <button key={k} className={"fchip rchip" + (access.has(k) ? " on" : "")}
+                  onClick={() => toggle(access, k, setAccess)}>
+                  {accOf(k).mk} {lang === "zh" ? zh : en}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="msheet-sec">
           <div className="msheet-lab">場地 Room / Stage</div>
           <div className="msheet-chips">
@@ -2382,12 +2446,13 @@ function MobileFilterSheet({ open, onClose, topicList, roomList, topics, rooms, 
   );
 }
 
-function MobileShell({ framed, t, setTweak, cur, setCur, sel, setSel, search, setSearch, topics, setTopics, rooms, setRooms, filterOpen, setFilterOpen, botOpen, setBotOpen, lang, setLang }) {
+function MobileShell({ framed, t, setTweak, cur, setCur, sel, setSel, search, setSearch, topics, setTopics, rooms, setRooms, access, setAccess, filterOpen, setFilterOpen, botOpen, setBotOpen, lang, setLang }) {
   const day = D.DAYS.find((d) => d.k === cur);
   const sessions = useMemo(() => D.S.filter((s) => s[0] === cur), [cur]);
-  const activeCount = topics.size + rooms.size + (search.trim() ? 1 : 0);
+  const activeCount = topics.size + rooms.size + access.size + (search.trim() ? 1 : 0);
   const topicList = Object.entries(D.TOPICS);
   const roomList = colsOf(day).filter(([k]) => sessions.some((s) => s[1] === k));
+  const accessList = useMemo(accessOptions, []);
 
   return (
     <div className={"mapp" + (framed ? " framed" : "")}>
@@ -2426,12 +2491,13 @@ function MobileShell({ framed, t, setTweak, cur, setCur, sel, setSel, search, se
         </button>
       </div>
 
-      <MobileView sessions={sessions} search={search} topics={topics} rooms={rooms} onSelect={setSel} lang={lang} />
+      <MobileView sessions={sessions} search={search} topics={topics} rooms={rooms} access={access} onSelect={setSel} lang={lang} />
 
       {sel && <Modal s={sel} onClose={() => setSel(null)} lang={lang} />}
       <MobileFilterSheet open={filterOpen} onClose={() => setFilterOpen(false)}
-        topicList={topicList} roomList={roomList}
-        topics={topics} rooms={rooms} setTopics={setTopics} setRooms={setRooms} lang={lang} />
+        topicList={topicList} roomList={roomList} accessList={accessList}
+        topics={topics} rooms={rooms} access={access}
+        setTopics={setTopics} setRooms={setRooms} setAccess={setAccess} lang={lang} />
 
       <TweaksPanel>
         <TweakSection label="外觀 Appearance" />
@@ -2450,7 +2516,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "dark": false,
   "colorIntensity": "tinted",
   "accent": "#0a84ff",
-  "hourHeight": 84,
+  "hourHeight": 104,
   "colWidth": 150,
   "quarterLines": false,
   "compactMax": 20
@@ -2621,6 +2687,7 @@ function App() {
   const [search, setSearch] = useState("");
   const [topics, setTopics] = useState(() => new Set());
   const [rooms, setRooms] = useState(() => new Set());
+  const [access, setAccess] = useState(() => new Set());
   const [filterOpen, setFilterOpen] = useState(false);
   const [botOpen, setBotOpen] = useState(false);
   const [lang, setLang] = useLang();
@@ -2629,6 +2696,11 @@ function App() {
 
   const day = D.DAYS.find((d) => d.k === cur);
   const sessions = useMemo(() => D.S.filter((s) => s[0] === cur), [cur]);
+  /* 桌機的日曆 / 清單吃篩選後的結果；手機在 MobileView 內自己篩（還要疊上搜尋） */
+  const shown = useMemo(() => applyFilters(sessions, topics, access), [sessions, topics, access]);
+  const filterCount = topics.size + access.size;
+  const clearFilters = () => { setTopics(new Set()); setAccess(new Set()); };
+  const accessOpts = useMemo(accessOptions, []);
 
   useEffect(() => {
     const r = document.documentElement;
@@ -2646,6 +2718,7 @@ function App() {
         search={search} setSearch={setSearch}
         topics={topics} setTopics={setTopics}
         rooms={rooms} setRooms={setRooms}
+        access={access} setAccess={setAccess}
         filterOpen={filterOpen} setFilterOpen={setFilterOpen}
         botOpen={botOpen} setBotOpen={setBotOpen}
         lang={lang} setLang={setLang}
@@ -2678,29 +2751,45 @@ function App() {
         {D.DAYS.map((d) => {
           const m = dayMeta(d.k);
           return (
-            <button key={d.k} className={"day" + (d.k === cur ? " on" : "")} onClick={() => setCur(d.k)}>
+            <button key={d.k} className={"day" + (d.k === cur ? " on" : "")}
+              title={m.label} onClick={() => setCur(d.k)}>
               <span className="dn">{m.wd}</span>
               <span className="dd">{m.date}</span>
-              <span className="dl">{m.label}</span>
             </button>
           );
         })}
       </div>
 
-      <div className="legend">
+      <div className={"legend" + (filterCount ? " filtering" : "")}>
         {Object.entries(D.TOPICS).map(([k, v]) => (
-          <span className={"lg tk-" + k} key={k}><span className="dot" />{v[lang === "zh" ? 0 : 1]}</span>
+          <button className={"lg tk-" + k + (topics.has(k) ? " on" : "")} key={k}
+            aria-pressed={topics.has(k)}
+            title={"只看「" + v[0] + "」的場次"}
+            onClick={() => setTopics(toggleIn(topics, k))}>
+            <span className="dot" />{v[lang === "zh" ? 0 : 1]}
+          </button>
         ))}
         <span className="sep" />
-        <span className="mk">🔒 Invite-Only</span>
-        <span className="mk">◆ Premium</span>
+        {filterCount > 0 && (
+          <button className="lg-clear" onClick={clearFilters}>
+            清除篩選 Clear ({filterCount})
+          </button>
+        )}
+        {accessOpts.map(([k, en, zh]) => (
+          <button className={"mk" + (access.has(k) ? " on" : "")} key={k}
+            aria-pressed={access.has(k)}
+            title={"只看" + zh + "的場次"}
+            onClick={() => setAccess(toggleIn(access, k))}>
+            {accOf(k).mk} {lang === "zh" ? zh : en}
+          </button>
+        ))}
       </div>
 
       {view === "grid"
-        ? <CalendarView day={day} sessions={sessions} hourHeight={t.hourHeight}
+        ? <CalendarView day={day} sessions={shown} hourHeight={t.hourHeight}
             colWidth={t.colWidth} quarterLines={t.quarterLines}
             compactMax={t.compactMax} onSelect={setSel} />
-        : <ListView day={day} sessions={sessions} onSelect={setSel} lang={lang} />}
+        : <ListView day={day} sessions={shown} onSelect={setSel} lang={lang} />}
 
       {sel && <Modal s={sel} onClose={() => setSel(null)} lang={lang} />}
 
