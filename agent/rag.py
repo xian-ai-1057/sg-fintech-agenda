@@ -28,6 +28,14 @@ def embed_model_name() -> str:
     return os.getenv("OPENAI_EMBED_MODEL", DEFAULT_EMBED_MODEL)
 
 
+def api_base_url() -> str | None:
+    """OpenAI 相容端點，None 代表 OpenAI 官方。chat 與 embedding 共用同一個設定。
+
+    自架 vLLM／公司內部閘道就設 OPENAI_BASE_URL，程式其他地方都不必改。
+    """
+    return os.getenv("OPENAI_BASE_URL") or None
+
+
 def document_of(s: Session) -> Document:
     """一場議程 = 一份 Document，中英文說明放在同一份裡。
 
@@ -52,10 +60,11 @@ def document_of(s: Session) -> Document:
 def _index_path(csv_path: Path | str) -> Path:
     """索引檔名帶指紋，所以失效判斷就只是「這個檔在不在」。
 
-    指紋涵蓋 CSV 內容、embedding 模型與樣板版本：CSV 一改會重建，換成
-    text-embedding-3-large（維度不同）也不可能載到不相容的舊索引。
+    指紋涵蓋 CSV 內容、embedding 模型、端點與樣板版本：CSV 一改會重建，換成
+    text-embedding-3-large（維度不同）也不可能載到不相容的舊索引。端點也算進來，
+    是因為不同服務可能用同一個模型名稱卻吐出完全不同的向量。
     """
-    seed = f"{csv_fingerprint(csv_path)}|{embed_model_name()}|{SCHEMA_VERSION}"
+    seed = f"{csv_fingerprint(csv_path)}|{embed_model_name()}|{api_base_url()}|{SCHEMA_VERSION}"
     return INDEX_DIR / f"index-{hashlib.sha256(seed.encode()).hexdigest()[:12]}.json"
 
 
@@ -66,7 +75,7 @@ def get_store(
     rebuild: bool = False,
 ) -> tuple[InMemoryVectorStore, bool]:
     """建立或載入向量庫。回傳 (store, 是否命中快取)。"""
-    embeddings = OpenAIEmbeddings(model=embed_model_name())
+    embeddings = OpenAIEmbeddings(model=embed_model_name(), base_url=api_base_url())
     path = _index_path(csv_path)
 
     if path.exists() and not rebuild:

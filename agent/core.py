@@ -88,21 +88,27 @@ def build_agent(
 ):
     """回傳 (agent, 狀態字串)。狀態字串給 CLI / Web 開場印出來確認資料有進來。"""
     from langchain.agents import create_agent
+    from langchain_openai import ChatOpenAI
     from langgraph.checkpoint.memory import InMemorySaver
 
     if __package__:
-        from .rag import embed_model_name, get_store
+        from .rag import api_base_url, embed_model_name, get_store
         from .tools import build_tools
     else:
-        from rag import embed_model_name, get_store
+        from rag import api_base_url, embed_model_name, get_store
         from tools import build_tools
 
-    model_name = model or f"openai:{os.getenv('OPENAI_MODEL', DEFAULT_MODEL)}"
+    # 直接組 ChatOpenAI（而不是傳 "openai:<model>" 字串）才好把 base_url 交出去：
+    # 任何 OpenAI 相容端點（自架 vLLM、公司內部閘道）都只要設 OPENAI_BASE_URL。
+    model_name = model or os.getenv("OPENAI_MODEL", DEFAULT_MODEL)
+    endpoint = api_base_url()
+    chat = ChatOpenAI(model=model_name, base_url=endpoint)
+
     sessions = load_sessions(csv_path)
     store, cached = get_store(sessions, csv_path=csv_path, rebuild=rebuild)
 
     agent = create_agent(
-        model=model_name,
+        model=chat,
         tools=build_tools(sessions, store),
         system_prompt=SYSTEM_PROMPT.format(
             today=date.today().isoformat(),
@@ -112,7 +118,7 @@ def build_agent(
     )
     status = (
         f"已載入 {len(sessions)} 場議程 · 索引：{'快取命中' if cached else '重新建立'}"
-        f"（{embed_model_name()}）· model={model_name}"
+        f"（{embed_model_name()}）· model={model_name}{' @ ' + endpoint if endpoint else ''}"
     )
     return agent, status
 

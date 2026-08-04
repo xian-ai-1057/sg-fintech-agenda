@@ -14,7 +14,8 @@ A static agenda viewer for the **Singapore FinTech Festival 2026**
    view + g0v-style mobile view) that **loads `agenda.csv` at runtime**. This is
    the deployed site (GitHub Pages).
 4. **`agent/`** — a LangChain + OpenAI natural-language Q&A tool over the same CSV
-   (CLI + a small Gradio web UI). Separate from the site; see below.
+   (CLI, a small Gradio web UI, and an HTTP API the site's chat box can talk to
+   when it is running locally). Its own deps and API key; see below.
 
 `archive/2025/` holds the frozen 2025 site. It is a *different architecture* —
 its data is inlined into its own `index.html` — and should be left alone.
@@ -176,12 +177,13 @@ Other runtime behaviour in `App`:
 
 ### Q&A agent (`agent/`)
 
-A CLI + Gradio tool that answers agenda questions in natural language (English or
-Chinese, replying in whichever the user wrote). Completely separate from the site:
-**it never touches `index.html`, and it reads `agenda.csv` read-only.** Its deps live
-in `agent/requirements.txt`, not the root one (that stays the scraper's contract).
+Answers agenda questions in natural language (English or Chinese, replying in
+whichever the user wrote). **It never imports from or writes to `index.html`, and it
+reads `agenda.csv` read-only** — the site talks to it over HTTP or not at all. Its
+deps live in `agent/requirements.txt`, not the root one (that stays the scraper's
+contract).
 
-Six small modules, in dependency order:
+Seven small modules, in dependency order:
 
 - `agenda.py` — CSV → `Session` dataclass, plus `by_id` / `resolve_day` / `matches` /
   `overview`. **No LLM imports**, so parsing is testable without an API key.
@@ -189,17 +191,24 @@ Six small modules, in dependency order:
   `start`/`end` are naive datetimes (single venue, single timezone).
 - `rag.py` — one `Document` per session, EN + ZH description in the same one, **no
   text splitter**. Cached to `agent/.index/index-<fingerprint>.json`; the fingerprint
-  covers CSV bytes + embed model + `SCHEMA_VERSION` and lives in the filename, so
-  invalidation is just "does that file exist". Document metadata must stay
-  JSON-scalar — `.dump()` is `json.dump`.
+  covers CSV bytes + embed model + `api_base_url()` + `SCHEMA_VERSION` and lives in
+  the filename, so invalidation is just "does that file exist". Document metadata must
+  stay JSON-scalar — `.dump()` is `json.dump`. `api_base_url()` (`OPENAI_BASE_URL`,
+  `None` = OpenAI itself) lives here but is **shared with the chat model** in
+  `core.py`, so any OpenAI-compatible endpoint works with one env var.
 - `tools.py` — three read-only `@tool`s built as closures by `build_tools()`:
   `search_sessions` (semantic), `list_sessions` (exhaustive/counting — RAG undercounts
   here because of top-k truncation), `get_session` (full detail). All params are
   `str` with `""` defaults, never `str | None`.
 - `core.py` — `SYSTEM_PROMPT`, `build_agent()`, `ask()`. `create_agent` from
-  LangChain 1.x with an `InMemorySaver` checkpointer. Agent construction is confined
-  to `build_agent()` on purpose.
-- `cli.py` / `web.py` — thin shells over `core.py`.
+  LangChain 1.x with an `InMemorySaver` checkpointer, and an explicitly built
+  `ChatOpenAI` (rather than an `"openai:<model>"` string) so `base_url` can be passed
+  through. Agent construction is confined to `build_agent()` on purpose.
+- `cli.py` / `web.py` / `api.py` — thin shells over `core.py`. `api.py` is FastAPI:
+  `GET /health` + `POST /ask {question, thread_id} -> {answer, thread_id}`, one agent
+  built at startup and shared (the tools are read-only; `thread_id` separates
+  conversations). CORS allows local origins by default, plus anything in
+  `SFF_AGENT_ORIGINS`. This is what `index.html`'s chat box calls — see below.
 
 The modules must keep running **both** as the `agent` package (`python3 -m agent.cli`
 in the repo) and flattened into a bare directory with no `__init__.py`
@@ -214,8 +223,33 @@ the viewer. Model IDs are env-configurable (`OPENAI_MODEL`, `OPENAI_EMBED_MODEL`
 
 Requirements 3 (save my schedule + clash warnings) and 4 (multi-user, see each
 other's picks) are **not built** — only the seams: stable `session_id`, parsed
-`start`/`end`, and `thread_id` threaded through `ask()`. Adding them means a new
+`start`/`end`, and `thread_id` threaded through `ask()` (the browser sends one from
+`localStorage`, so the web path is already user-separated). Adding them means a new
 `agent/store.py` plus more tools, not a restructure. Don't add stub files for them.
+
+### The chat box in `index.html` has two modes
+
+One component, two answer sources — `ChatBot`, near the bottom of the React block:
+
+- **Keyword mode** (default, always available): the pure-frontend `recommend()`
+  scorer. No network, no key. This is what the GitHub Pages build uses.
+- **AI mode**: `POST /ask` to `agent/api.py`. Reached only when a health check
+  succeeds, so the page works unchanged with no backend.
+
+`agentEndpoint()` resolves the URL once: `?agent=<url>` (persisted to `localStorage`
+`sff-agent-url`, `?agent=` alone clears it) → stored value → `http://127.0.0.1:8765`
+when the page itself is on localhost/`file://` → otherwise empty (= no AI mode).
+`GET /health` runs when the panel first opens; if it succeeds and the user hasn't
+pinned keyword mode, the panel switches itself to AI. **Any failure — no endpoint,
+health check down, `/ask` erroring — falls back to a keyword answer**, so the box
+never comes up empty. Both modes render into the same message list.
+
+Agent replies are plain text: `AgentAnswer` handles exactly three things — `**bold**`,
+`- ` bullets, and `AGND\d+` IDs, which become buttons that open the normal session
+modal (`sessionById()` maps them via the first segment of `s[7]`, the same code the
+agent derives its `session_id` from). Don't add a markdown library for this.
+
+No API key ever reaches the browser; it stays with whoever runs `agent/api.py`.
 
 ## Deploy
 
@@ -236,5 +270,8 @@ hardcoded.
 - Don't modify `archive/2025/` — it's a frozen snapshot with a different
   (data-inlined) architecture.
 - `agent/` and `index.html` are independent consumers of `agenda.csv`. Don't make
-  one depend on the other, and keep `agent/`'s access to the CSV read-only.
-  The keyword bot inside `index.html` stays pure-frontend and API-key-free.
+  one depend on the other at the file level, and keep `agent/`'s access to the CSV
+  read-only. They meet over HTTP and nowhere else: `agent/` must not read, write or
+  serve `index.html`, and `index.html` must keep working with the agent switched
+  off — its keyword bot stays pure-frontend and API-key-free, and no key or model
+  config may be baked into the page.
