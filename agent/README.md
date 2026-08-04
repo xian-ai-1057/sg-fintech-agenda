@@ -81,6 +81,36 @@ Agent 每個瀏覽器帶一組 `thread_id`（清除對話就換一組），對�
 **API key 只留在跑 `api.py` 的這一側**，前端拿到的永遠只有問答文字。線上版
 （GitHub Pages）沒有後端，網頁就維持純關鍵字模式。
 
+### 用 uvicorn／gunicorn 部署
+
+`main.py` 就是 ASGI 進入點，裡面只有一個模組層的 `app`：
+
+```bash
+uvicorn agent.main:app --host 0.0.0.0 --port 8765          # 在 repo 裡
+uvicorn main:app --host 0.0.0.0 --port 8765                # 這幾支被攤平拉出來時
+gunicorn -k uvicorn.workers.UvicornWorker main:app -b 0.0.0.0:8765
+```
+
+`python3 -m agent.api` 是同一個 app，只是自己開 server，適合本機隨手跑；
+要交給程序管理器（systemd、Docker、supervisor）就用上面這種掛載法。
+
+> **workers 維持 1。** 每個 worker 會各自載一份議程與向量索引，而且對話記憶走行程內的
+> `InMemorySaver` —— 多開 worker 會讓同一個 `thread_id` 的上下文隨機掉在不同 worker 上。
+> 要橫向擴展得先把 checkpointer 換成外部儲存（`core.build_agent()` 裡的一行）。
+
+部署時設定一律走環境變數（讀 `agent/.env`，或由部署環境直接注入）：
+
+| 變數 | 用途 |
+|---|---|
+| `OPENAI_API_KEY` / `OPENAI_MODEL` / `OPENAI_EMBED_MODEL` / `OPENAI_BASE_URL` | 模型與端點 |
+| `SFF_AGENT_ORIGINS` | 允許連進來的網頁來源，逗號分隔（本機來源預設就通） |
+| `SFF_AGENDA_CSV` | 議程 CSV 不在預設位置時指過去 |
+| `SFF_AGENT_REBUILD=1` | 強制重建向量索引（等同 CLI 的 `--rebuild-index`） |
+
+agent 在 **import 時就建好**，所以第一個請求不用等建索引，金鑰沒設也會在啟動當下就失敗
+——而不是等到有人來問才炸。向量索引寫在 `agent/.index/`，容器化時記得把這一層掛成
+volume，否則每次重啟都要重新 embedding 一次。
+
 ### 把這幾支程式單獨拉出來用
 
 不一定要留在這個 repo 裡。把 `.py`、`requirements.txt`、`.env.example` 連同
@@ -89,7 +119,7 @@ Agent 每個瀏覽器帶一組 `thread_id`（清除對話就換一組），對�
 ```bash
 python -m cli               # 或 python cli.py
 python -m web
-python -m api
+python -m api               # 或 uvicorn main:app --host 0.0.0.0 --port 8765
 ```
 
 `agenda.csv` 會**先找程式同一層、再找上一層**；都不在的話用 `--csv` 指路徑，
@@ -194,7 +224,8 @@ US$0.0005），之後都走本機快取。每次提問是一次本機相似度�
 | `core.py` | system prompt、`build_agent()`、`ask()` |
 | `cli.py` | 終端機介面 |
 | `web.py` | Gradio Web UI |
-| `api.py` | HTTP API，`index.html` 的對話框接這一支 |
+| `api.py` | HTTP API（FastAPI），`index.html` 的對話框接這一支 |
+| `main.py` | ASGI 進入點，`uvicorn main:app` 掛的那個 `app` |
 
 資料層可以不花錢單獨驗證：
 
