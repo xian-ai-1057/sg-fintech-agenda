@@ -9,8 +9,12 @@ from __future__ import annotations
 import argparse
 import os
 
-from .agenda import CSV_PATH
-from .core import ask, build_agent, load_env, require_api_key
+if __package__:  # 見 rag.py 的說明
+    from .agenda import CSV_PATH
+    from .core import ask, build_agent, load_env, require_api_key
+else:
+    from agenda import CSV_PATH
+    from core import ask, build_agent, load_env, require_api_key
 
 
 def main() -> int:

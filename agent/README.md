@@ -42,6 +42,19 @@ python3 -m agent.web
 | `--rebuild-index` | 強制重建向量索引 |
 | `--csv path.csv` | 換一份議程資料，測試用 |
 
+### 把這幾支程式單獨拉出來用
+
+不一定要留在這個 repo 裡。把 `.py`、`requirements.txt`、`.env.example` 連同
+**`agenda.csv`** 一起複製到任何一個資料夾（不需要 `__init__.py`），就能直接跑：
+
+```bash
+python -m cli               # 或 python cli.py
+python -m web
+```
+
+`agenda.csv` 會**先找程式同一層、再找上一層**；都不在的話用 `--csv` 指路徑，
+或設 `SFF_AGENDA_CSV` 環境變數。`.env` 一律讀程式同一層的那份。
+
 模型都走環境變數，寫在 `agent/.env`：
 
 | 變數 | 預設 |
@@ -115,6 +128,10 @@ US$0.0005），之後都走本機快取。每次提問是一次本機相似度�
 全部收在 `build_agent()` 一個函式裡。
 
 ## 檔案
+
+每個模組匯入相鄰模組時都會先看 `__package__`：在 repo 裡走相對匯入
+（`from .agenda import …`），被攤平拉出來時走絕對匯入（`from agenda import …`），
+所以兩種擺法都不用改程式。
 
 | 檔案 | 責任 |
 |---|---|

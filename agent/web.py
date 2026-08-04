@@ -11,7 +11,10 @@ import uuid
 
 import gradio as gr
 
-from .core import ask, build_agent, load_env, require_api_key
+if __package__:  # 見 rag.py 的說明
+    from .core import ask, build_agent, load_env, require_api_key
+else:
+    from core import ask, build_agent, load_env, require_api_key
 
 INTRO = """## SFF 2026 議程小幫手
 
