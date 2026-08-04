@@ -119,7 +119,28 @@ body {
 /* ============================================================
    App shell
    ============================================================ */
+.hidden-el { display: none !important; }
+
 .app { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+
+/* 議程 + 右側對話框並排。桌機聊天視窗展開時不覆蓋議程，而是把
+   議程欄壓窄（欄位縮到 colWidth 最小值後才開始水平捲動）。 */
+.workarea { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+.mainpane { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; overflow: hidden; }
+
+.split {
+  flex: 0 0 auto; width: 9px; cursor: col-resize;
+  background: var(--surface-2); border-left: 1px solid var(--separator);
+  display: grid; place-items: center; position: relative; z-index: 50;
+}
+.split:hover, .split.on { background: var(--surface-hover); }
+.split .grip { width: 3px; height: 36px; border-radius: 2px; background: var(--separator-strong); transition: background .14s; }
+.split:hover .grip, .split.on .grip { background: var(--accent); }
+
+.chat-dock {
+  flex: 0 0 auto; display: flex; flex-direction: column; min-width: 0;
+  background: var(--surface); border-left: 1px solid var(--separator);
+}
 
 .topbar {
   display: flex; align-items: center; gap: 16px;
@@ -628,7 +649,8 @@ body {
    小幫手 Bot — 浮動鈕 + 聊天面板（沿用主題變數，深色自動套用）
    ============================================================ */
 .bot-fab {
-  position: fixed; left: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  /* 桌機靠右，與展開後停靠的對話框同一側；手機仍在左下（見下方 media query） */
+  position: fixed; right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
   z-index: 195; width: 52px; height: 52px; border-radius: 50%; border: none;
   background: var(--accent); color: #fff; font-size: 24px; cursor: pointer;
   display: grid; place-items: center; box-shadow: var(--shadow-chip);
@@ -741,6 +763,7 @@ body {
 
 /* 手機：聊天面板改為底部抽屜 */
 @media (max-width: 720px) {
+  .bot-fab { left: 16px; right: auto; }
   .bot-ov { display: flex; align-items: flex-end; }
   .bot-panel {
     position: relative; left: auto; bottom: auto;
@@ -2519,7 +2542,8 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "hourHeight": 104,
   "colWidth": 150,
   "quarterLines": false,
-  "compactMax": 20
+  "compactMax": 20,
+  "chatWidth": 420
 }/*EDITMODE-END*/;
 
 /* ============================================================
@@ -2556,7 +2580,7 @@ function BotLauncher({ onClick, lang }) {
 }
 
 /* 聊天面板（桌機固定卡片 / 手機 bottom-sheet）。常駐掛載，用 open 控制顯示。 */
-function ChatBot({ open, mobile, lang, onClose, onSelect }) {
+function ChatBot({ open, mobile, docked, width, lang, onClose, onSelect }) {
   const [messages, setMessages] = useState([]);
   const [query, setQuery] = useState("");
   const logRef = useRef(null);
@@ -2642,38 +2666,54 @@ function ChatBot({ open, mobile, lang, onClose, onSelect }) {
   // 下拉關閉手勢只掛在「握把＋標題列」拖曳區；.bot-log 維持純原生捲動，不受干擾。
   const dragZone = mobile ? { ref: drag.ref, ...drag.handlers } : {};
 
+  const body = (
+    <React.Fragment>
+      <div className="bot-draghandle" {...dragZone}>
+        {mobile && <div className="bot-grab" />}
+        <div className="bot-head">
+          <div className="bot-head-t">
+            <span className="bot-h1">{T.title}</span>
+            <span className="bot-h2">{T.sub}</span>
+          </div>
+          {messages.length > 1 && (
+            <button className="bot-clear" title={T.clear} aria-label={T.clear} onClick={clearChat}>↺</button>
+          )}
+          <button className="bot-x" title={T.close} aria-label={T.close} onClick={onClose}>×</button>
+        </div>
+      </div>
+      <div className="bot-log" ref={logRef}>
+        {messages.map(renderMsg)}
+      </div>
+      <div className="bot-input-row">
+        <input
+          ref={inputRef}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            // 擋輸入法組字中的 Enter（注音/拼音選字），避免半成品誤送
+            if (e.key === "Enter" && !e.nativeEvent.isComposing && e.keyCode !== 229) send();
+          }}
+          placeholder={T.placeholder}
+        />
+        <button className="bot-send" onClick={send}>{T.send}</button>
+      </div>
+    </React.Fragment>
+  );
+
+  /* 桌機：停靠成右側欄，和議程並排。收合時保持掛載（用 hidden-el 藏起來），
+     對話紀錄才不會在關閉後被清掉。 */
+  if (docked) {
+    return (
+      <aside className={"chat-dock" + (open ? "" : " hidden-el")} style={{ width: width + "px" }}>
+        {body}
+      </aside>
+    );
+  }
+
   return (
     <div className={"bot-ov" + (open ? " show" : "")} onClick={onClose}>
       <div className="bot-panel" onClick={(e) => e.stopPropagation()} style={mobile ? drag.style : undefined}>
-        <div className="bot-draghandle" {...dragZone}>
-          {mobile && <div className="bot-grab" />}
-          <div className="bot-head">
-            <div className="bot-head-t">
-              <span className="bot-h1">{T.title}</span>
-              <span className="bot-h2">{T.sub}</span>
-            </div>
-            {messages.length > 1 && (
-              <button className="bot-clear" title={T.clear} aria-label={T.clear} onClick={clearChat}>↺</button>
-            )}
-            <button className="bot-x" title={T.close} aria-label={T.close} onClick={onClose}>×</button>
-          </div>
-        </div>
-        <div className="bot-log" ref={logRef}>
-          {messages.map(renderMsg)}
-        </div>
-        <div className="bot-input-row">
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              // 擋輸入法組字中的 Enter（注音/拼音選字），避免半成品誤送
-              if (e.key === "Enter" && !e.nativeEvent.isComposing && e.keyCode !== 229) send();
-            }}
-            placeholder={T.placeholder}
-          />
-          <button className="bot-send" onClick={send}>{T.send}</button>
-        </div>
+        {body}
       </div>
     </div>
   );
@@ -2701,6 +2741,33 @@ function App() {
   const filterCount = topics.size + access.size;
   const clearFilters = () => { setTopics(new Set()); setAccess(new Set()); };
   const accessOpts = useMemo(accessOptions, []);
+
+  /* 對話框停靠寬度。拖曳中先用 dragW（本地 state），放開才寫回 tweaks ——
+     setTweak 每次都會 postMessage 給編輯器，不適合每個 mousemove 都送。 */
+  const [dragW, setDragW] = useState(null);
+  const [resizing, setResizing] = useState(false);
+  const clampW = (w) => Math.round(Math.min(Math.max(320, window.innerWidth - 420), Math.max(300, w)));
+  const chatW = clampW(dragW != null ? dragW : t.chatWidth);
+  const startResize = (e) => {
+    e.preventDefault();
+    const x0 = e.clientX, w0 = chatW;
+    setResizing(true);
+    const move = (ev) => setDragW(clampW(w0 - (ev.clientX - x0)));
+    const up = (ev) => {
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+      setResizing(false);
+      setDragW(null);
+      setTweak("chatWidth", clampW(w0 - (ev.clientX - x0)));
+    };
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "col-resize";
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+  };
+  const resetWidth = () => { setDragW(null); setTweak("chatWidth", TWEAK_DEFAULTS.chatWidth); };
 
   useEffect(() => {
     const r = document.documentElement;
@@ -2737,6 +2804,8 @@ function App() {
           <button className={view === "grid" ? "on" : ""} onClick={() => setView("grid")}>Calendar</button>
           <button className={view === "list" ? "on" : ""} onClick={() => setView("list")}>List</button>
         </div>
+        <button className={"icon-btn" + (botOpen ? " on" : "")} title="議程小幫手 Agenda helper"
+          aria-pressed={botOpen} onClick={() => setBotOpen(!botOpen)}>💬</button>
         <button className="icon-btn lang-btn" title="說明語言 Description language：English / 中文"
           onClick={() => setLang(lang === "zh" ? "en" : "zh")}>
           {lang === "zh" ? "EN" : "中"}
@@ -2747,6 +2816,8 @@ function App() {
         <a className="reg-btn" href="https://www.fintechfestival.sg/registration" target="_blank" rel="noreferrer">Register</a>
       </header>
 
+      <div className="workarea">
+      <div className="mainpane">
       <div className="daybar">
         {D.DAYS.map((d) => {
           const m = dayMeta(d.k);
@@ -2790,6 +2861,17 @@ function App() {
             colWidth={t.colWidth} quarterLines={t.quarterLines}
             compactMax={t.compactMax} onSelect={setSel} />
         : <ListView day={day} sessions={shown} onSelect={setSel} lang={lang} />}
+      </div>
+
+      {botOpen && (
+        <div className={"split" + (resizing ? " on" : "")} title="拖曳調整寬度 · 雙擊還原"
+          onMouseDown={startResize} onDoubleClick={resetWidth}>
+          <span className="grip" />
+        </div>
+      )}
+      <ChatBot open={botOpen} mobile={false} docked width={chatW} lang={lang}
+        onClose={() => setBotOpen(false)} onSelect={setSel} />
+      </div>
 
       {sel && <Modal s={sel} onClose={() => setSel(null)} lang={lang} />}
 
@@ -2811,11 +2893,13 @@ function App() {
         <TweakSlider label="短場次門檻 Compact under" value={t.compactMax} min={0} max={30} step={5} unit="min"
           onChange={(v) => setTweak("compactMax", v)} />
         <TweakToggle label="15 分鐘格線 Quarter lines" value={t.quarterLines} onChange={(v) => setTweak("quarterLines", v)} />
+
+        <TweakSection label="對話框 Chat" />
+        <TweakSlider label="對話框寬度 Chat width" value={t.chatWidth} min={300} max={640} step={10} unit="px"
+          onChange={(v) => setTweak("chatWidth", v)} />
       </TweaksPanel>
 
       {!botOpen && <BotLauncher lang={lang} onClick={() => setBotOpen(true)} />}
-      <ChatBot open={botOpen} mobile={false} lang={lang}
-        onClose={() => setBotOpen(false)} onSelect={setSel} />
     </div>
   );
 }
