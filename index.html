@@ -760,11 +760,20 @@ var VENUE_CFG = {
   "Roundtable Room 3, Sands Expo & Convention Centre, Level 4": ["RT3", "Roundtable Room 3 ‧ L4", "Roundtable Room 3, Sands Expo & Convention Centre, Level 4"],
   "Roundtable Room 4, Sands Expo & Convention Centre, Level 4": ["RT4", "Roundtable Room 4 ‧ L4", "Roundtable Room 4, Sands Expo & Convention Centre, Level 4"],
   "Roundtable Room 5, Sands Expo & Convention Centre, Level 4": ["RT5", "Roundtable Room 5 ‧ L4", "Roundtable Room 5, Sands Expo & Convention Centre, Level 4"],
-  "Sands Expo & Convention Centre": ["SE", "Bayview Foyer / 其他", "Sands Expo & Convention Centre"]
+  "Sands Expo & Convention Centre": ["SE", "Bayview Foyer / 其他", "Sands Expo & Convention Centre"],
+  /* 官網還沒公布場地的場次會落到這一欄（見 venueName）*/
+  "TBC": ["TBC", "未定 TBC", "場地未公布 Venue to be confirmed"]
 };
 
 /* 主題 track：CSV 裡的名稱 -> [代碼, 繁體中文, 色票] */
 var TRACK_CFG = {
+  /* 2026：官方主題「Rewiring the World」下的五股力量 */
+  "Technological Rewiring":       ["TEC", "科技重塑",      "#2f6fe0"],
+  "Policy Rewiring":              ["POL", "政策重塑",      "#df4d47"],
+  "Talent Rewiring":              ["TAL", "人才重塑",      "#db5793"],
+  "Geopolitical Rewiring":        ["GEO", "地緣政治重塑",  "#6a5ae0"],
+  "Capital Rewiring":             ["CAP", "資本重塑",      "#e2743a"],
+  /* 2025（保留：封存資料或舊 CSV 丟進來時仍有正確的中文名與配色）*/
   "Blueprint for Digital Assets": ["DA", "數位資產藍圖",  "#2f6fe0"],
   "Next-Gen Transactions":        ["NT", "次世代交易",    "#0e9fb3"],
   "Securing the Future":          ["SF", "未來資安",      "#df4d47"],
@@ -862,6 +871,20 @@ function parseTimes(datetime) {
   return null;
 }
 
+/* 場次網址 -> 唯一識別（slug），用來當說明文字的 key。
+   官網用過兩種網址格式，兩種都要吃得下：
+     2026  https://…/agenda?session=AGND441-welcome-…   -> "AGND441-welcome-…"
+     2025  https://…/agenda/agn90-trusted-data-…        -> "agn90-trusted-data-…"
+   2026 的網址含 %3B、%22 等百分比編碼，所以要解碼後再當 key。 */
+function slugOf(url) {
+  var raw = String(url || "");
+  if (!raw) return "";
+  var q = /[?&]session=([^&#]+)/i.exec(raw);
+  var slug = q ? q[1] : raw.split(/[?#]/)[0].replace(/\/+$/, "").split("/").pop();
+  try { slug = decodeURIComponent(slug); } catch (e) { /* 編碼壞掉就用原字串 */ }
+  return slug;
+}
+
 /* 由名稱推導代碼："Design Thinking Room" -> "DTR"、"Garnet 212" -> "G2" */
 function initials(name) {
   var words = String(name).replace(/[^A-Za-z0-9一-鿿]+/g, " ").split(/\s+/).filter(Boolean);
@@ -920,7 +943,9 @@ function build(records) {
   });
   function venueName(r) {
     var multi = Object.keys(locsByStage[r.stage] || {}).length > 1;
-    return (multi && r.location) ? r.location : (r.stage || r.location || "—");
+    if (multi && r.location) return r.location;
+    /* 官網有些場次還沒公布舞台與場地，集中到一欄而不是各自變成看不懂的代碼 */
+    return r.stage || r.location || "TBC";
   }
 
   /* ---- 2. 場地代碼／標籤 ---- */
@@ -981,7 +1006,7 @@ function build(records) {
     var t = parseTimes(r.datetime);
     if (!t) return;
 
-    var slug = String(r.url || "").replace(/\/+$/, "").split("/").pop();
+    var slug = slugOf(r.url);
     var access = ACCESS_MAP[String(r.event_type || "").trim().toLowerCase()] || "O";
     var speakers = String(r.speakers || "").split(";")
       .map(function (s) { return s.trim(); })
@@ -997,7 +1022,8 @@ function build(records) {
       r.title,                             /* 6 title  */
       slug,                                /* 7 slug   */
       speakers,                            /* 8 講者   */
-      r.stage || VENUE_FULL[venueCode[venueName(r)]] || ""  /* 9 舞台顯示名 */
+      r.stage || VENUE_FULL[venueCode[venueName(r)]] || "",  /* 9 舞台顯示名 */
+      String(r.url || "")                  /* 10 官方場次頁面（直接用 CSV 的 url）*/
     ]);
 
     if (slug && (r.description || r.description_zh)) {
@@ -2065,7 +2091,7 @@ function ListView({ day, sessions, onSelect, lang }) {
                     <div className="ltitle">{accOf(s[4]).mk ? accOf(s[4]).mk + " " : ""}{s[6]}</div>
                     <div className="lmeta">
                       <span className="room">{room}</span>
-                      <span className="tk"><span className="dot" />{tp[1]}</span>
+                      <span className="tk"><span className="dot" />{tp[lang === "zh" ? 0 : 1]}</span>
                     </div>
                     {s[8] && s[8].length > 0 && (
                       <div className="lspk">{s[8].slice(0, 5).join(" · ")}{s[8].length > 5 ? " …" : ""}</div>
@@ -2143,7 +2169,7 @@ function Modal({ s, onClose, lang }) {
             </div>
           </div>
         )}
-        <a className="ext" href={D.U + s[7]} target="_blank" rel="noreferrer">官方場次頁面 Official page ↗</a>
+        <a className="ext" href={s[10] || D.U + s[7]} target="_blank" rel="noreferrer">官方場次頁面 Official page ↗</a>
       </div>
     </div>
   );
@@ -2243,7 +2269,7 @@ function MobileView({ sessions, search, topics, rooms, onSelect, lang }) {
                 </div>
                 <div className="mc-title">{s[6]}</div>
                 <div className="mc-meta">
-                  <span className="mc-topic"><span className="dot" />{tp[1]}</span>
+                  <span className="mc-topic"><span className="dot" />{tp[lang === "zh" ? 0 : 1]}</span>
                   <span className="mc-room" title={fullName(s[1])}>{s[1]} · {shortRoom(s[1])}</span>
                 </div>
                 {descText(s[7], lang) && (
@@ -2258,7 +2284,7 @@ function MobileView({ sessions, search, topics, rooms, onSelect, lang }) {
   );
 }
 
-function MobileFilterSheet({ open, onClose, topicList, roomList, topics, rooms, setTopics, setRooms }) {
+function MobileFilterSheet({ open, onClose, topicList, roomList, topics, rooms, setTopics, setRooms, lang }) {
   const toggle = (set, key, setter) => {
     const n = new Set(set);
     n.has(key) ? n.delete(key) : n.add(key);
@@ -2280,7 +2306,7 @@ function MobileFilterSheet({ open, onClose, topicList, roomList, topics, rooms, 
             {topicList.map(([k, v]) => (
               <button key={k} className={"fchip tk-" + k + (topics.has(k) ? " on" : "")}
                 onClick={() => toggle(topics, k, setTopics)}>
-                <span className="dot" />{v[1]}
+                <span className="dot" />{v[lang === "zh" ? 0 : 1]}
               </button>
             ))}
           </div>
@@ -2351,7 +2377,7 @@ function MobileShell({ framed, t, setTweak, cur, setCur, sel, setSel, search, se
       {sel && <Modal s={sel} onClose={() => setSel(null)} lang={lang} />}
       <MobileFilterSheet open={filterOpen} onClose={() => setFilterOpen(false)}
         topicList={topicList} roomList={roomList}
-        topics={topics} rooms={rooms} setTopics={setTopics} setRooms={setRooms} />
+        topics={topics} rooms={rooms} setTopics={setTopics} setRooms={setRooms} lang={lang} />
 
       <TweaksPanel>
         <TweakSection label="外觀 Appearance" />
@@ -2390,7 +2416,7 @@ function BotCard({ s, lang, onSelect }) {
       <div className="bc-title">{acc.mk ? acc.mk + " " : ""}{s[6]}</div>
       <div className="bc-meta">
         <span className="bc-tk"><span className="dot" />{tp[lang === "zh" ? 0 : 1]}</span>
-        <span className="bc-when">{(lang === "zh" ? dm.zh : (dm.wd + " " + dm.date))} · {clock(s[2])}–{clock(s[3])}</span>
+        <span className="bc-when">{(lang === "zh" ? dm.md + " " + dm.wdz : (dm.wd + " " + dm.date))} · {clock(s[2])}–{clock(s[3])}</span>
         <span className="bc-room">{shortRoom(s[1])}</span>
       </div>
       {desc && <div className="bc-desc">{desc}</div>}
@@ -2608,7 +2634,7 @@ function App() {
 
       <div className="legend">
         {Object.entries(D.TOPICS).map(([k, v]) => (
-          <span className={"lg tk-" + k} key={k}><span className="dot" />{v[1]}</span>
+          <span className={"lg tk-" + k} key={k}><span className="dot" />{v[lang === "zh" ? 0 : 1]}</span>
         ))}
         <span className="sep" />
         <span className="mk">🔒 Invite-Only</span>
