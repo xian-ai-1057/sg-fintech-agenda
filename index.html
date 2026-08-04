@@ -278,6 +278,33 @@ body {
 .ev:hover .ett { -webkit-line-clamp: unset; }
 .ev .mk { position: absolute; top: 4px; right: 5px; font-size: 9.5px; opacity: .8; }
 
+/* compact variant — short sessions collapse to a single line */
+.ev.cmp {
+  flex-direction: row; align-items: center; gap: 7px;
+  padding: 0 8px 0 8px;
+  background: color-mix(in srgb, var(--c) 9%, var(--surface));
+}
+.ev.cmp .etm { flex: 0 0 auto; }
+.ev.cmp .ett {
+  display: block; flex: 1 1 auto; min-width: 0;
+  font-size: 11.5px; line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ev.cmp:hover {
+  flex-direction: column; align-items: stretch; gap: 1px;
+  padding: 4px 7px 4px 8px;
+}
+.ev.cmp:hover .ett { white-space: normal; }
+.ev.cmp:hover .mk { position: static; font-size: 9px; opacity: .75; }
+
+/* true-start tick for chips nudged off the axis */
+.tick {
+  position: absolute; left: -5px; width: 9px; height: 1px;
+  background: var(--c); opacity: .6; pointer-events: none;
+}
+[data-ci="subtle"] .ev.cmp { background: color-mix(in srgb, var(--c) 5%, var(--surface)); }
+[data-ci="vivid"]  .ev.cmp { background: color-mix(in srgb, var(--c) 18%, var(--surface)); }
+
 /* color intensity variants */
 [data-ci="subtle"] .ev { background: color-mix(in srgb, var(--c) 7%, var(--surface)); }
 [data-ci="vivid"]  .ev { background: color-mix(in srgb, var(--c) 24%, var(--surface)); }
@@ -1967,14 +1994,12 @@ function computeLanes(evs) {
 }
 
 /* ============================================================ */
-function EventChip({ s, lane, lanes, dayStart, pxPerMin, minH, onSelect }) {
-  const top = (mins(s[2]) - dayStart) * pxPerMin;
-  const h = Math.max(minH, (mins(s[3]) - mins(s[2])) * pxPerMin);
+function EventChip({ s, lane, lanes, top, h, compact, onSelect }) {
   const lines = Math.max(1, Math.min(6, Math.floor((h - 16) / 15)));
   const mk = accOf(s[4]).mk;
   return (
     <div
-      className={"ev tk-" + s[5]}
+      className={"ev tk-" + s[5] + (compact ? " cmp" : "")}
       style={{
         top: top + "px",
         left: `calc(${(lane / lanes) * 100}% + 2px)`,
@@ -1984,16 +2009,36 @@ function EventChip({ s, lane, lanes, dayStart, pxPerMin, minH, onSelect }) {
       }}
       onClick={() => onSelect(s)}
     >
-      {mk && <span className="mk">{mk}</span>}
-      <span className="etm">{clock(s[2])}</span>
+      {mk && !compact && <span className="mk">{mk}</span>}
+      <span className="etm">{compact && mk ? mk + " " + clock(s[2]) : clock(s[2])}</span>
       <span className="ett">{s[6]}</span>
     </div>
   );
 }
 
-function CalendarView({ day, sessions, hourHeight, colWidth, quarterLines, onSelect }) {
+/* 1c layout: short sessions become single-line chips, and every chip is nudged
+   down so it never covers the one after it. A tick marks the true start time. */
+function layoutColumn(evs, laneOf, dayStart, pxPerMin, minH, compactMax) {
+  const CMP_H = 22, GAP = 3;
+  const out = []; const ticks = []; const prevBottom = new Map();
+  [...evs].sort((a, b) => mins(a[2]) - mins(b[2]) || mins(a[3]) - mins(b[3])).forEach((s) => {
+    const lane = laneOf.get(s) || 0;
+    const exact = (mins(s[2]) - dayStart) * pxPerMin;
+    const dur = mins(s[3]) - mins(s[2]);
+    const compact = compactMax > 0 && dur <= compactMax;
+    const h = compact ? CMP_H : Math.max(minH, dur * pxPerMin);
+    const floor = prevBottom.has(lane) ? prevBottom.get(lane) + GAP : -Infinity;
+    const top = Math.max(exact, floor);
+    prevBottom.set(lane, top + h);
+    if (top - exact > 0.5) ticks.push({ id: s[7], top: exact, track: s[5] });
+    out.push({ s, lane, top, h, compact });
+  });
+  return { placed: out, ticks, bottom: Math.max(0, ...out.map((p) => p.top + p.h)) };
+}
+
+function CalendarView({ day, sessions, hourHeight, colWidth, quarterLines, compactMax, onSelect }) {
   const pxPerMin = hourHeight / 60;
-  const minH = Math.max(20, hourHeight * 0.3);
+  const minH = Math.max(28, hourHeight * 0.3);
 
   const master = colsOf(day);
   const used = master.filter(([k]) => sessions.some((s) => s[1] === k));
@@ -2004,8 +2049,13 @@ function CalendarView({ day, sessions, hourHeight, colWidth, quarterLines, onSel
   const totalMin = dayEnd - dayStart;
   const bodyH = totalMin * pxPerMin;
 
-  const laneData = {};
-  used.forEach(([k]) => { laneData[k] = computeLanes(sessions.filter((s) => s[1] === k)); });
+  const laneData = {}; const layout = {};
+  used.forEach(([k]) => {
+    const evs = sessions.filter((s) => s[1] === k);
+    laneData[k] = computeLanes(evs);
+    layout[k] = layoutColumn(evs, laneData[k].laneOf, dayStart, pxPerMin, minH, compactMax);
+  });
+  const gridH = Math.max(bodyH, ...used.map(([k]) => layout[k].bottom + 4));
 
   const hours = [];
   for (let m = dayStart; m <= dayEnd; m += 60) hours.push(m);
@@ -2030,7 +2080,7 @@ function CalendarView({ day, sessions, hourHeight, colWidth, quarterLines, onSel
             <span className="name" title={name}>{name}</span>
           </div>
         ))}
-        <div className="gutter" style={{ gridColumn: 1, gridRow: 2, height: bodyH + "px" }}>
+        <div className="gutter" style={{ gridColumn: 1, gridRow: 2, height: gridH + "px" }}>
           {hours.map((m, i) => (
             <span className="hourlabel" key={m}
               style={{ top: (m - dayStart) * pxPerMin + "px", transform: i === 0 ? "translateY(2px)" : "translateY(-50%)" }}>
@@ -2039,12 +2089,16 @@ function CalendarView({ day, sessions, hourHeight, colWidth, quarterLines, onSel
           ))}
         </div>
         {used.map(([k], i) => {
-          const { laneOf, count } = laneData[k];
+          const { count } = laneData[k];
+          const { placed, ticks } = layout[k];
           return (
-            <div className="colbody" key={"b" + k} style={{ gridColumn: i + 2, gridRow: 2, height: bodyH + "px", ...bg }}>
-              {sessions.filter((s) => s[1] === k).map((s) => (
-                <EventChip key={s[7]} s={s} lane={laneOf.get(s) || 0} lanes={count}
-                  dayStart={dayStart} pxPerMin={pxPerMin} minH={minH} onSelect={onSelect} />
+            <div className="colbody" key={"b" + k} style={{ gridColumn: i + 2, gridRow: 2, height: gridH + "px", ...bg }}>
+              {ticks.map((t) => (
+                <div className={"tick tk-" + t.track} key={"t" + t.id} style={{ top: t.top + "px" }} />
+              ))}
+              {placed.map((p) => (
+                <EventChip key={p.s[7]} s={p.s} lane={p.lane} lanes={count}
+                  top={p.top} h={p.h} compact={p.compact} onSelect={onSelect} />
               ))}
             </div>
           );
@@ -2398,7 +2452,8 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "accent": "#0a84ff",
   "hourHeight": 84,
   "colWidth": 150,
-  "quarterLines": false
+  "quarterLines": false,
+  "compactMax": 20
 }/*EDITMODE-END*/;
 
 /* ============================================================
@@ -2643,7 +2698,8 @@ function App() {
 
       {view === "grid"
         ? <CalendarView day={day} sessions={sessions} hourHeight={t.hourHeight}
-            colWidth={t.colWidth} quarterLines={t.quarterLines} onSelect={setSel} />
+            colWidth={t.colWidth} quarterLines={t.quarterLines}
+            compactMax={t.compactMax} onSelect={setSel} />
         : <ListView day={day} sessions={sessions} onSelect={setSel} lang={lang} />}
 
       {sel && <Modal s={sel} onClose={() => setSel(null)} lang={lang} />}
@@ -2663,6 +2719,8 @@ function App() {
           onChange={(v) => setTweak("hourHeight", v)} />
         <TweakSlider label="欄寬 Column width" value={t.colWidth} min={112} max={260} step={2} unit="px"
           onChange={(v) => setTweak("colWidth", v)} />
+        <TweakSlider label="短場次門檻 Compact under" value={t.compactMax} min={0} max={30} step={5} unit="min"
+          onChange={(v) => setTweak("compactMax", v)} />
         <TweakToggle label="15 分鐘格線 Quarter lines" value={t.quarterLines} onChange={(v) => setTweak("quarterLines", v)} />
       </TweaksPanel>
 
