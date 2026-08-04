@@ -75,7 +75,14 @@ def get_store(
     rebuild: bool = False,
 ) -> tuple[InMemoryVectorStore, bool]:
     """建立或載入向量庫。回傳 (store, 是否命中快取)。"""
-    embeddings = OpenAIEmbeddings(model=embed_model_name(), base_url=api_base_url())
+    endpoint = api_base_url()
+    embeddings = OpenAIEmbeddings(
+        model=embed_model_name(),
+        base_url=endpoint,
+        # OpenAIEmbeddings 預設會把文字先轉成 token ID；Ollama、vLLM 等相容
+        # 端點常只接受原始字串。官方 OpenAI 端點仍保留原本的長度切分行為。
+        check_embedding_ctx_length=endpoint is None,
+    )
     path = _index_path(csv_path)
 
     if path.exists() and not rebuild:

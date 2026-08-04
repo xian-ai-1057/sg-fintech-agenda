@@ -21,20 +21,31 @@ scrape_sff_agenda.py  ──►  agenda.csv  ─┤          （純前端介面�
 
 > 2025 年版是把資料寫死在 HTML 裡的，那一版原封不動收在 `archive/2025/`。
 
-## 開啟方式
+## 本機完整部署（前端 + Agent）
 
-因為要讀取旁邊的 `agenda.csv`，瀏覽器的 CORS 規則不允許 `file://` 頁面這樣做，
-所以**建議用本機伺服器開**：
+先安裝 Agent 相依並設定 API key：
 
 ```bash
-python3 -m http.server 8000
-# 然後開 http://localhost:8000/
+python3 -m pip install -r agent/requirements.txt
+cp agent/.env.example agent/.env
+# 編輯 agent/.env，填入 OPENAI_API_KEY
+
+uvicorn agent.main:app --host 127.0.0.1 --port 8765
+# 然後開 http://127.0.0.1:8765/
 ```
 
-直接雙擊 `index.html` 也不會壞 —— 頁面會顯示說明，並提供**拖放／選擇 `agenda.csv`**
-的方式手動載入，載入後功能完全一樣。
+這一個 Uvicorn process 會同時提供議程前端、`agenda.csv`、`GET /health` 與
+`POST /ask`。打開右下角 ChatBot 時，前端會探測同源的 Agent API，成功後自動切成 AI 模式。
 
-手機版預覽：`index.html?m=1` 強制手機版型，或開 `Mobile Preview.html`（手機外框預覽）。
+要讓同一個網路上的手機開啟，改用 `--host 0.0.0.0`，再從手機瀏覽
+`http://<這台電腦的區網 IP>:8765/`。前端與 API 同源，因此不需要另外設定 CORS；
+畫面寬度 ≤ 720px 時會自動切換手機版。
+
+直接雙擊 `index.html` 仍可手動拖放／選擇 `agenda.csv`，但這種模式不包含 Uvicorn
+提供的 Agent API。
+
+手機版預覽：`http://127.0.0.1:8765/?m=1` 強制手機版型，或開
+`http://127.0.0.1:8765/mobile-preview`（手機外框預覽）。
 
 ## 介面功能
 
@@ -51,8 +62,8 @@ python3 -m http.server 8000
 - **講者名單只先顯示前 5 位**，其餘以「… +N」收合，點一下即可展開全部，再點即收合；
 - **中／英雙語說明切換**：右上角 `中／EN` 一鍵切換活動說明語言，偏好記在
   `localStorage`，**預設英文**；某場次若沒有中文翻譯，會自動顯示英文；
-- **小幫手 Bot**：預設是純前端關鍵字推薦，不對外送任何請求；本機把
-  `agent/api.py` 跑起來之後，同一個對話框會自動切成 **AI 模式**（見下）。
+- **小幫手 Bot**：Agent API 可用時自動切成 **AI 模式**；連線失敗時退回純前端
+  關鍵字推薦，不會把 API key 放進瀏覽器。
 
 場次以**分鐘級絕對定位**排版，任何時長（含 5／10 分鐘快講）都精準對位。
 
@@ -137,9 +148,9 @@ cp agent/.env.example agent/.env      # 填入 OPENAI_API_KEY
 
 python3 -m agent.cli                  # 終端機互動
 python3 -m agent.web                  # Gradio Web UI，開 http://127.0.0.1:7860
-python3 -m agent.api                  # HTTP API，給議程網頁的對話框用
+python3 -m agent.api                  # API-only 開發入口，不提供議程前端
 
-uvicorn agent.main:app --host 0.0.0.0 --port 8765   # 要交給程序管理器時的部署方式
+uvicorn agent.main:app --host 127.0.0.1 --port 8765 # 前端 + Agent API 完整本機服務
 ```
 
 底層是 LangChain + OpenAI 的最簡 RAG：一場議程一份 Document，中英文說明放在一起 embed，
@@ -150,21 +161,21 @@ uvicorn agent.main:app --host 0.0.0.0 --port 8765   # 要交給程序管理器�
 
 ### 接到議程網頁的對話框
 
-`index.html` 右下角的小幫手可以直接用這個 agent 回答：
+`index.html` 右下角的小幫手會直接使用同一個 Uvicorn app 的 Agent API：
 
 ```bash
-python3 -m agent.api      # 一個終端機：agent（http://127.0.0.1:8765）
-python3 -m http.server 8000   # 另一個：網頁，然後開 http://localhost:8000/
+uvicorn agent.main:app --host 127.0.0.1 --port 8765
+# 開 http://127.0.0.1:8765/
 ```
 
 網頁開啟對話框時會自己探測 `/health`，探到就切成 **AI 模式**（標題列的膠囊鈕顯示
 `AI`），回答裡的場次編號可以直接點開詳情；探不到、或中途連線失敗，就自動退回原本的
 關鍵字比對，一樣答得出東西。膠囊鈕可以隨時手動切換兩種模式。
 
-agent 跑在別台機器時，在網址加 `?agent=http://192.168.1.5:8765`（會記在 `localStorage`），
-並在 `agent/.env` 的 `SFF_AGENT_ORIGINS` 把網頁的來源加進白名單。
+若刻意把前端與 Agent 分開部署，仍可用 `?agent=<url>` 指定 API 位址，並在
+`agent/.env` 的 `SFF_AGENT_ORIGINS` 加入前端來源；一般本機完整部署不需要這些設定。
 
-> **API key 只留在跑 `agent.api` 的那台機器上**，前端拿到的永遠只有問答文字。
+> **API key 只留在執行 Uvicorn 的機器上**，前端拿到的永遠只有問答文字。
 > 線上版（GitHub Pages）沒有後端，所以維持純關鍵字模式 —— 這也是為什麼保留關鍵字引擎。
 
 ## CSV 欄位

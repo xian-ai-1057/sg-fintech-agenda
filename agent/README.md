@@ -12,8 +12,8 @@ agenda.csv ──► agent/（LangChain + OpenAI，語意檢索）──► CLI 
 ```
 
 > `index.html` 裡本來就有一個「小幫手 Bot」，那是**純前端關鍵字比對**、零相依、可離線。
-> 這支 Agent 需要 API key，但看得懂語意。兩者並存：`api.py` 有跑，網頁就用 Agent 回答；
-> 沒跑就退回關鍵字，網頁單獨開、放在 GitHub Pages 上都照常能用。
+> 這支 Agent 需要 API key，但看得懂語意。`uvicorn agent.main:app` 會同時提供前端與
+> Agent API；問答失敗時，對話框仍會退回純前端關鍵字結果。
 
 ## 安裝
 
@@ -36,8 +36,11 @@ python3 -m agent.cli "有哪些跟穩定幣和代幣化資產有關的場次？"
 # 最小 Web UI，然後開 http://127.0.0.1:7860
 python3 -m agent.web
 
-# HTTP API，給 index.html 的對話框用（見下）
+# API-only 開發入口，不提供 index.html
 python3 -m agent.api
+
+# 完整本機服務：前端 + agenda.csv + Agent API
+uvicorn agent.main:app --host 127.0.0.1 --port 8765
 ```
 
 其他選項：
@@ -50,12 +53,15 @@ python3 -m agent.api
 
 ## 接到議程網頁的對話框
 
-`index.html` 右下角的小幫手可以直接用這支 Agent 回答。開兩個終端機：
+`index.html` 右下角的小幫手可以直接用這支 Agent 回答，只需要一個 Uvicorn process：
 
 ```bash
-python3 -m agent.api           # Agent，預設 http://127.0.0.1:8765
-python3 -m http.server 8000    # 議程網頁，然後開 http://localhost:8000/
+uvicorn agent.main:app --host 127.0.0.1 --port 8765
+# 然後開 http://127.0.0.1:8765/
 ```
+
+手機與電腦在同一個網路時，改用 `--host 0.0.0.0`，並從手機開啟
+`http://<電腦的區網 IP>:8765/`。前端與 API 使用同一個 origin，不必另外設定 CORS。
 
 網頁開啟對話框時會先打 `GET /health`：通了就切成 **AI 模式**（標題列膠囊鈕顯示 `AI`），
 提問改走 `POST /ask`；沒通、或問到一半失敗，就自動退回內建的關鍵字比對，不會開天窗。
@@ -71,19 +77,19 @@ system prompt 已經要求每一場都要附編號，所以不用另外設計一
 
 | 設定 | 預設 | 說明 |
 |---|---|---|
-| `--host` / `--port` | `127.0.0.1` / `8765` | 要讓同網段的手機連得到就 `--host 0.0.0.0` |
-| `SFF_AGENT_ORIGINS` | 空 | 允許連進來的網頁來源，逗號分隔。**本機來源預設就通** |
-| 網頁端 `?agent=<url>` | 本機 `http://127.0.0.1:8765` | Agent 跑在別台機器時用，會記在 `localStorage` |
+| Uvicorn `--host` / `--port` | `127.0.0.1` / `8765` | 要讓同網段的手機連得到就 `--host 0.0.0.0` |
+| `SFF_AGENT_ORIGINS` | 空 | 只有前後端分開部署時才需要額外設定 |
+| 網頁端 `?agent=<url>` | 同源 API | 刻意把 Agent 分開部署時使用，會記在 `localStorage` |
 
 Agent 每個瀏覽器帶一組 `thread_id`（清除對話就換一組），對應到 `ask()` 的同一個參數 ——
 跟 CLI 的 `--user`、Gradio 的名字欄位是同一條通道。
 
-**API key 只留在跑 `api.py` 的這一側**，前端拿到的永遠只有問答文字。線上版
+**API key 只留在執行 Uvicorn 的這一側**，前端拿到的永遠只有問答文字。線上版
 （GitHub Pages）沒有後端，網頁就維持純關鍵字模式。
 
 ### 用 uvicorn／gunicorn 部署
 
-`main.py` 就是 ASGI 進入點，裡面只有一個模組層的 `app`：
+`main.py` 是完整本機應用的 ASGI 進入點，提供 `/`、`/agenda.csv`、`/health` 與 `/ask`：
 
 ```bash
 uvicorn agent.main:app --host 0.0.0.0 --port 8765          # 在 repo 裡
@@ -91,8 +97,8 @@ uvicorn main:app --host 0.0.0.0 --port 8765                # 這幾支被攤平�
 gunicorn -k uvicorn.workers.UvicornWorker main:app -b 0.0.0.0:8765
 ```
 
-`python3 -m agent.api` 是同一個 app，只是自己開 server，適合本機隨手跑；
-要交給程序管理器（systemd、Docker、supervisor）就用上面這種掛載法。
+`python3 -m agent.api` 仍保留為 API-only 的開發入口；要同時提供議程前端時使用
+`uvicorn agent.main:app`。
 
 > **workers 維持 1。** 每個 worker 會各自載一份議程與向量索引，而且對話記憶走行程內的
 > `InMemorySaver` —— 多開 worker 會讓同一個 `thread_id` 的上下文隨機掉在不同 worker 上。
