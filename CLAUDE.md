@@ -183,7 +183,7 @@ reads `agenda.csv` read-only** — the site talks to it over HTTP or not at all.
 deps live in `agent/requirements.txt`, not the root one (that stays the scraper's
 contract).
 
-Seven small modules, in dependency order:
+Eight small modules, in dependency order:
 
 - `agenda.py` — CSV → `Session` dataclass, plus `by_id` / `resolve_day` / `matches` /
   `overview`. **No LLM imports**, so parsing is testable without an API key.
@@ -209,6 +209,12 @@ Seven small modules, in dependency order:
   built at startup and shared (the tools are read-only; `thread_id` separates
   conversations). CORS allows local origins by default, plus anything in
   `SFF_AGENT_ORIGINS`. This is what `index.html`'s chat box calls — see below.
+- `main.py` — the ASGI entrypoint and nothing else: `app = create_app(...)` at module
+  level, so `uvicorn agent.main:app` (or `uvicorn main:app` flattened) works. `api.py`
+  keeps the factory and its own `uvicorn.run()` for local use; don't add a module-level
+  `app` there too, or importing it would build an agent as a side effect. **Run one
+  worker** — `InMemorySaver` is per-process, so a second worker splits a `thread_id`'s
+  memory in half.
 
 The modules must keep running **both** as the `agent` package (`python3 -m agent.cli`
 in the repo) and flattened into a bare directory with no `__init__.py`

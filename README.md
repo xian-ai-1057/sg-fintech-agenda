@@ -138,6 +138,8 @@ cp agent/.env.example agent/.env      # 填入 OPENAI_API_KEY
 python3 -m agent.cli                  # 終端機互動
 python3 -m agent.web                  # Gradio Web UI，開 http://127.0.0.1:7860
 python3 -m agent.api                  # HTTP API，給議程網頁的對話框用
+
+uvicorn agent.main:app --host 0.0.0.0 --port 8765   # 要交給程序管理器時的部署方式
 ```
 
 底層是 LangChain + OpenAI 的最簡 RAG：一場議程一份 Document，中英文說明放在一起 embed，
