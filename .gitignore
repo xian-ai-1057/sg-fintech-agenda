@@ -4,3 +4,8 @@ __pycache__/
 scrape.log
 .claude/
 .build/
+
+# 議程問答 Agent：API 金鑰與向量索引快取都不進版控
+.env
+agent/.env
+agent/.index/

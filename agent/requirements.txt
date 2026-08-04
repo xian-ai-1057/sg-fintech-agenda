@@ -1,0 +1,7 @@
+# 議程問答 Agent 的相依（見 agent/README.md）。爬蟲的相依在 ../requirements.txt。
+# 只給下限、不鎖上限，跟著上游最新版走。
+langchain>=1.0
+langchain-openai>=1.0
+langgraph>=1.0
+python-dotenv>=1.0
+gradio>=6          # 只有 agent/web.py 需要；只用 CLI 的話可以不裝

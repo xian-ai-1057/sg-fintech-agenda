@@ -1,1 +1,2 @@
+# scrape_sff_agenda.py 的相依。議程問答 Agent 的相依在 agent/requirements.txt。
 selenium>=4.20

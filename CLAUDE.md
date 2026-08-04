@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this is
 
 A static agenda viewer for the **Singapore FinTech Festival 2026**
-(18–20 Nov 2026, Singapore Expo). Three parts:
+(18–20 Nov 2026, Singapore Expo). Four parts:
 
 1. **`scrape_sff_agenda.py`** — a Selenium scraper that pulls the live agenda into
    `agenda.csv`.
@@ -13,6 +13,8 @@ A static agenda viewer for the **Singapore FinTech Festival 2026**
 3. **`index.html`** — a zero-build agenda visualiser (Apple Calendar–style desktop
    view + g0v-style mobile view) that **loads `agenda.csv` at runtime**. This is
    the deployed site (GitHub Pages).
+4. **`agent/`** — a LangChain + OpenAI natural-language Q&A tool over the same CSV
+   (CLI + a small Gradio web UI). Separate from the site; see below.
 
 `archive/2025/` holds the frozen 2025 site. It is a *different architecture* —
 its data is inlined into its own `index.html` — and should be left alone.
@@ -24,7 +26,9 @@ description toggle). Keep that convention when editing.
 ## Data flow — read this before changing anything
 
 ```
-scrape_sff_agenda.py  ──►  agenda.csv  ──►  index.html (fetch at page load)
+                                       ┌──►  index.html (fetch at page load)
+scrape_sff_agenda.py  ──►  agenda.csv  ┤
+                                       └──►  agent/  (read-only, LangChain RAG)
 ```
 
 **To change what the site shows, edit `agenda.csv`.** Do not hand-edit session
@@ -170,12 +174,51 @@ Other runtime behaviour in `App`:
   (`TOPICS[code][lang === "zh" ? 0 : 1]`, `dm.md + " " + dm.wdz`). The 中/EN
   toggle switches descriptions **and** these labels.
 
+### Q&A agent (`agent/`)
+
+A CLI + Gradio tool that answers agenda questions in natural language (English or
+Chinese, replying in whichever the user wrote). Completely separate from the site:
+**it never touches `index.html`, and it reads `agenda.csv` read-only.** Its deps live
+in `agent/requirements.txt`, not the root one (that stays the scraper's contract).
+
+Six small modules, in dependency order:
+
+- `agenda.py` — CSV → `Session` dataclass, plus `by_id` / `resolve_day` / `matches` /
+  `overview`. **No LLM imports**, so parsing is testable without an API key.
+  `session_id` is the `AGND441` code from the URL (unique across all rows) and
+  `start`/`end` are naive datetimes (single venue, single timezone).
+- `rag.py` — one `Document` per session, EN + ZH description in the same one, **no
+  text splitter**. Cached to `agent/.index/index-<fingerprint>.json`; the fingerprint
+  covers CSV bytes + embed model + `SCHEMA_VERSION` and lives in the filename, so
+  invalidation is just "does that file exist". Document metadata must stay
+  JSON-scalar — `.dump()` is `json.dump`.
+- `tools.py` — three read-only `@tool`s built as closures by `build_tools()`:
+  `search_sessions` (semantic), `list_sessions` (exhaustive/counting — RAG undercounts
+  here because of top-k truncation), `get_session` (full detail). All params are
+  `str` with `""` defaults, never `str | None`.
+- `core.py` — `SYSTEM_PROMPT`, `build_agent()`, `ask()`. `create_agent` from
+  LangChain 1.x with an `InMemorySaver` checkpointer. Agent construction is confined
+  to `build_agent()` on purpose.
+- `cli.py` / `web.py` — thin shells over `core.py`.
+
+The festival stats in the system prompt come from `overview(sessions)` at startup, so
+**a new year's CSV needs no prompt edit** — same derive-everything-from-CSV rule as
+the viewer. Model IDs are env-configurable (`OPENAI_MODEL`, `OPENAI_EMBED_MODEL`).
+
+Requirements 3 (save my schedule + clash warnings) and 4 (multi-user, see each
+other's picks) are **not built** — only the seams: stable `session_id`, parsed
+`start`/`end`, and `thread_id` threaded through `ask()`. Adding them means a new
+`agent/store.py` plus more tools, not a restructure. Don't add stub files for them.
+
 ## Deploy
 
 `.github/workflows/pages.yml` publishes the repo root to GitHub Pages on every
 push to `main` (live at https://xian-ai-1057.github.io/sg-fintech-agenda/). The
-whole directory is uploaded as-is — there is no build step — so `agenda.csv` and
-`archive/` are served too, and `index.html` must remain a working standalone file.
+whole directory is uploaded as-is — there is no build step — so `agenda.csv`,
+`archive/` and `agent/` are served too, and `index.html` must remain a working
+standalone file. `agent/`'s `.py` files being served as static text is harmless, but
+it is why `.env` and `agent/.index/` must stay gitignored and no key may be
+hardcoded.
 
 ## Conventions
 
@@ -185,3 +228,6 @@ whole directory is uploaded as-is — there is no build step — so `agenda.csv`
   If you find yourself pasting session rows into the HTML, that's the wrong file.
 - Don't modify `archive/2025/` — it's a frozen snapshot with a different
   (data-inlined) architecture.
+- `agent/` and `index.html` are independent consumers of `agenda.csv`. Don't make
+  one depend on the other, and keep `agent/`'s access to the CSV read-only.
+  The keyword bot inside `index.html` stays pure-frontend and API-key-free.
