@@ -57,7 +57,15 @@ python3 -m agent.api           # Agent，預設 http://127.0.0.1:8765
 python3 -m http.server 8000    # 議程網頁，然後開 http://localhost:8000/
 ```
 
-網頁開啟對話框時會先打 `GET /health`：通了就切成 **AI 模式**（標題列膠囊鈕顯示 `AI`），
+或用上一層的 `serve.py` 把兩邊掛在同一個 uvicorn 底下（同源，不必設 `?agent=`，
+也沒有 CORS 的事）：
+
+```bash
+SFF_SERVE_AGENT=1 uvicorn serve:app --host 0.0.0.0 --port 8000
+```
+
+網頁開啟對話框時會依序探測同源的 `/agent` 與本機的 `127.0.0.1:8765`，
+先打 `GET /health`：通了就切成 **AI 模式**（標題列膠囊鈕顯示 `AI`），
 提問改走 `POST /ask`；沒通、或問到一半失敗，就自動退回內建的關鍵字比對，不會開天窗。
 膠囊鈕可以手動切回關鍵字模式，選擇記在 `localStorage`。
 
@@ -72,8 +80,8 @@ system prompt 已經要求每一場都要附編號，所以不用另外設計一
 | 設定 | 預設 | 說明 |
 |---|---|---|
 | `--host` / `--port` | `127.0.0.1` / `8765` | 要讓同網段的手機連得到就 `--host 0.0.0.0` |
-| `SFF_AGENT_ORIGINS` | 空 | 允許連進來的網頁來源，逗號分隔。**本機來源預設就通** |
-| 網頁端 `?agent=<url>` | 本機 `http://127.0.0.1:8765` | Agent 跑在別台機器時用，會記在 `localStorage` |
+| `SFF_AGENT_ORIGINS` | 空 | 允許連進來的網頁來源，逗號分隔。**本機來源預設就通**；同源部署用不到 |
+| 網頁端 `?agent=<url>` | 同源 `/agent` → 本機 `http://127.0.0.1:8765` | Agent 跑在別台機器時用，會記在 `localStorage` |
 
 Agent 每個瀏覽器帶一組 `thread_id`（清除對話就換一組），對應到 `ask()` 的同一個參數 ——
 跟 CLI 的 `--user`、Gradio 的名字欄位是同一條通道。

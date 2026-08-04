@@ -34,6 +34,28 @@ python3 -m http.server 8000
 直接雙擊 `index.html` 也不會壞 —— 頁面會顯示說明，並提供**拖放／選擇 `agenda.csv`**
 的方式手動載入，載入後功能完全一樣。
 
+### 用 uvicorn 部署
+
+要把時程表交給程序管理器（systemd、Docker、supervisor）長期跑，用 `serve.py`：
+
+```bash
+python3 -m pip install "uvicorn[standard]" starlette
+uvicorn serve:app --host 0.0.0.0 --port 8000
+```
+
+發的內容跟 GitHub Pages 一樣是整個目錄（`index.html`、`agenda.csv`、`archive/`），
+差別只在**點開頭的路徑一律 404** —— 這裡發的是你的工作目錄，`agent/.env` 與 `.git/`
+就在裡面，不能跟著出去。
+
+加上 `SFF_SERVE_AGENT=1`，同一個 uvicorn 會順便把議程問答 agent 掛在 `/agent`：
+
+```bash
+SFF_SERVE_AGENT=1 uvicorn serve:app --host 0.0.0.0 --port 8000
+```
+
+這時候網頁與 agent 同源，**對話框自己就找得到**，不必加 `?agent=`，也沒有 CORS 的事。
+不加這個環境變數就只是純靜態站，不需要 langchain、也不需要 API key。
+
 手機版預覽：`index.html?m=1` 強制手機版型，或開 `Mobile Preview.html`（手機外框預覽）。
 
 ## 介面功能
@@ -153,16 +175,20 @@ uvicorn agent.main:app --host 0.0.0.0 --port 8765   # 要交給程序管理器�
 `index.html` 右下角的小幫手可以直接用這個 agent 回答：
 
 ```bash
-python3 -m agent.api      # 一個終端機：agent（http://127.0.0.1:8765）
+# 一個行程搞定：網頁與 agent 同源，零設定
+SFF_SERVE_AGENT=1 uvicorn serve:app --host 0.0.0.0 --port 8000
+
+# 或各跑各的
+python3 -m agent.api          # 一個終端機：agent（http://127.0.0.1:8765）
 python3 -m http.server 8000   # 另一個：網頁，然後開 http://localhost:8000/
 ```
 
-網頁開啟對話框時會自己探測 `/health`，探到就切成 **AI 模式**（標題列的膠囊鈕顯示
-`AI`），回答裡的場次編號可以直接點開詳情；探不到、或中途連線失敗，就自動退回原本的
-關鍵字比對，一樣答得出東西。膠囊鈕可以隨時手動切換兩種模式。
+網頁開啟對話框時會依序探測同源的 `/agent` 與本機的 `127.0.0.1:8765`，探到就切成
+**AI 模式**（標題列的膠囊鈕顯示 `AI`），回答裡的場次編號可以直接點開詳情；探不到、
+或中途連線失敗，就自動退回原本的關鍵字比對，一樣答得出東西。膠囊鈕可以隨時手動切換。
 
 agent 跑在別台機器時，在網址加 `?agent=http://192.168.1.5:8765`（會記在 `localStorage`），
-並在 `agent/.env` 的 `SFF_AGENT_ORIGINS` 把網頁的來源加進白名單。
+並在 `agent/.env` 的 `SFF_AGENT_ORIGINS` 把網頁的來源加進白名單。同源部署沒有這一步。
 
 > **API key 只留在跑 `agent.api` 的那台機器上**，前端拿到的永遠只有問答文字。
 > 線上版（GitHub Pages）沒有後端，所以維持純關鍵字模式 —— 這也是為什麼保留關鍵字引擎。

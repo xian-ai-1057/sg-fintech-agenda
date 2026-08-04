@@ -2120,9 +2120,7 @@ const BOT_T = {
    所以這個檔案單獨開、放在 GitHub Pages 上都照常能用，也不會有金鑰進到前端。
    ============================================================ */
 
-/* 本機開發時的預設位址（python3 -m agent.api）。線上沒有後端，預設就是「沒有」。
-   要指到別台機器：在網址加 ?agent=http://192.168.1.5:8765，會記在 localStorage；
-   ?agent= 留空則清掉設定。 */
+/* 本機開發時 agent 自己開 server 的預設埠（python3 -m agent.api）。 */
 const AGENT_DEFAULT = "http://127.0.0.1:8765";
 const AGENT_LS = "sff-agent-url", THREAD_LS = "sff-agent-thread", MODE_LS = "sff-bot-mode";
 
@@ -2131,14 +2129,26 @@ const lsSet = (k, v) => {
   try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {}
 };
 
-let AGENT_URL = null;
-function agentEndpoint() {
-  if (AGENT_URL !== null) return AGENT_URL;
+/* 要試哪些位址。指定過就只試那一個，沒指定就依序試預設的兩個。 */
+function agentCandidates() {
   const q = new URLSearchParams(location.search).get("agent");
-  if (q !== null) lsSet(AGENT_LS, q.trim() || null);
+  if (q !== null) lsSet(AGENT_LS, q.trim() || null);  // ?agent= 留空＝清掉設定
+  const pinned = (lsGet(AGENT_LS) || "").trim().replace(/\/+$/, "");
+  if (pinned) return [pinned];
+  // "/agent"：serve.py 用 SFF_SERVE_AGENT=1 把網站與 agent 掛在同一個 uvicorn 底下，
+  // 兩邊同源，不必設定就找得到。線上（GitHub Pages）沒有這個路徑，探測會 404 收場。
   const local = ["localhost", "127.0.0.1", "[::1]", ""].indexOf(location.hostname) >= 0;
-  AGENT_URL = (lsGet(AGENT_LS) || (local ? AGENT_DEFAULT : "")).replace(/\/+$/, "");
-  return AGENT_URL;
+  return local ? ["/agent", AGENT_DEFAULT] : ["/agent"];
+}
+
+/* 依序做健康檢查，回傳第一個通得過的位址；都不通就回 ""。整頁只解析一次。 */
+let AGENT_URL = null;
+function agentResolve() {
+  if (AGENT_URL !== null) return Promise.resolve(AGENT_URL);
+  return agentCandidates().reduce(
+    (chain, url) => chain.then((found) => found || agentHealth(url).then((ok) => (ok ? url : ""))),
+    Promise.resolve("")
+  ).then((found) => (AGENT_URL = found));
 }
 
 /* 這個瀏覽器的對話識別；清除對話就換一組，等於開一段新的記憶。 */
@@ -2155,8 +2165,13 @@ function agentFetch(url, path, init, ms) {
     .finally(() => clearTimeout(timer));
 }
 
+/* 認的是 {"ok": true} 這個回應本身，不是 200 —— 有些站對不存在的路徑會回 200 首頁，
+   只看狀態碼會把靜態伺服器誤認成 agent。 */
 const agentHealth = (url) =>
-  agentFetch(url, "/health", {}, 4000).then((r) => r.ok).catch(() => false);
+  agentFetch(url, "/health", {}, 4000)
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => !!(d && d.ok))
+    .catch(() => false);
 
 function agentAsk(url, question, thread) {
   return agentFetch(url, "/ask", {
@@ -2771,13 +2786,12 @@ function ChatBot({ open, mobile, docked, width, lang, onClose, onSelect }) {
   const [messages, setMessages] = useState([]);
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState(false);          // 正在等 agent 回答
-  const [aiOk, setAiOk] = useState(null);           // null = 還沒探測過
+  const [endpoint, setEndpoint] = useState(null);   // null = 還沒探測過，"" = 沒有 agent
   const [mode, setMode] = useState(() => (lsGet(MODE_LS) === "ai" ? "ai" : "kw"));
   const logRef = useRef(null);
   const inputRef = useRef(null);
   const threadRef = useRef(null);
   const drag = useSwipeDismiss(onClose);
-  const endpoint = agentEndpoint();
   const thread = () => threadRef.current || (threadRef.current = agentThread(false));
 
   // 首次開啟 → 問候
@@ -2792,22 +2806,22 @@ function ChatBot({ open, mobile, docked, width, lang, onClose, onSelect }) {
 
   // 首次開啟時探一下 agent 在不在；在的話（且使用者沒特別選過關鍵字）就預設用 AI。
   useEffect(() => {
-    if (!open || !endpoint || aiOk !== null) return;
+    if (!open || endpoint !== null) return;
     let alive = true;
-    agentHealth(endpoint).then((ok) => {
+    agentResolve().then((url) => {
       if (!alive) return;
-      setAiOk(ok);
-      if (ok && lsGet(MODE_LS) !== "kw") setMode("ai");
+      setEndpoint(url);
+      if (url && lsGet(MODE_LS) !== "kw") setMode("ai");
     });
     return () => { alive = false; };
-  }, [open, endpoint, aiOk]);
+  }, [open, endpoint]);
 
   // 新訊息 → 捲到底
   useEffect(() => {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [messages, open]);
 
-  const aiReady = !!endpoint && aiOk !== false;
+  const aiReady = !!endpoint;
   const aiMode = mode === "ai" && aiReady;
 
   const keywordAnswer = (q) => {

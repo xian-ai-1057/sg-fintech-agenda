@@ -17,6 +17,9 @@ A static agenda viewer for the **Singapore FinTech Festival 2026**
    (CLI, a small Gradio web UI, and an HTTP API the site's chat box can talk to
    when it is running locally). Its own deps and API key; see below.
 
+`serve.py` at the root is the optional uvicorn deployment entrypoint for part 3 (and,
+behind one env var, for part 4 too) — see "Commands" below.
+
 `archive/2025/` holds the frozen 2025 site. It is a *different architecture* —
 its data is inlined into its own `index.html` — and should be left alone.
 
@@ -66,6 +69,16 @@ python3 -m http.server 8000   # then open http://localhost:8000/
 Opening `index.html` by double-click still works: it detects the failed fetch and
 offers a drag-and-drop / file-picker to load `agenda.csv` manually. To preview the
 mobile layout on desktop: `index.html?m=1`, or open `Mobile Preview.html`.
+
+For a real deployment (process manager, container) there is `serve.py` — a Starlette
+app serving the repo directory, run with `uvicorn serve:app`. It is a *deployment*
+entrypoint, not part of the viewer: `index.html` must keep working under plain
+`http.server` and on Pages. Two things it does that `http.server` doesn't: it 404s
+any path with a dot-prefixed segment (it serves your **working** directory, where
+`agent/.env` and `.git/` live — Pages only ever gets committed files), and with
+`SFF_SERVE_AGENT=1` it also mounts `agent/api.py` at `/agent`, which puts the site and
+the agent on one origin (no CORS, no `?agent=`). Without that env var it imports
+nothing from `agent/`, so the static site needs neither langchain nor an API key.
 
 ## Architecture
 
@@ -242,13 +255,16 @@ One component, two answer sources — `ChatBot`, near the bottom of the React bl
 - **AI mode**: `POST /ask` to `agent/api.py`. Reached only when a health check
   succeeds, so the page works unchanged with no backend.
 
-`agentEndpoint()` resolves the URL once: `?agent=<url>` (persisted to `localStorage`
-`sff-agent-url`, `?agent=` alone clears it) → stored value → `http://127.0.0.1:8765`
-when the page itself is on localhost/`file://` → otherwise empty (= no AI mode).
-`GET /health` runs when the panel first opens; if it succeeds and the user hasn't
-pinned keyword mode, the panel switches itself to AI. **Any failure — no endpoint,
-health check down, `/ask` erroring — falls back to a keyword answer**, so the box
-never comes up empty. Both modes render into the same message list.
+`agentResolve()` health-checks candidates in order when the panel first opens, once per
+page load, and keeps the first that answers: `?agent=<url>` / stored `sff-agent-url`
+if pinned (`?agent=` alone clears it), otherwise same-origin `/agent` (the `serve.py`
+`SFF_SERVE_AGENT=1` layout — no config, no CORS) then `http://127.0.0.1:8765` when the
+page is on localhost/`file://`. `agentHealth` requires `{"ok": true}` in the body, not
+just a 200, so a static server answering everything with an HTML page is not mistaken
+for the agent. If a candidate answers and the user hasn't pinned keyword mode, the
+panel switches itself to AI. **Any failure — nothing found, `/ask` erroring — falls
+back to a keyword answer**, so the box never comes up empty. Both modes render into the
+same message list.
 
 Agent replies are plain text: `AgentAnswer` handles exactly three things — `**bold**`,
 `- ` bullets, and `AGND\d+` IDs, which become buttons that open the normal session
@@ -280,4 +296,6 @@ hardcoded.
   read-only. They meet over HTTP and nowhere else: `agent/` must not read, write or
   serve `index.html`, and `index.html` must keep working with the agent switched
   off — its keyword bot stays pure-frontend and API-key-free, and no key or model
-  config may be baked into the page.
+  config may be baked into the page. Composing the two is the job of the root-level
+  `serve.py`, which may import `agent/` — that direction keeps `agent/` unaware of the
+  site. Don't invert it.
