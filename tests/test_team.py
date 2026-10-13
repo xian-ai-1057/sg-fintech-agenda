@@ -39,6 +39,10 @@ class TeamTests(unittest.TestCase):
         self.rejects(403,'/api/login',{'password':'bad'})
         self.assertEqual(self.state(self.a)['me']['role'],'member')
         with self.assertRaises(ValueError): self.store.setup('replacement-password')
+    def test_password_minimum_is_six(self):
+        with tempfile.TemporaryDirectory() as t:
+            with self.assertRaises(ValueError): Store(Path(t)/'a.sqlite3').setup('12345')
+            Store(Path(t)/'b.sqlite3').setup('123456')
     def test_shared_persistence_and_restart(self):
         self.call('/api/picks',{'session_id':self.sid,'selected':True},self.a)
         self.assertEqual(len(self.state(self.b)['picks']),1)
