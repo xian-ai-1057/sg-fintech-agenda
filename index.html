@@ -825,6 +825,11 @@ body {
   .bot-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); }
 }
 
+/* Team entry is enabled only by the self-host server, never static Pages. */
+.team-entry, .team-entry-mobile { display: none; }
+html[data-selfhost="true"] .team-entry { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 14px; border-radius: 980px; color: var(--accent); background: var(--accent-soft); text-decoration: none; font: 600 13px var(--font); white-space: nowrap; }
+html[data-selfhost="true"] .team-entry-mobile { display: block; padding: 8px 16px; background: var(--surface); border-bottom: 1px solid var(--separator); }
+.team-entry:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 </style>
 </head>
 <body>
@@ -2681,6 +2686,9 @@ function MobileShell({ framed, t, setTweak, cur, setCur, sel, setSel, search, se
         </div>
       </header>
 
+      <nav className="team-entry-mobile" aria-label="團隊行事曆">
+        <a className="team-entry" href="./team/">共編行事曆 · Team calendar ↗</a>
+      </nav>
       <div className="mdaystrip">
         {D.DAYS.map((d) => {
           const m = dayMeta(d.k);
@@ -3081,6 +3089,7 @@ function App() {
         <button className="icon-btn" title="切換深色 / 淺色" onClick={() => setTweak("dark", !t.dark)}>
           {t.dark ? "☀" : "☾"}
         </button>
+        <a className="team-entry" href="./team/">共編行事曆 · Team calendar ↗</a>
         <a className="reg-btn" href="https://www.fintechfestival.sg/registration" target="_blank" rel="noreferrer">Register</a>
       </header>
 

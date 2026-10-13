@@ -218,8 +218,9 @@ class Handler(BaseHTTPRequestHandler):
                 path = ROOT / ('team/web/index.html' if route.startswith('/team') else 'agenda.csv' if route == '/agenda.csv' else 'index.html')
                 raw = path.read_bytes()
                 if path.name == 'index.html' and not route.startswith('/team'):
-                    # Inject only in selfhost response; GitHub Pages file remains unchanged.
-                    raw = raw.replace(b'</body>', '<a href="/team/" style="position:fixed;bottom:16px;left:16px;z-index:9999;background:#0a84ff;color:white;padding:10px 16px;border-radius:980px;font:14px system-ui;text-decoration:none">Team calendar · 團隊共編</a></body>'.encode())
+                    # Enable the original calendar's integrated entry only when
+                    # a real same-origin collaboration backend is available.
+                    raw = raw.replace(b'<html lang="en">', b'<html lang="en" data-selfhost="true">', 1)
                 self.send(200, raw, 'text/csv; charset=utf-8' if route == '/agenda.csv' else 'text/html; charset=utf-8')
                 return
             if method == 'GET' and route == '/api/agenda':

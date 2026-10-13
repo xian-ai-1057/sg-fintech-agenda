@@ -223,4 +223,4 @@ CSV 以 `utf-8-sig`（帶 BOM）編碼輸出，Excel 開啟不會亂碼。
 
 需要多人標記想參加的場次、管理員控管與持久紀錄時，可在自己的電腦執行輕量 Python + SQLite 服務。公開 GitHub Pages 不受影響；不需要 API key 或雲端帳號。
 
-首次設定 `python3 -m team.server --setup`，之後執行 `python3 -m team.server`，開啟 http://127.0.0.1:8766/team/ 。完整啟動、內網邀請、安全限制、匯出與備份還原方式見 [team/README.md](team/README.md)。
+首次設定 `python3 -m team.server --setup`，之後執行 `python3 -m team.server`，開啟 http://127.0.0.1:8766/ ，以原本行事曆為首頁；按「共編行事曆」進入同站共編頁。完整啟動、內網邀請、安全限制、匯出與備份還原方式見 [team/README.md](team/README.md)。

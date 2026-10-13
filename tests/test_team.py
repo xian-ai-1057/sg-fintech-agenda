@@ -104,6 +104,15 @@ class TeamTests(unittest.TestCase):
                 with urlopen(Request(base+path,data=data,headers=headers)) as r: return r.status,r.read()
             except HTTPError as e: return e.code,e.read()
         try:
+            status, home = request('/')
+            self.assertEqual(status, 200)
+            self.assertIn(b'data-selfhost="true"', home)
+            self.assertEqual(home.count(b'href="./team/"'), 2)  # desktop + mobile
+            self.assertNotIn(b'data-selfhost="true"', (Path(__file__).resolve().parents[1] / 'index.html').read_bytes().split(b'<style>')[0])
+            status, team_page = request('/team/')
+            self.assertEqual(status, 200)
+            self.assertIn(b'href="../"', team_page)
+            self.assertEqual(request('/agenda.csv')[0], 200)
             self.assertEqual(request('/api/state')[0],401)
             self.assertEqual(request('/api/state',token=self.a,origin='https://evil.test')[0],403)
             self.assertEqual(request('/api/state',token=self.a,host='evil.test')[0],403)
