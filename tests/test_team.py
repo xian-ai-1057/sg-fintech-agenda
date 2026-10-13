@@ -104,6 +104,9 @@ class TeamTests(unittest.TestCase):
                 with urlopen(Request(base+path,data=data,headers=headers)) as r: return r.status,r.read()
             except HTTPError as e: return e.code,e.read()
         try:
+            status, health = request('/api/health')
+            self.assertEqual(status, 200)
+            self.assertEqual(json.loads(health)['instance'], server.instance)
             status, home = request('/')
             self.assertEqual(status, 200)
             self.assertIn(b'data-selfhost="true"', home)

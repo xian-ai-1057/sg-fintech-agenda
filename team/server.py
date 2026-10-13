@@ -164,6 +164,7 @@ class Server(ThreadingHTTPServer):
     daemon_threads = True
     def __init__(self, address, store, origins):
         self.store = store
+        self.instance = secrets.token_hex(16)
         self.agenda = agenda()
         self.ids = {s['id'] for s in self.agenda}
         self.origins = set(origins)
@@ -222,6 +223,9 @@ class Handler(BaseHTTPRequestHandler):
                     # a real same-origin collaboration backend is available.
                     raw = raw.replace(b'<html lang="en">', b'<html lang="en" data-selfhost="true">', 1)
                 self.send(200, raw, 'text/csv; charset=utf-8' if route == '/agenda.csv' else 'text/html; charset=utf-8')
+                return
+            if method == 'GET' and route == '/api/health':
+                self.send(200, {'service': 'sff-team-calendar', 'instance': self.server.instance})
                 return
             if method == 'GET' and route == '/api/agenda':
                 self.send(200, {'sessions': self.server.agenda})
