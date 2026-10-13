@@ -9,3 +9,10 @@ scrape.log
 .env
 agent/.env
 agent/.index/
+
+# Selfhost team runtime: never publish team data or credentials
+team-data/
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
