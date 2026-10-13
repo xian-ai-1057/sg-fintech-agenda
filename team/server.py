@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import re
 import secrets
+import socket
 import sqlite3
 import threading
 import time
@@ -17,6 +18,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parent.parent
+MIN_PASSWORD = 6
 SCHEMA = '''
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS members (id TEXT PRIMARY KEY, nickname TEXT NOT NULL, role TEXT NOT NULL, revoked INTEGER NOT NULL DEFAULT 0);
@@ -29,6 +31,24 @@ def digest(value):
 
 def password_hash(password, salt):
     return hashlib.pbkdf2_hmac('sha256', password.encode(), bytes.fromhex(salt), 600000).hex()
+
+def lan_ip():
+    """Best-effort LAN IP of this machine. A UDP connect sends no packets."""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
+            probe.connect(('10.255.255.255', 1))
+            ip = probe.getsockname()[0]
+    except OSError:
+        return ''
+    return '' if ip.startswith('127.') else ip
+
+def default_origins(port):
+    """Allowed Host/Origin values when --origin is not given: localhost plus this machine's LAN IP."""
+    origins = [f'http://127.0.0.1:{port}', f'http://localhost:{port}']
+    ip = lan_ip()
+    if ip:
+        origins.append(f'http://{ip}:{port}')
+    return origins
 
 def agenda(path=ROOT / 'agenda.csv'):
     result = []
@@ -73,8 +93,8 @@ class Store:
         db.execute('INSERT INTO settings VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value', (key, str(value)))
 
     def setup(self, password):
-        if len(password) < 12:
-            raise ValueError('管理員密碼至少 12 字元。')
+        if len(password) < MIN_PASSWORD:
+            raise ValueError(f'管理員密碼至少 {MIN_PASSWORD} 字元。')
         with self.connect() as db:
             db.execute('BEGIN IMMEDIATE')
             if self.get(db, 'password_hash'):
@@ -268,7 +288,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--host', default='127.0.0.1')
+    parser.add_argument('--host', default='0.0.0.0')
     parser.add_argument('--port', type=int, default=8766)
     parser.add_argument('--data', type=Path, default=ROOT / 'team-data' / 'calendar.sqlite3')
     parser.add_argument('--origin', action='append', default=[], help='Exact browser origin, e.g. http://192.168.1.20:8766; repeatable')
@@ -278,7 +298,7 @@ def main():
     os.umask(0o077)
     store = Store(args.data)
     if args.setup:
-        password = getpass.getpass('設定管理員密碼（至少 12 字元）: ')
+        password = getpass.getpass(f'設定管理員密碼（至少 {MIN_PASSWORD} 字元）: ')
         if password != getpass.getpass('再輸入一次: '):
             parser.error('兩次密碼不一致。')
         try:
@@ -298,9 +318,10 @@ def main():
     with store.connect() as db:
         if not store.get(db, 'password_hash'):
             parser.error('請先在自己的電腦執行 python3 -m team.server --setup。')
-    origins = args.origin or [f'http://127.0.0.1:{args.port}', f'http://localhost:{args.port}']
+    origins = args.origin or default_origins(args.port)
     server = Server((args.host, args.port), store, origins)
-    print(f'SFF: http://{args.host}:{args.port}/ — Team: /team/ — Ctrl+C 停止')
+    print(f'SFF: http://127.0.0.1:{args.port}/ — Team: /team/ — Ctrl+C 停止')
+    print('允許的連線位址：' + '、'.join(origins))
     if args.host not in ('127.0.0.1', 'localhost'):
         print('注意：HTTP 不會加密密碼或邀請。僅限可信任內網；對外服務必須另設 HTTPS。')
     try:
