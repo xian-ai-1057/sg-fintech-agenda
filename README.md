@@ -6,6 +6,10 @@
 線上版：<https://xian-ai-1057.github.io/sg-fintech-agenda/>
 2025 年的議程存檔：<https://xian-ai-1057.github.io/sg-fintech-agenda/archive/2025/>
 
+資料更新：2026-10-13，依[官方議程](https://www.fintechfestival.sg/agenda)核對
+124 場（11/18：45、11/19：42、11/20：37）；88 場已公布講者。
+120 場有英文說明與繁體中文翻譯，另外 4 場官方尚未公布說明。所有時間皆為新加坡時間（SGT，UTC+8）。
+
 ## 資料流
 
 ```
@@ -89,7 +93,12 @@ repo 內含 `.github/workflows/pages.yml`，推送到 `main` 後會自動把整�
 
 ## 爬蟲
 
-官網議程頁 <https://www.fintechfestival.sg/agenda> 為 JavaScript 動態渲染，且：
+官網議程頁 <https://www.fintechfestival.sg/agenda> 在 2026 年 10 月改版。
+新版列表已包含全部日期、時間、舞台、場地、通行資格、講者與完整說明。
+爬蟲讀取每張卡片的 `data-day`，以官方總場數核對完整性，並把省略 am/pm 的
+時間（例如 `12:30–4:30pm`）轉為 CSV 兩端完整的格式，避免下午時間解析錯誤。
+
+以下舊版流程仍保留作為相容備援：
 
 - 每次只顯示一天，透過 `?startDate=<epoch-ms>` 切換；
 - 場次以**無限捲動**載入（非按鈕分頁）；
@@ -111,16 +120,21 @@ chromedriver，無需手動安裝 driver。
 ```bash
 python3 scrape_sff_agenda.py                 # 完整抓取 -> agenda.csv
 python3 scrape_sff_agenda.py --no-headless   # 顯示瀏覽器視窗（除錯）
-python3 scrape_sff_agenda.py --limit-days 1  # 只抓第一天
-python3 scrape_sff_agenda.py --skip-details  # 只抓列表，不進詳情頁
+python3 scrape_sff_agenda.py -o out.csv --limit-days 1  # 只抓第一天
+python3 scrape_sff_agenda.py -o out.csv --skip-details  # 只抓列表，不進詳情頁
 python3 scrape_sff_agenda.py -o out.csv --max-sessions 5   # 快速測試
 ```
 
 抓完重新整理網頁即可看到新資料。
 
-**重跑不會洗掉中文翻譯**：`description_zh` 是人工維護的欄位，官網沒有這個資料。
-腳本寫檔前會先讀現有的 `agenda.csv`，依場次網址把既有翻譯搬到新資料列上，
-並印出保留了幾筆。只有全新的場次會是空的，補翻譯後同樣會被保留下去。
+**重跑只保留仍有效的中文翻譯**：`description_zh` 是另外維護的欄位，官網沒有這個資料。
+腳本寫檔前會讀現有 CSV，依穩定的 AGND 場次編號比對，即使標題改名、網址 slug
+改變仍能識別。只有英文說明未改動時才沿用翻譯；新增、改寫或撤下的說明留白，
+介面會顯示最新英文，待重新翻譯後補入。
+
+官方總場數不符、日期缺漏或重要欄位不完整時，爬蟲不會寫入資料。
+`--limit-days`、`--max-sessions`、`--skip-details` 等除錯選項須另指定 `-o out.csv`，
+不可覆蓋正式的 `agenda.csv`。回歸測試：`python3 -m unittest discover -s tests -v`。
 
 一筆場次都沒抓到時，腳本會**以非零狀態碼結束、且不覆蓋現有的 `agenda.csv`**，
 並列出該檢查的 CSS 選擇器 —— 官網一改版通常就是這些選擇器失效。

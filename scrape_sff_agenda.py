@@ -4,7 +4,9 @@
 The agenda page (https://www.fintechfestival.sg/agenda) is rendered with
 JavaScript, so we drive a real Chrome via Selenium.
 
-Two stages:
+The October 2026 listing contains all dates, speakers, venues and descriptions
+in li.sff26-aglist__r. Read its data-day and verify the published session count.
+The older layout remains supported as a two-stage fallback:
   1. Listing — the agenda shows one festival day at a time, selected via the
      ?startDate=<epoch-ms> query param, and loads more sessions on scroll
      (infinite scroll, not a button). We iterate the festival days
@@ -23,18 +25,22 @@ chromedriver, so only Google Chrome needs to be installed.
 Usage:
     python3 scrape_sff_agenda.py                 # full crawl -> agenda.csv
     python3 scrape_sff_agenda.py --no-headless   # watch the browser
-    python3 scrape_sff_agenda.py --limit-days 1  # only the first day (debug)
-    python3 scrape_sff_agenda.py --skip-details  # listing only, no detail pages
+    python3 scrape_sff_agenda.py -o out.csv --limit-days 1  # first day (debug)
+    python3 scrape_sff_agenda.py -o out.csv --skip-details # listing only
     python3 scrape_sff_agenda.py -o out.csv --max-sessions 5
 """
 from __future__ import annotations
 
 import argparse
 import csv
+import os
 import re
 import sys
+import tempfile
 import time
-from urllib.parse import unquote
+from html.parser import HTMLParser
+from pathlib import Path
+from urllib.parse import unquote, urljoin, urlparse
 
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, WebDriverException
@@ -62,6 +68,7 @@ FESTIVAL_DAYS = [
 ]
 
 CARD = "div.custom-agenda-listing-box"
+MODERN_CARD = "li.sff26-aglist__r"
 
 # CSV 欄位順序。
 #   date            ISO 日期（2026-11-18），index.html 用它排序日期、算星期，
@@ -89,12 +96,92 @@ def build_driver(headless: bool) -> webdriver.Chrome:
     return driver
 
 
-def text_or_blank(parent, css: str) -> str:
+def text_or_blank(parent, css: str, *, hidden: bool = False) -> str:
     """First matching element's trimmed text, or '' if none/unreadable."""
     try:
-        return parent.find_element(By.CSS_SELECTOR, css).text.strip()
+        element = parent.find_element(By.CSS_SELECTOR, css)
+        return ((element.get_attribute("textContent") if hidden else element.text) or "").strip()
     except Exception:
         return ""
+
+
+def normalize_time_range(value: str) -> str:
+    """官網省略重複的 am/pm；CSV 兩端都要完整，避免下午被當成早上。"""
+    match = re.fullmatch(
+        r"\s*(\d{1,2}):(\d{2})\s*(am|pm)?\s*[-–—]\s*"
+        r"(\d{1,2}):(\d{2})\s*(am|pm)?\s*", value, re.I)
+    if not match:
+        raise ValueError(f"Unrecognised agenda time: {value!r}")
+    ah, am, ap, bh, bm, bp = match.groups()
+    if not (1 <= int(ah) <= 12 and 1 <= int(bh) <= 12
+            and 0 <= int(am) < 60 and 0 <= int(bm) < 60 and (ap or bp)):
+        raise ValueError(f"Invalid agenda time: {value!r}")
+    def minutes(h, m, p):
+        return (int(h) % 12 + (12 if p.lower() == "pm" else 0)) * 60 + int(m)
+    start = minutes(ah, am, ap or bp)
+    end = minutes(bh, bm, bp or ap)
+    if start >= end and not ap:
+        start -= 12 * 60
+    elif start >= end and not bp:
+        end += 12 * 60
+    if not 0 <= start < end < 24 * 60:
+        raise ValueError(f"Invalid or overnight agenda time: {value!r}")
+    def display(total):
+        h, m = divmod(total, 60)
+        return f"{h % 12 or 12}:{m:02d} {'PM' if h >= 12 else 'AM'}"
+    return f"{display(start)} - {display(end)}"
+
+
+def description_text(html: str) -> str:
+    """收合的 details 仍可讀 HTML；保留 p/li/br 邊界，避免 work.AI 黏字。"""
+    class PlainText(HTMLParser):
+        def __init__(self):
+            super().__init__(convert_charrefs=True)
+            self.parts = []
+        def handle_starttag(self, tag, attrs):
+            if tag in ("p", "li", "div", "br"):
+                self.parts.append("\n\n")
+        def handle_endtag(self, tag):
+            if tag in ("p", "li", "div"):
+                self.parts.append("\n\n")
+        def handle_data(self, data):
+            self.parts.append(data)
+    parser = PlainText()
+    parser.feed(html)
+    return "\n\n".join(" ".join(p.split()) for p in "".join(parser.parts).split("\n\n") if p.strip())
+
+
+def parse_modern_card(card) -> dict:
+    """2026 改版後，日期、場地、講者與說明都在同一張列表卡片。"""
+    stamp = card.get_attribute("data-day")
+    day = next((d for d in FESTIVAL_DAYS if str(d[2]) == stamp), None)
+    if not day:
+        raise ValueError(f"Unknown festival day: {stamp!r}")
+    iso, label, _ = day
+    link = card.find_element(By.CSS_SELECTOR, ".sff26-aglist__rha")
+    descriptions = card.find_elements(By.CSS_SELECTOR, ".sff26-aglist__syn-b")
+    description = description_text(descriptions[0].get_attribute("innerHTML") or "") if descriptions else ""
+    if descriptions and not description:
+        raise ValueError("An existing session description could not be read")
+    speakers = [e.get_attribute("textContent").strip()
+                for e in card.find_elements(By.CSS_SELECTOR, ".sff26-aglist__rpn b")]
+    url = urljoin(AGENDA_URL, link.get_attribute("href") or "")
+    parsed_url = urlparse(url)
+    if (parsed_url.scheme != "https" or parsed_url.netloc != "www.fintechfestival.sg"
+            or not re.fullmatch(r"AGND\d+", session_key(url))):
+        raise ValueError(f"Invalid official session URL: {url!r}")
+    return {
+        "date": iso, "day": label,
+        "datetime": f"{label} | {normalize_time_range(text_or_blank(card, '.sff26-aglist__rw b', hidden=True))}",
+        "title": (link.get_attribute("textContent") or "").strip(),
+        "stage": text_or_blank(card, ".sff26-aglist__rws", hidden=True),
+        "location": text_or_blank(card, ".sff26-aglist__rwh", hidden=True),
+        "event_type": text_or_blank(card, ".sff26-aglist__rwp", hidden=True),
+        "track": text_or_blank(card, ".sff26-aglist__rt", hidden=True),
+        "speakers": "; ".join(dict.fromkeys(s for s in speakers if s)),
+        "description": description,
+        "url": url,
+    }
 
 
 def scroll_to_load_all(driver, label: str) -> int:
@@ -159,6 +246,31 @@ def parse_card(card) -> dict | None:
 
 def scrape_listing(driver, days) -> list[dict]:
     """Stage 1: collect every session card across the given days, deduped by URL."""
+    driver.get(AGENDA_URL)
+    try:
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located(
+            (By.CSS_SELECTOR, f"{MODERN_CARD}, {CARD}")))
+    except TimeoutException:
+        return []
+    modern_cards = driver.find_elements(By.CSS_SELECTOR, MODERN_CARD)
+    if modern_cards:
+        # 改版後所有天數都在 DOM；不能靠網址篩選後把全部卡片標成同一天。
+        count_text = text_or_blank(driver, ".sff26-aglist__n", hidden=True)
+        if not count_text.isdigit() or len(modern_cards) != int(count_text):
+            raise ValueError(f"Incomplete listing: {len(modern_cards)} cards; official count {count_text!r}")
+        rows = [parse_modern_card(card) for card in modern_cards]
+        if len({session_key(r['url']) for r in rows}) != len(rows):
+            raise ValueError("Duplicate session IDs in official listing")
+        requested = {d[0] for d in days}
+        rows = [r for r in rows if r["date"] in requested]
+        if {r["date"] for r in rows} != requested:
+            raise ValueError("A requested festival day is missing; existing CSV left untouched")
+        for row in rows:
+            if any(not row[key] for key in ("title", "stage", "location", "event_type", "url")):
+                raise ValueError(f"Incomplete session metadata: {row['url']}")
+        print(f"  Current listing: {len(rows)} sessions across {len(requested)} day(s)")
+        return rows
+
     by_url: dict[str, dict] = {}
     for iso, label, ts in days:
         print(f"  Day {label} ({iso}) ...")
@@ -168,14 +280,14 @@ def scrape_listing(driver, days) -> list[dict]:
                 EC.presence_of_element_located((By.CSS_SELECTOR, CARD)))
         except TimeoutException:
             print(f"    {label}: no sessions found (timeout)")
-            continue
+            raise ValueError(f"No sessions for {iso}; existing CSV left untouched")
         time.sleep(2)
         scroll_to_load_all(driver, label)
         found = 0
         for card in driver.find_elements(By.CSS_SELECTOR, CARD):
             row = parse_card(card)
             if not row:
-                continue
+                raise ValueError(f"Unparseable session card on {iso}; CSV left untouched")
             found += 1
             # First day a session appears under wins for `day`.
             if row["url"] not in by_url:
@@ -196,8 +308,7 @@ def scrape_detail(driver, url: str) -> dict:
                 (By.CSS_SELECTOR, ".custom-agenda-post-content, .detail-page-section")))
         time.sleep(0.8)
     except (TimeoutException, WebDriverException) as exc:
-        print(f"      ! detail load failed: {exc.__class__.__name__}")
-        return out
+        raise ValueError(f"Detail load failed for {url}; CSV left untouched") from exc
 
     paras = driver.find_elements(By.CSS_SELECTOR, ".custom-agenda-post-content p")
     if paras:
@@ -221,11 +332,18 @@ def slug_of(url: str) -> str:
     return unquote(slug)
 
 
+def session_key(url: str) -> str:
+    """標題改名會換 slug；AGND 編號才是穩定識別。"""
+    slug = slug_of(url)
+    match = re.match(r"(AGND?\d+)\b", slug, re.I)
+    return match.group(1).upper() if match else slug
+
+
 def carry_over_zh(path: str, rows: list[dict]) -> int:
     """把現有 CSV 的 description_zh 搬到這次抓到的資料列上。
 
     中文說明是人工維護的、官網沒有這個欄位，所以每次重跑都得從舊檔接手，
-    否則翻譯會被整批洗掉。以網址比對為主、slug 為輔。
+    以穩定的 AGND 編號比對，且只有英文未改動時才保留，避免顯示過時翻譯。
     """
     try:
         with open(path, newline="", encoding="utf-8-sig") as fh:
@@ -233,24 +351,42 @@ def carry_over_zh(path: str, rows: list[dict]) -> int:
     except (FileNotFoundError, OSError, UnicodeDecodeError):
         return 0
 
-    by_url, by_slug = {}, {}
+    by_key = {}
     for r in old:
         zh = (r.get("description_zh") or "").strip()
         if not zh:
             continue
         if r.get("url"):
-            by_url[r["url"]] = zh
-            by_slug[slug_of(r["url"])] = zh
+            by_key[session_key(r["url"])] = r
 
     kept = 0
     for row in rows:
         if row.get("description_zh", "").strip():
             continue
-        zh = by_url.get(row.get("url", "")) or by_slug.get(slug_of(row.get("url", "")))
-        if zh:
-            row["description_zh"] = zh
+        previous = by_key.get(session_key(row.get("url", "")))
+        # 舊翻譯只對舊英文負責；英文改寫或撤下時留白，讓介面顯示最新英文。
+        same_english = previous and " ".join(previous.get("description", "").split()) == " ".join(row.get("description", "").split())
+        if same_english and row.get("description", "").strip():
+            row["description_zh"] = previous["description_zh"]
             kept += 1
     return kept
+
+
+def write_csv(path: str, rows: list[dict]) -> None:
+    """先寫同目錄暫存檔再原子替換，寫入失敗不截斷原有議程。"""
+    destination = Path(path)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile("w", newline="", encoding="utf-8-sig",
+                                         dir=destination.parent, delete=False) as fh:
+            temporary = Path(fh.name)
+            writer = csv.DictWriter(fh, fieldnames=FIELDS, extrasaction="ignore")
+            writer.writeheader()
+            writer.writerows(rows)
+        os.replace(temporary, destination)
+    finally:
+        if temporary and temporary.exists():
+            temporary.unlink()
 
 
 def main() -> int:
@@ -264,6 +400,9 @@ def main() -> int:
     ap.add_argument("--skip-details", action="store_true",
                     help="skip detail pages (no description / venue)")
     args = ap.parse_args()
+
+    if (args.limit_days or args.max_sessions or args.skip_details) and Path(args.output).resolve() == Path("agenda.csv").resolve():
+        ap.error("Partial/debug crawls need a separate output, e.g. -o out.csv; agenda.csv is protected")
 
     days = FESTIVAL_DAYS[: args.limit_days] if args.limit_days else FESTIVAL_DAYS
 
@@ -282,6 +421,8 @@ def main() -> int:
         else:
             print(f"Stage 2/2: fetching {len(rows)} detail pages ...")
             for i, row in enumerate(rows, 1):
+                if "description" in row and "stage" in row:
+                    continue  # 新版列表已含說明；不要用舊版詳情選擇器覆蓋成空白。
                 detail = scrape_detail(driver, row["url"])
                 row.update(detail)
                 if i % 10 == 0 or i == len(rows):
@@ -315,12 +456,9 @@ def main() -> int:
 
     kept = carry_over_zh(args.output, rows)
     if kept:
-        print(f"  保留了 {kept} 筆既有的 description_zh（中文說明不會被這次抓取覆蓋）")
+        print(f"  保留了 {kept} 筆英文未改動的 description_zh；改動或新增的說明需重新翻譯")
 
-    with open(args.output, "w", newline="", encoding="utf-8-sig") as fh:
-        writer = csv.DictWriter(fh, fieldnames=FIELDS, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(rows)
+    write_csv(args.output, rows)
 
     no_desc = sum(1 for r in rows if not r["description"])
     print(f"\nDone. Wrote {len(rows)} sessions to {args.output}")
