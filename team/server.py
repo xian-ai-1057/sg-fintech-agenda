@@ -147,7 +147,7 @@ class Store:
                 return {'token': self.token(db, mid)}
             me = self.authenticate(db, token)
             if route in ('/api/state', '/api/export') and method == 'GET':
-                members = [dict(x) for x in db.execute('SELECT * FROM members WHERE revoked=0 OR ?="owner"', (me['role'],))]
+                members = [dict(x) for x in db.execute('SELECT * FROM members WHERE revoked=0 OR ?="owner" ORDER BY rowid', (me['role'],))]
                 picks = [dict(x) for x in db.execute('SELECT p.* FROM picks p JOIN members m ON m.id=p.member_id WHERE m.revoked=0')]
                 return {'me': me, 'members': members, 'picks': picks, 'join_locked': self.get(db, 'join_locked', '1') == '1'}
             if route == '/api/logout' and method == 'POST':
