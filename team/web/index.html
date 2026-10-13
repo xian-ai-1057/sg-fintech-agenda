@@ -9,12 +9,33 @@
 @media(prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#101012;--surface:#1c1c1e;--subtle:#242427;--ink:#f5f5f7;--muted:#aaaab1;--line:rgba(150,150,160,.22);--blue:#50a4ff;--tint:rgba(10,132,255,.18);--danger:#ff8383;--shadow:0 12px 48px #0007}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-size:14px;-webkit-font-smoothing:antialiased}button,input,select{font:inherit}button,a,input,select{touch-action:manipulation}button{cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:9px;padding:9px 13px}button:hover{background:var(--tint)}button:disabled{opacity:.48;cursor:wait}button.primary{background:var(--blue);color:white;border-color:transparent}button.danger{color:var(--danger)}button.small{font-size:12px;padding:6px 9px}a{color:var(--blue)}input,select{border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:var(--surface);color:var(--ink);min-width:0}input:focus,select:focus,button:focus-visible,a:focus-visible{outline:2px solid var(--blue);outline-offset:3px}header{background:var(--surface);border-bottom:1px solid var(--line);padding:25px 32px 19px;display:flex;align-items:center;justify-content:space-between;gap:20px}h1{font-size:25px;letter-spacing:-.8px;margin:0 0 6px;font-weight:650}h2{font-size:19px;letter-spacing:-.4px;margin:0}h3{font-size:15px;margin:0}.eyebrow{font-size:10px;letter-spacing:1.8px;font-weight:700;color:var(--blue);margin-bottom:8px}.sub{color:var(--muted);font-size:12px;line-height:1.6}.actions,.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.status{font-size:11px;color:var(--muted);margin-top:7px}.status.bad{color:var(--danger)}main{padding:22px 32px 40px;max-width:1900px;margin:auto}.toolbar{display:flex;justify-content:space-between;gap:14px;margin-bottom:18px;align-items:center;flex-wrap:wrap}.tabs{display:flex;gap:3px;background:var(--surface);border:1px solid var(--line);padding:3px;border-radius:11px}.tabs button{border:0;background:transparent;padding:8px 18px}.tabs button.active{color:var(--blue);background:var(--tint);font-weight:600}.filters{display:flex;gap:9px;flex-wrap:wrap}.filters input{width:260px}.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}.paneltop{padding:18px 21px;display:flex;align-items:center;justify-content:space-between;gap:15px;border-bottom:1px solid var(--line)}.legend{display:flex;gap:8px;flex-wrap:wrap;padding:14px 21px;border-bottom:1px solid var(--line)}.person{border-radius:99px;display:inline-flex;align-items:center;gap:6px;background:var(--subtle);padding:5px 9px;font-size:11px;border:1px solid var(--line)}.dot{width:7px;height:7px;border-radius:50%;background:var(--member,var(--blue));flex:none}.notice{background:var(--tint);padding:15px 19px;border:1px solid var(--line);border-radius:12px;margin-bottom:16px;line-height:1.6}.error{background:var(--surface);border-color:var(--danger);color:var(--danger)}[hidden]{display:none!important}.calendar-scroll{overflow:auto;max-height:72vh;overscroll-behavior:contain}.calendar{min-width:780px}.dayheads{position:sticky;top:0;z-index:5;display:grid;background:var(--surface);border-bottom:1px solid var(--line)}.dayhead{padding:16px 13px;text-align:center;border-left:1px solid var(--line)}.dayhead strong{display:block;font-size:17px;margin-top:3px}.timezone{font-size:10px;color:var(--muted);padding:20px 5px;text-align:center}.timebody{position:relative;display:grid}.gutter{position:relative;background:var(--surface)}.timelabel{position:absolute;font-size:10px;color:var(--muted);right:9px;transform:translateY(-50%)}.daycanvas{position:relative;border-left:1px solid var(--line);background:repeating-linear-gradient(to bottom,transparent 0,transparent 59px,var(--line) 59px,var(--line) 60px)}.event{position:absolute;text-align:left;padding:6px 7px;border-radius:6px;border:0;border-left:3px solid var(--blue);background:var(--tint);overflow:hidden;color:var(--ink);min-height:20px;font-size:11px;line-height:1.25}.event:hover{filter:brightness(.96);z-index:3}.event strong{display:block;font-size:11px;margin:3px 0;line-height:1.3}.event .eventnames{font-size:10px;color:var(--blue)}.empty{padding:44px 24px;text-align:center;color:var(--muted);line-height:1.8}.sessionlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px;padding:18px}.sessioncard{border:1px solid var(--line);border-radius:12px;padding:17px;background:var(--surface);display:flex;flex-direction:column;gap:10px}.sessioncard h3{font-size:14px;line-height:1.5}.cardfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:auto}.badge{font-size:10px;padding:4px 7px;border-radius:5px;background:var(--tint);color:var(--blue)}.picknames{color:var(--blue);font-size:11px;line-height:1.5}.detail-link{border:0;padding:0;background:none;text-align:left}.detail-link:hover{background:none;color:var(--blue)}dialog{border:1px solid var(--line);padding:0;border-radius:18px;background:var(--surface);color:var(--ink);box-shadow:var(--shadow);width:min(580px,calc(100% - 30px));max-height:90vh}dialog::backdrop{background:#0005;backdrop-filter:blur(3px)}.dialoghead{padding:20px 23px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:20px}.dialogbody{padding:23px}.close{font-size:20px;border:0;line-height:1;padding:4px 7px;background:var(--subtle)}label{display:block;font-size:12px;margin:16px 0 7px;color:var(--muted)}.full{width:100%}.description{white-space:pre-line;line-height:1.75;margin:19px 0;color:var(--ink)}.divider{height:1px;background:var(--line);margin:20px 0}.admin-member{display:flex;justify-content:space-between;gap:10px;padding:13px 0;border-bottom:1px solid var(--line);align-items:center}.adminlink{word-break:break-all;width:100%;margin:12px 0}.dialogerror{color:var(--danger);font-size:12px;line-height:1.6;margin:12px 0}.pill{font-size:10px;font-weight:600;color:var(--blue);background:var(--tint);border-radius:99px;padding:4px 8px}.footnote{margin-top:14px;font-size:11px;color:var(--muted);line-height:1.7}footer{margin-top:17px;color:var(--muted);font-size:11px}.clash{color:var(--danger);font-size:11px;line-height:1.6}.auth-note{margin-bottom:16px}.lang{margin-top:16px}
 @media(max-width:720px){header{padding:20px 18px;align-items:flex-start;flex-direction:column;gap:13px}h1{font-size:23px}main{padding:16px 12px 28px}.toolbar{align-items:stretch}.filters{width:100%}.filters input{width:100%;flex:1 0 100%}.filters select{flex:1}.tabs{width:100%}.tabs button{flex:1}.paneltop{padding:16px}.sessionlist{padding:12px;grid-template-columns:1fr}.calendar-scroll{max-height:65vh}.calendar{min-width:750px}.legend{padding:12px}.dialogbody{padding:20px}.actions button{padding:8px 10px;font-size:12px}.sub{font-size:11px}}
+/* 議程小幫手 */
+.chat-launcher{position:fixed;right:20px;bottom:20px;z-index:20;border-radius:999px;padding:11px 17px;background:var(--blue);color:#fff;border-color:transparent;box-shadow:var(--shadow)}
+.chat-launcher:hover{background:var(--blue);filter:brightness(1.08)}
+.chat-panel{position:fixed;right:20px;bottom:76px;z-index:21;width:min(400px,calc(100vw - 32px));height:min(580px,calc(100vh - 120px));display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.chat-panel[hidden]{display:none}
+.chat-head{display:flex;align-items:center;gap:8px;padding:13px 14px;border-bottom:1px solid var(--line)}
+.chat-head>div{flex:1;min-width:0}
+.chat-head strong,#chatSub{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-mode.on{background:var(--tint);color:var(--blue);border-color:var(--blue)}
+.chat-log{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--subtle)}
+.chat-msg{max-width:90%;padding:9px 12px;border-radius:14px;line-height:1.55;word-break:break-word}
+.chat-msg.bot{align-self:flex-start;background:var(--surface);border:1px solid var(--line)}
+.chat-msg.user{align-self:flex-end;background:var(--blue);color:#fff}
+.chat-card{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;margin-top:7px;padding:8px 10px}
+.chat-sid{padding:1px 6px;font-size:12px;border-radius:6px;color:var(--blue)}
+.chat-p+.chat-p,.chat-li{margin-top:4px}
+.chat-input{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}
+.chat-input input{flex:1}
+@media(max-width:720px){.chat-panel{left:8px;right:8px;width:auto;bottom:70px;height:calc(100vh - 96px)}.chat-launcher{right:14px;bottom:14px}.chat-input input{font-size:16px}}
 @media(prefers-reduced-motion:no-preference){button{transition:background .15s ease}}
 </style>
 </head>
 <body>
 <header><div><div class="eyebrow">SINGAPORE FINTECH FESTIVAL</div><h1>Team Calendar <span style="font-weight:400;color:var(--muted)">/ 團隊行程</span></h1><div class="sub" id="festivalMeta">Shared plans. Better conversations. · 一起規劃參會行程</div></div><div><div class="actions"><a href="../" class="back-to-agenda">← 原本行事曆 · Agenda</a><span id="identity" class="person" hidden></span><button id="joinButton">Join team · 加入</button><button id="ownerButton">Owner login · 管理員</button><button id="adminButton" hidden>Manage · 管理</button><button id="exportButton" hidden>Export · 匯出</button><button id="logoutButton" hidden>Log out · 登出</button></div><div id="syncStatus" class="status" role="status">Connecting to calendar…</div></div></header>
-<main><div id="errorBanner" class="notice error" role="alert" hidden><span id="errorText"></span> <button id="retryButton" class="small">Retry · 重試</button></div><div id="welcome" class="notice" hidden>Browse the full agenda, then join with your team's invite link to save sessions and see everyone's plans. · 使用團隊邀請連結加入，即可選取議程並查看彼此的行程。</div><div class="toolbar"><div class="tabs" role="tablist" aria-label="View"><button id="calendarTab" role="tab" aria-selected="true" class="active">Calendar · 行事曆</button><button id="agendaTab" role="tab" aria-selected="false">Agenda · 全部議程</button></div><div class="filters"><input id="search" type="search" placeholder="Search title, stage, description…" aria-label="Search agenda"><select id="dayFilter" aria-label="Filter day"><option value="">All days · 所有日期</option></select><select id="memberFilter" aria-label="Filter team member"><option value="all">Whole team · 全團隊</option></select></div></div><section class="panel"><div class="paneltop"><div><h2 id="viewTitle">Team schedule</h2><div class="sub" id="viewCount">Loading agenda…</div></div><span class="pill">SGT · UTC+8</span></div><div id="legend" class="legend" hidden></div><div id="content"><div class="empty">Loading the festival agenda…<br>正在載入議程</div></div></section><footer>Selections are saved on this team's server and refresh every 5 seconds. · 行程儲存於團隊伺服器，每 5 秒更新。<br>Session times are in Singapore time. Access restrictions still apply; a selection is not a registration. · 選取議程不代表已報名。</footer></main>
+<main><div id="errorBanner" class="notice error" role="alert" hidden><span id="errorText"></span> <button id="retryButton" class="small">Retry · 重試</button></div><div id="welcome" class="notice" hidden>Browse the full agenda, then join with your team's invite link to save sessions and see everyone's plans. · 使用團隊邀請連結加入，即可選取議程並查看彼此的行程。</div><div class="toolbar"><div class="tabs" role="tablist" aria-label="View"><button id="calendarTab" role="tab" aria-selected="true" class="active">Calendar · 行事曆</button><button id="agendaTab" role="tab" aria-selected="false">Agenda · 全部議程</button></div><div class="filters"><input id="search" type="search" placeholder="搜尋講題、講者、主題 · Search" aria-label="Search agenda"><select id="dayFilter" aria-label="Filter day"><option value="">All days · 所有日期</option></select><select id="memberFilter" aria-label="Filter team member"><option value="all">Whole team · 全團隊</option></select></div></div><section class="panel"><div class="paneltop"><div><h2 id="viewTitle">Team schedule</h2><div class="sub" id="viewCount">Loading agenda…</div></div><span class="pill">SGT · UTC+8</span></div><div id="legend" class="legend" hidden></div><div id="content"><div class="empty">Loading the festival agenda…<br>正在載入議程</div></div></section><footer>Selections are saved on this team's server and refresh every 5 seconds. · 行程儲存於團隊伺服器，每 5 秒更新。<br>Session times are in Singapore time. Access restrictions still apply; a selection is not a registration. · 選取議程不代表已報名。</footer></main>
+<button id="chatLauncher" class="chat-launcher" aria-expanded="false" aria-controls="chatPanel">💬 Ask · 議程小幫手</button>
+<aside id="chatPanel" class="chat-panel" aria-label="Agenda helper" hidden><div class="chat-head"><div><strong>議程小幫手 · Agenda helper</strong><div id="chatSub" class="sub"></div></div><button id="chatMode" class="small chat-mode" aria-pressed="false" title="Switch AI / keyword · 切換 AI／關鍵字"></button><button id="chatClear" class="small" title="Clear · 清除對話" aria-label="Clear conversation">↺</button><button id="chatClose" class="close" aria-label="Close">×</button></div><div id="chatLog" class="chat-log" aria-live="polite"></div><form id="chatForm" class="chat-input"><input id="chatInput" maxlength="500" autocomplete="off" aria-label="Question"><button id="chatSend" class="primary">Send · 送出</button></form></aside>
 <dialog id="authDialog"><div class="dialoghead"><h2 id="authTitle">Join the team</h2><button class="close" data-close="authDialog" aria-label="Close">×</button></div><form id="authForm" class="dialogbody"><div id="joinFields"><p class="sub auth-note">Use the invite link from your team owner. Your nickname and selected sessions are visible to the team. · 暱稱及所選議程會對團隊成員顯示。</p><label for="nickname">Nickname · 暱稱</label><input id="nickname" class="full" maxlength="60" autocomplete="nickname"><label for="inviteInput">Invite code · 邀請碼</label><input id="inviteInput" class="full" autocomplete="off" spellcheck="false"></div><div id="ownerFields" hidden><p class="sub">Sign in with the owner password configured on your server. · 使用伺服器設定的管理員密碼。</p><label for="ownerPassword">Owner password · 管理員密碼</label><input id="ownerPassword" class="full" type="password" autocomplete="current-password"></div><div id="authError" class="dialogerror" role="alert"></div><button id="authSubmit" class="primary full" type="submit">Join team · 加入團隊</button><p class="footnote">This browser tab remembers your session. Logging out removes the local session. Keep your invite link private. · 請勿公開分享邀請連結。</p></form></dialog>
 <dialog id="detailDialog"><div class="dialoghead"><h2 id="detailTitle"></h2><button class="close" data-close="detailDialog" aria-label="Close">×</button></div><div class="dialogbody"><div id="detailMeta" class="sub"></div><div class="row lang"><button id="langButton" class="small">中文說明</button><a id="officialLink" target="_blank" rel="noopener noreferrer">Official session ↗</a></div><div id="detailDescription" class="description"></div><div id="detailPeople" class="picknames"></div><div id="detailClash" class="clash"></div><div id="editMemberWrap" hidden><label for="editMember">Edit schedule for · 編輯成員行程</label><select id="editMember" class="full"></select></div><div id="detailError" class="dialogerror" role="alert"></div><button id="detailPick" class="primary full">Add to my schedule</button></div></dialog>
 <dialog id="adminDialog"><div class="dialoghead"><h2>Team settings · 團隊管理</h2><button class="close" data-close="adminDialog" aria-label="Close">×</button></div><div class="dialogbody"><div class="row"><button id="lockButton">Lock joining</button><button id="rotateButton">New invite link · 更新邀請</button></div><p class="footnote">Rotating the invite invalidates the old link. Existing members keep access. Revoking ends a member's current access. A forwarded invite can allow rejoining until you rotate it or lock joining. Nicknames are not verified identities. · 更新邀請後舊連結失效；既有成員仍可使用。停用後，若邀請仍有效，對方可能再次加入。暱稱不代表已驗證身分。</p><div id="inviteResult" hidden><label for="generatedInvite">New invite link · 新邀請連結</label><input id="generatedInvite" class="adminlink" readonly><button id="copyInvite" class="small">Copy link · 複製連結</button><p class="footnote">Copy this link now. The server will not reveal it again. · 請立即複製保存。</p></div><div id="adminError" class="dialogerror" role="alert"></div><div class="divider"></div><h3>Members · 成員</h3><div id="adminMembers"></div></div></dialog>
@@ -35,14 +56,14 @@ const minutes=t=>{if(typeof t==='number')return t;const match=String(t).match(/(
 const time=t=>{const n=minutes(t);return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')};
 const dateLabel=d=>{const date=new Date(d+'T12:00:00Z');return Number.isNaN(date.getTime())?d:date.toLocaleDateString('en-SG',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'})};
 function setToken(token){memory.token=token;try{token?sessionStorage.setItem('sff-team-token',token):sessionStorage.removeItem('sff-team-token')}catch{}}
-async function api(path,body){const headers={'Accept':'application/json'};if(memory.token)headers.Authorization='Bearer '+memory.token;if(body!==undefined)headers['Content-Type']='application/json';let r;try{r=await fetch(path,{method:body===undefined?'GET':'POST',headers,body:body===undefined?undefined:JSON.stringify(body),cache:'no-store',signal:AbortSignal.timeout(15000)})}catch{throw new Error('Cannot reach the server. Check your connection and retry. · 無法連線，請重試。')}
+async function api(path,body,timeout=15000){const headers={'Accept':'application/json'};if(memory.token)headers.Authorization='Bearer '+memory.token;if(body!==undefined)headers['Content-Type']='application/json';let r;try{r=await fetch(path,{method:body===undefined?'GET':'POST',headers,body:body===undefined?undefined:JSON.stringify(body),cache:'no-store',signal:AbortSignal.timeout(timeout)})}catch{throw new Error('Cannot reach the server. Check your connection and retry. · 無法連線，請重試。')}
 let data;try{data=await r.json()}catch{throw new Error('The server returned an unreadable response. · 伺服器回應格式錯誤。')}
 if(!r.ok){if((r.status===401||r.status===403)&&!['/api/login','/api/join'].includes(path)){setToken('');memory.state=null;render();}throw new Error(typeof data.error==='string'?data.error:typeof data.message==='string'?data.message:'Request failed ('+r.status+'). Please retry.')}return data;}
 function error(message){$('errorText').textContent=message;$('errorBanner').hidden=false;$('syncStatus').textContent='Not synced · 尚未同步';$('syncStatus').classList.add('bad')}
 function synced(){memory.lastSync=new Date();$('errorBanner').hidden=true;$('syncStatus').classList.remove('bad');$('syncStatus').textContent=memory.state?'Synced '+memory.lastSync.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})+' · 每 5 秒更新':'Agenda loaded · 登入後即可共用行程'}
 async function refresh(){if(memory.busy)return;try{if(memory.token){const state=await api('/api/state');const changed=JSON.stringify(state)!==JSON.stringify(memory.state);memory.state=state;if(changed)render()}synced()}catch(e){error(e.message)}}
 async function load(){try{const data=await api('/api/agenda');memory.sessions=(data.sessions||[]).sort((a,b)=>String(a.date).localeCompare(String(b.date))||minutes(a.start)-minutes(b.start));const dates=[...new Set(memory.sessions.map(s=>s.date))];$('dayFilter').replaceChildren(make('option','', 'All days · 所有日期'));$('dayFilter').firstChild.value='';for(const d of dates){const o=make('option','',dateLabel(d));o.value=d;$('dayFilter').append(o)}$('festivalMeta').textContent=(dates.length?dateLabel(dates[0])+' – '+dateLabel(dates[dates.length-1])+' · ':'')+memory.sessions.length+' sessions · Singapore EXPO';render();await refresh();if(memory.invite&&!memory.token)openAuth('join')}catch(e){error(e.message);$('content').replaceChildren(make('div','empty','The agenda could not be loaded. Use Retry above. · 議程載入失敗，請重試。'))}}
-function filters(){const q=$('search').value.trim().toLowerCase();const day=$('dayFilter').value;return memory.sessions.filter(s=>(!day||s.date===day)&&(!q||[s.title,s.title_zh,s.description,s.description_zh,s.stage,s.access].join(' ').toLowerCase().includes(q)))}
+function filters(){const q=$('search').value.trim().toLowerCase();const day=$('dayFilter').value;return memory.sessions.filter(s=>(!day||s.date===day)&&(!q||[s.title,s.title_zh,s.speakers,s.track,s.stage,s.location,s.description,s.description_zh,s.access].join(' ').toLowerCase().includes(q)))}
 function chosenSessions(){const mid=$('memberFilter').value;return filters().filter(s=>mid==='all'?attendees(s.id).length: selected(s.id,mid))}
 function person(m){const p=make('span','person');const dot=make('span','dot');dot.style.setProperty('--member',memberColor(m.id));p.append(dot,document.createTextNode(m.nickname+(String(m.id)===String(memory.state?.me.id)?' · You':'')));return p}
 function render(){const signed=!!memory.state;const owner=memory.state?.me.role==='owner';$('identity').hidden=!signed;$('identity').textContent=signed?memory.state.me.nickname+(owner?' · Owner':''):'';$('joinButton').hidden=signed;$('ownerButton').hidden=signed;$('logoutButton').hidden=!signed;$('adminButton').hidden=!owner;$('exportButton').hidden=!signed;$('welcome').hidden=signed;
@@ -64,5 +85,159 @@ function renderAdmin(){$('lockButton').textContent=memory.state?.join_locked?'Un
 async function adminAction(body,button){button.disabled=true;$('adminError').textContent='';try{const result=await api('/api/admin',body);if(result.invite){const u=new URL(location.href);u.hash=new URLSearchParams({invite:result.invite}).toString();$('generatedInvite').value=u.href;$('inviteResult').hidden=false}memory.state=await api('/api/state');render();synced()}catch(e){$('adminError').textContent=e.message}finally{button.disabled=false}}
 $('joinButton').onclick=()=>openAuth('join');$('ownerButton').onclick=()=>openAuth('owner');$('calendarTab').onclick=()=>setView('calendar');$('agendaTab').onclick=()=>setView('agenda');$('search').oninput=renderView;$('dayFilter').onchange=renderView;$('memberFilter').onchange=renderView;$('retryButton').onclick=()=>memory.sessions.length?refresh():load();$('logoutButton').onclick=async()=>{let logoutError='';try{await api('/api/logout',{})}catch(e){logoutError='Server logout failed. Local session cleared; the server session may remain valid until expiry. · 伺服器登出失敗，已清除本機登入；伺服器憑證可能仍有效至到期。'}setToken('');memory.state=null;memory.invite='';$('generatedInvite').value='';$('inviteResult').hidden=true;for(const d of document.querySelectorAll('dialog'))d.close();render();synced();if(logoutError)error(logoutError)};$('langButton').onclick=()=>{memory.lang=memory.lang==='en'?'zh':'en';renderDetail()};$('editMember').onchange=renderDetailSelection;$('detailPick').onclick=()=>{if(memory.state)togglePick(memory.detail,detailMember(),$('detailPick'));else{$('detailDialog').close();openAuth('join')}};$('adminButton').onclick=()=>{renderAdmin();$('adminDialog').showModal()};$('lockButton').onclick=()=>adminAction({action:'lock',locked:!memory.state.join_locked},$('lockButton'));$('rotateButton').onclick=()=>{if(confirm('Create a new invite and invalidate the previous link? · 更新邀請並使舊連結失效？'))adminAction({action:'rotate_invite'},$('rotateButton'))};$('copyInvite').onclick=async()=>{try{await navigator.clipboard.writeText($('generatedInvite').value);$('copyInvite').textContent='Copied · 已複製'}catch{$('generatedInvite').select();$('adminError').textContent='Select and copy the link above. · 請手動複製上方連結。'}};$('exportButton').onclick=async()=>{try{const data=await api('/api/export');const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=make('a');a.href=url;a.download='sff-team-calendar.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000)}catch(e){error(e.message)}};
 for(const button of document.querySelectorAll('[data-close]'))button.onclick=()=>$(button.dataset.close).close();$('authDialog').addEventListener('close',()=>{$('ownerPassword').value=''});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&memory.token)refresh()});setInterval(()=>{if(!document.hidden&&memory.token)refresh()},5000);load();
+</script>
+<script>
+'use strict';
+/* ============================================================
+   議程小幫手 —— 和原本行事曆的對話框一樣有兩種模式：
+   - 關鍵字：POST /api/chat/keyword，伺服器計分後回傳場次 id（不需登入、不需網路）
+   - AI：POST /api/chat/ai，伺服器轉給議程 Agent（需登入）；失敗就退回關鍵字
+   用到上一段 script 的 $、make、api、memory、openDetail、dateLabel、time。
+   ============================================================ */
+const chat = {open: false, mode: 'keyword', ai: null, busy: false, thread: ''};
+const CHAT_GREETING = '嗨！輸入主題、關鍵字或講者姓名，我從全部議程幫你找。登入後若主機有開議程 Agent，可切到 AI 模式直接發問。 · Type a topic, keyword or speaker and I\'ll find matching sessions.';
+const newThread = () => Math.random().toString(36).slice(2, 10);
+const aiUsable = () => chat.ai === true && !!memory.state;
+chat.thread = newThread();
+
+/* 在對話紀錄加一則訊息；content 可以是文字或元素陣列 */
+function chatSay(role, content) {
+  const bubble = make('div', 'chat-msg ' + role);
+  if (typeof content === 'string') bubble.textContent = content;
+  else bubble.append(...content);
+  $('chatLog').append(bubble);
+  $('chatLog').scrollTop = $('chatLog').scrollHeight;
+  return bubble;
+}
+
+/* 推薦結果的場次卡片，點了開啟原本的詳情視窗（可加入行程） */
+function chatCard(s) {
+  const card = make('button', 'chat-card');
+  card.type = 'button';
+  card.append(make('strong', '', s.title), make('span', 'sub', dateLabel(s.date) + ' · ' + time(s.start) + '–' + time(s.end) + ' · ' + (s.stage || '')));
+  card.onclick = () => openDetail(s.id);
+  return card;
+}
+
+/* Agent 回的是純文字，只處理三種標記：**粗體**、「- 」清單、AGND 場次編號（變成可點按鈕） */
+function appendRich(parent, text) {
+  String(text).split(/\*\*(.+?)\*\*/g).forEach((chunk, i) => {
+    let target = parent;
+    if (i % 2) { target = make('strong'); parent.append(target); }
+    for (const part of chunk.split(/\b(AGND\d+)\b/)) {
+      const s = /^AGND\d+$/.test(part) && memory.sessions.find(x => x.id === part);
+      if (s) {
+        const b = make('button', 'chat-sid', part);
+        b.type = 'button'; b.title = s.title; b.onclick = () => openDetail(s.id);
+        target.append(b);
+      } else if (part) target.append(part);
+    }
+  });
+}
+function agentLines(text) {
+  const rows = [];
+  for (const line of String(text).split('\n')) {
+    const t = line.trim();
+    if (!t) continue;
+    const bullet = /^[-*•]\s+/.test(t);
+    const row = make('div', bullet ? 'chat-li' : 'chat-p');
+    if (bullet) row.append('• ');
+    appendRich(row, bullet ? t.replace(/^[-*•]\s+/, '') : t);
+    rows.push(row);
+  }
+  return rows;
+}
+
+async function keywordAnswer(question) {
+  const {ids} = await api('/api/chat/keyword', {question});
+  const found = ids.map(id => memory.sessions.find(s => s.id === id)).filter(Boolean);
+  if (!found.length) {
+    chatSay('bot', '找不到相關場次，換個關鍵字試試（例如 AI、payments、講者姓名）。 · No strong match — try another keyword.');
+    return;
+  }
+  chatSay('bot', [make('div', '', '找到 ' + found.length + ' 場相關議程 · ' + found.length + ' matching sessions:'), ...found.map(chatCard)]);
+}
+
+async function aiAnswer(question) {
+  const bubble = chatSay('bot', '思考中… · Thinking…');
+  try {
+    const {answer} = await api('/api/chat/ai', {question, thread_id: chat.thread}, 125000);
+    bubble.replaceChildren(...agentLines(answer));
+  } catch (e) {
+    bubble.textContent = '連不上議程 Agent，先用關鍵字比對。 · AI unavailable, keyword results below.';
+    await keywordAnswer(question);
+  }
+}
+
+async function chatSend() {
+  const question = $('chatInput').value.trim();
+  if (chat.busy) return;
+  if (!question) { chatSay('bot', '請輸入主題或關鍵字。 · Type a topic or keyword.'); return; }
+  $('chatInput').value = '';
+  chatSay('user', question);
+  chat.busy = true;
+  $('chatInput').disabled = $('chatSend').disabled = true;
+  try {
+    if (chat.mode === 'ai' && aiUsable()) await aiAnswer(question);
+    else await keywordAnswer(question);
+  } catch (e) {
+    chatSay('bot', e.message);
+  } finally {
+    chat.busy = false;
+    $('chatInput').disabled = $('chatSend').disabled = false;
+    $('chatInput').focus();
+  }
+}
+
+function renderChatHead() {
+  const on = chat.mode === 'ai' && aiUsable();
+  $('chatMode').textContent = on ? 'AI' : 'Keyword · 關鍵字';
+  $('chatMode').setAttribute('aria-pressed', String(on));
+  $('chatMode').classList.toggle('on', on);
+  $('chatSub').textContent = on ? '由議程 Agent 回答 · Ask anything' : '主題、關鍵字或講者 · Topic or speaker';
+  $('chatInput').placeholder = on ? '例如：第二天有什麼值得聽的？' : '例如：AI、payments、講者姓名';
+}
+
+function toggleChatMode() {
+  if (chat.mode === 'ai') {
+    chat.mode = 'keyword';
+    chatSay('bot', '已切換到關鍵字模式。 · Keyword mode.');
+  } else if (!memory.state) {
+    chatSay('bot', 'AI 模式需要先加入團隊或管理員登入。 · Join or sign in to use AI mode.');
+  } else if (chat.ai !== true) {
+    chatSay('bot', 'AI 模式需要在主機上執行議程 Agent：uvicorn agent.main:app --host 127.0.0.1 --port 8765，再重新整理此頁。 · Start the agenda agent on the host, then reload.');
+  } else {
+    chat.mode = 'ai';
+    chatSay('bot', '已切換到 AI 模式，由議程 Agent 回答。 · AI mode on.');
+  }
+  renderChatHead();
+}
+
+async function toggleChat() {
+  chat.open = !chat.open;
+  $('chatPanel').hidden = !chat.open;
+  $('chatLauncher').setAttribute('aria-expanded', String(chat.open));
+  if (!chat.open) return;
+  if (!$('chatLog').children.length) chatSay('bot', CHAT_GREETING);
+  renderChatHead();
+  $('chatInput').focus();
+  if (chat.ai === null) {  // 第一次打開才探測 Agent；可用且已登入就預設 AI 模式
+    try { chat.ai = (await api('/api/chat/status')).ai === true; } catch { chat.ai = false; }
+    if (aiUsable()) chat.mode = 'ai';
+    renderChatHead();
+  }
+}
+
+function clearChat() {
+  chat.thread = newThread();  // 換一組 thread_id，Agent 的對話記憶也重來
+  $('chatLog').replaceChildren();
+  chatSay('bot', CHAT_GREETING);
+}
+
+$('chatLauncher').onclick = toggleChat;
+$('chatClose').onclick = toggleChat;
+$('chatMode').onclick = toggleChatMode;
+$('chatClear').onclick = clearChat;
+$('chatForm').onsubmit = e => { e.preventDefault(); chatSend(); };
 </script>
 </body></html>

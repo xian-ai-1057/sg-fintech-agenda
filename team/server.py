@@ -17,6 +17,8 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 
+from . import assistant
+
 ROOT = Path(__file__).resolve().parent.parent
 MIN_PASSWORD = 6
 SCHEMA = '''
@@ -105,6 +107,11 @@ class Store:
             self.put(db, 'join_locked', '1')
             db.execute('INSERT INTO members VALUES (?,?,?,0)', ('owner', '管理員', 'owner'))
 
+    def member(self, token):
+        """目前登入的成員（唯讀查詢，不開寫入交易）；未登入丟 Problem(401)。"""
+        with self.connect() as db:
+            return self.authenticate(db, token)
+
     def authenticate(self, db, token):
         member = db.execute('SELECT m.* FROM sessions s JOIN members m ON s.member_id=m.id WHERE s.hash=? AND s.expires>? AND m.revoked=0', (digest(token), time.time())).fetchone()
         if not member:
@@ -182,8 +189,9 @@ class Store:
 
 class Server(ThreadingHTTPServer):
     daemon_threads = True
-    def __init__(self, address, store, origins):
+    def __init__(self, address, store, origins, agent_url=assistant.DEFAULT_AGENT_URL):
         self.store = store
+        self.agent_url = agent_url.rstrip('/')
         self.instance = secrets.token_hex(16)
         self.agenda = agenda()
         self.ids = {s['id'] for s in self.agenda}
@@ -250,6 +258,9 @@ class Handler(BaseHTTPRequestHandler):
             if method == 'GET' and route == '/api/agenda':
                 self.send(200, {'sessions': self.server.agenda})
                 return
+            if method == 'GET' and route == '/api/chat/status':
+                self.send(200, {'ai': assistant.agent_ok(self.server.agent_url)})
+                return
             data = {}
             if method == 'POST':
                 if self.headers.get('Content-Type', '').split(';')[0] != 'application/json':
@@ -263,16 +274,21 @@ class Handler(BaseHTTPRequestHandler):
                         raise ValueError()
                 except (ValueError, UnicodeDecodeError):
                     raise Problem(400, '請求內容不正確或太大。')
-                if route in ('/api/login', '/api/join'):
+                # 登入／加入共用一個額度防暴力猜測；AI 問答另計，避免一直燒 API 額度
+                bucket = {'/api/login': 'auth', '/api/join': 'auth', '/api/chat/ai': 'chat'}.get(route)
+                if bucket:
                     with self.server.rate_lock:
                         now = time.time()
-                        key = self.client_address[0]
+                        key = (bucket, self.client_address[0])
                         attempts = [t for t in self.server.attempts.get(key, []) if now-t < 60]
                         if len(attempts) >= 15:
                             raise Problem(429, '嘗試次數過多，請稍候一分鐘。')
                         self.server.attempts[key] = attempts + [now]
             auth = self.headers.get('Authorization', '')
             token = auth[7:] if auth.startswith('Bearer ') else ''
+            if method == 'POST' and route.startswith('/api/chat/'):
+                self.send(200, self.chat(route, data, token))
+                return
             result = self.server.store.request(method, route, data, token, self.server.ids)
             if route == '/api/export':
                 result['sessions'] = self.server.agenda
@@ -286,6 +302,23 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:
             self.send(500, {'error': '伺服器發生錯誤，請重新整理或聯絡管理員。'})
 
+    def chat(self, route, data, token):
+        """議程小幫手：關鍵字模式任何人可用；AI 模式需登入，因為會用到 Agent 的 API 額度。"""
+        question = str(data.get('question', '')).strip()
+        if not 1 <= len(question) <= 500:
+            raise Problem(400, '請輸入 1–500 字的問題。')
+        if route == '/api/chat/keyword':
+            return {'ids': [s['id'] for s in assistant.recommend(self.server.agenda, question)]}
+        if route == '/api/chat/ai':
+            me = self.server.store.member(token)
+            # 每位成員各自一段對話記憶；前端清除對話時換一組 thread_id
+            thread = 'team-' + me['id'] + '-' + str(data.get('thread_id', ''))[:40]
+            try:
+                return {'answer': assistant.ask_agent(self.server.agent_url, question, thread)}
+            except assistant.AgentError:
+                raise Problem(502, '議程 Agent 暫時無法回答。')
+        raise Problem(404, '找不到此操作。')
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--host', default='0.0.0.0')
@@ -293,6 +326,8 @@ def main():
     parser.add_argument('--data', type=Path, default=ROOT / 'team-data' / 'calendar.sqlite3')
     parser.add_argument('--origin', action='append', default=[], help='Exact browser origin, e.g. http://192.168.1.20:8766; repeatable')
     parser.add_argument('--setup', action='store_true', help='Initialize owner locally using hidden password prompt')
+    parser.add_argument('--agent', default=os.environ.get('SFF_AGENT_URL', assistant.DEFAULT_AGENT_URL),
+                        help='議程 Agent（agent/api.py）的位址，AI 問答會轉送到這裡')
     parser.add_argument('--backup', type=Path, help='Write a consistent SQLite backup to a NEW file, then exit')
     args = parser.parse_args()
     os.umask(0o077)
@@ -319,7 +354,7 @@ def main():
         if not store.get(db, 'password_hash'):
             parser.error('請先在自己的電腦執行 python3 -m team.server --setup。')
     origins = args.origin or default_origins(args.port)
-    server = Server((args.host, args.port), store, origins)
+    server = Server((args.host, args.port), store, origins, args.agent)
     print(f'SFF: http://127.0.0.1:{args.port}/ — Team: /team/ — Ctrl+C 停止')
     print('允許的連線位址：' + '、'.join(origins))
     if args.host not in ('127.0.0.1', 'localhost'):
