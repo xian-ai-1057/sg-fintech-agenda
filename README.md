@@ -6,9 +6,10 @@
 線上版：<https://xian-ai-1057.github.io/sg-fintech-agenda/>
 2025 年的議程存檔：<https://xian-ai-1057.github.io/sg-fintech-agenda/archive/2025/>
 
-資料更新：2026-10-13，依[官方議程](https://www.fintechfestival.sg/agenda)核對
-124 場（11/18：45、11/19：42、11/20：37）；88 場已公布講者。
-120 場有英文說明與繁體中文翻譯，另外 4 場官方尚未公布說明。所有時間皆為新加坡時間（SGT，UTC+8）。
+資料更新：2026-11-18，依[官方議程](https://www.fintechfestival.sg/agenda)重新抓取
+482 場（11/18：186、11/19：185、11/20：111）；官網另列 4 場 11/17 的大會前活動（Day 0），不在三天議程內故略過。
+477 場有英文說明，其中 86 場的英文與上一版相同、沿用既有繁體中文翻譯；其餘新場次或改寫說明的場次暫顯示英文。
+所有時間皆為新加坡時間（SGT，UTC+8）。
 
 ## 資料流
 
@@ -82,6 +83,24 @@ uvicorn agent.main:app --host 127.0.0.1 --port 8765
 - **搜尋 + 篩選**：頂部常駐搜尋框（講題／講者／場地），「篩選」底部彈出面板可多選
   主題與舞台，主題色點同時兼作圖例；
 - **詳情**：點卡片以底部彈出式（bottom sheet）開啟，桌機則維持置中視窗。
+
+### 線上部署（Vercel：議程 + 共編行事曆）
+
+repo 根目錄的 `vercel.json` 讓同一份程式部署到 Vercel：靜態頁面照舊，`/team/` 是共編行事曆，
+`/api/*` 由 `api/index.py`（Python 標準函式庫，不裝任何套件）處理，邏輯與自架版 `team/server.py` 完全相同。
+Vercel Function 沒有持久磁碟，所以共編的 SQLite 資料庫檔存在**私有 Vercel Blob**（`team/blobstore.py`），
+寫入時帶 ETag 條件，兩個執行個體同時寫也不會互相覆蓋。
+
+需要的設定（Vercel 專案 → Settings）：
+
+| 項目 | 說明 |
+| --- | --- |
+| Storage → Blob（private） | 連上專案後自動提供 `BLOB_READ_WRITE_TOKEN` |
+| 環境變數 `SFF_ADMIN_PASSWORD` | 第一次使用時建立管理員的密碼（≥ 6 字元）；之後可在網頁「Password · 密碼」更改，環境變數就不再使用 |
+| 環境變數 `SFF_AGENT_URL`（選用） | 議程 Agent 的公開網址；沒設時小幫手只用關鍵字模式 |
+
+注意：唯讀請求最多使用 15 秒前的資料副本以節省 Blob 讀取次數，所以其他人的變更最慢約 15 秒後出現；
+登入嘗試的速率限制只在同一個 Function 執行個體內計算。
 
 ### 線上部署（GitHub Pages）
 

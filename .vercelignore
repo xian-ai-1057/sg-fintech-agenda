@@ -1,0 +1,18 @@
+# Vercel 部署只需要：靜態頁面、agenda.csv、archive/、team/、api/
+.git
+.github
+tests/
+team-data/
+*.sqlite3
+*.sqlite3-*
+*.db
+.env
+agent/.env
+agent/.index/
+__pycache__/
+*.pyc
+scrape.log
+start.bat
+start.command
+# 根目錄 requirements.txt 是爬蟲用的（selenium），不要裝進 Function
+/requirements.txt

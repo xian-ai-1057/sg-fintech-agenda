@@ -7,6 +7,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+/* 共編行事曆入口：自架服務會直接在 <html> 加上 data-selfhost；部署在 Vercel 時改由這裡探測同站的
+   共編 API（api/health）。GitHub Pages 上沒有 API，請求 404，入口維持隱藏。 */
+if (!document.documentElement.hasAttribute("data-selfhost") && /^https?:$/.test(location.protocol)) {
+  fetch("api/health", { cache: "no-store" })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) { if (d && d.service === "sff-team-calendar") document.documentElement.setAttribute("data-selfhost", "true"); })
+    .catch(function () {});
+}
+</script>
 <style>
 /* ============================================================
    SFF 2026 Agenda — Apple Calendar inspired
@@ -872,6 +882,16 @@ var VENUE_CFG = {
   "Impact Stage":         ["IMP", "Impact Stage ‧ Hall 3",    "Impact Stage, Hall 3, Singapore Expo"],
   "FutureMatters Stage":  ["FUT", "FutureMatters ‧ Hall 5",   "FutureMatters Stage, Hall 5, Singapore Expo"],
   "Frontier Stage":       ["FRO", "Frontier Stage ‧ Hall 6",  "Frontier Stage, Hall 6, Singapore Expo"],
+  "Ignite Stage":         ["IGN", "Ignite Stage ‧ Hall 5",    "Ignite Stage, Hall 5, Singapore Expo"],
+  "Policy Stage":         ["POL", "Policy Stage ‧ Hall 3",    "Policy Stage, Hall 3, Singapore Expo"],
+  "India Pavilion":       ["IND", "India Pavilion ‧ Hall 5",  "India Pavilion, Hall 5, Singapore Expo"],
+  "Merchant Agenda":      ["MER", "Merchant Agenda ‧ Hall 6", "Merchant Experience Zone, Hall 6, Singapore Expo"],
+  /* 2026 起官網的 Exhibition Floor 分散在各館，CSV 的 location 只寫館別，靠 location 拆欄 */
+  "Hall 2, Singapore EXPO": ["EX2", "Exhibition Floor ‧ Hall 2", "Exhibition Floor, Hall 2, Singapore Expo"],
+  "Hall 3, Singapore EXPO": ["EX3", "Exhibition Floor ‧ Hall 3", "Exhibition Floor, Hall 3, Singapore Expo"],
+  "Hall 4, Singapore EXPO": ["EX4", "Exhibition Floor ‧ Hall 4", "Exhibition Floor, Hall 4, Singapore Expo"],
+  "Hall 5, Singapore EXPO": ["EX5", "Exhibition Floor ‧ Hall 5", "Exhibition Floor, Hall 5, Singapore Expo"],
+  "Hall 6, Singapore EXPO": ["EX6", "Exhibition Floor ‧ Hall 6", "Exhibition Floor, Hall 6, Singapore Expo"],
   /* Lounge / 周邊場地（CSV 的 stage 都是 Side Programmes，靠 location 區分）*/
   "GFTN Lounge (Hall 4)":         ["GFT", "GFTN Lounge ‧ Hall 4",   "GFTN Lounge, Hall 4, Singapore Expo"],
   "Investors Lounge (Hall 2)":    ["INV", "Investors Lounge ‧ Hall 2", "Investors Lounge, Hall 2, Singapore Expo"],
