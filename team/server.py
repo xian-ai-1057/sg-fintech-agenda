@@ -362,12 +362,13 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(raw)
 
     def do_GET(self):
-        self.handle_request('GET')
+        self.dispatch('GET')
 
     def do_POST(self):
-        self.handle_request('POST')
+        self.dispatch('POST')
 
-    def handle_request(self, method):
+    def dispatch(self, method):
+        # 不叫 handle_request：Vercel 的 Python runtime 在包裝類別上用了這個名字
         try:
             route = urlsplit(self.path).path
             self.app.check_host(self.headers.get('Host', ''), self.headers.get('Origin'))
