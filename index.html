@@ -460,6 +460,21 @@ body {
 .modal .mdesc p { font-size: 14px; line-height: 1.62; color: var(--text); margin: 0 0 10px; white-space: pre-line; }
 .modal .mdesc p:last-child { margin-bottom: 0; }
 .modal .mdesc em { font-style: italic; color: var(--text-strong); }
+.modal .mrecap { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--hairline); }
+.modal .mrecap summary.lab { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-soft); margin-bottom: 9px; cursor: pointer; list-style: none; }
+.modal .mrecap summary.lab::-webkit-details-marker { display: none; }
+.modal .mrecap-body { font-size: 13.5px; line-height: 1.62; color: var(--text); }
+.modal .mrecap-body h4 { font-size: 13px; font-weight: 700; margin: 14px 0 6px; color: var(--text-strong); }
+.modal .mrecap-body h4:first-child { margin-top: 0; }
+.modal .mrecap-body p { margin: 0 0 8px; }
+.modal .mrecap-body ol, .modal .mrecap-body ul { margin: 0 0 8px; padding-left: 20px; }
+.modal .mrecap-body li { margin-bottom: 5px; }
+.modal .mrecap-body li ul { margin: 4px 0 0; }
+.modal .mrecap-body strong { font-weight: 650; color: var(--text-strong); }
+.modal .mrecap-body table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 4px 0 10px; display: block; overflow-x: auto; }
+.modal .mrecap-body th, .modal .mrecap-body td { border: 1px solid var(--hairline); padding: 5px 7px; text-align: left; vertical-align: top; }
+.modal .mrecap-note { font-size: 11.5px; color: var(--text-soft); margin: 8px 0 0; }
+.rtag { display: inline-block; margin-left: 6px; font-size: 10.5px; font-weight: 600; color: var(--accent); border: 1px solid currentColor; border-radius: var(--radius-pill); padding: 0 6px; vertical-align: 1px; white-space: nowrap; }
 .litem .ldesc { margin-top: 6px; font-size: 12px; line-height: 1.5; color: var(--text-soft); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .mcard .mc-desc { margin-top: 8px; font-size: 12px; line-height: 1.5; color: var(--text-soft); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: left; }
 .lang-btn { font-size: 13px; font-weight: 700; }
@@ -1149,7 +1164,7 @@ function build(records) {
   dayKeys.forEach(function (k, i) { dayKeyOf[k] = "d" + (i + 1); });
 
   /* ---- 5. 場次列 ---- */
-  var S = [], DESC = {};
+  var S = [], DESC = {}, RECAP = {};
   records.forEach(function (r) {
     var key = r.date || r.day;
     if (!key || !r.title) return;
@@ -1179,6 +1194,8 @@ function build(records) {
     if (slug && (r.description || r.description_zh)) {
       DESC[slug] = [r.description || "", r.description_zh || ""];
     }
+    /* recap_zh：有回放的場次才有，人工整理的繁中重點（Markdown 子集）*/
+    if (slug && r.recap_zh && r.recap_zh.trim()) RECAP[slug] = r.recap_zh.trim();
   });
 
   /* 同一天同欄位依開始時間排序，日曆與清單才不會亂跳 */
@@ -1209,7 +1226,7 @@ function build(records) {
   });
 
   return { VENUES: VENUES, VENUE_FULL: VENUE_FULL, TOPICS: TOPICS, COLORS: COLORS,
-           U: OFFICIAL, S: S, DAYS: DAYS, DAYMETA: DAYMETA, DESC: DESC };
+           U: OFFICIAL, S: S, DAYS: DAYS, DAYMETA: DAYMETA, DESC: DESC, RECAP: RECAP };
 }
 
 /* 主題配色以 <style> 注入，因此 track 數量不受既有 CSS class 限制 */
@@ -1306,6 +1323,7 @@ function start(text) {
     DAYS: data.DAYS, DAYMETA: data.DAYMETA
   };
   window.SFF_DESC = data.DESC;
+  window.SFF_RECAP = data.RECAP;
 
   injectTrackColors(data.COLORS);
 
@@ -1882,10 +1900,11 @@ Object.assign(window, {
    先留空，等資料就緒再由 initData() 填入（見檔案最後的 mount 交接）。
    ============================================================ */
 const { useState, useEffect, useMemo, useRef } = React;
-let D = {}, DESC = {}, DAYMETA = {}, COLS_ALL = [];
+let D = {}, DESC = {}, RECAP = {}, DAYMETA = {}, COLS_ALL = [];
 function initData() {
   D = window.SFF || {};
   DESC = window.SFF_DESC || {};
+  RECAP = window.SFF_RECAP || {};
   DAYMETA = D.DAYMETA || {};
   COLS_ALL = D.VENUES || [];
 }
@@ -1904,6 +1923,53 @@ const descText = (slug, lang) => {
   if (!d) return "";
   return (lang === "zh" ? d[1] : d[0]) || d[0] || "";
 };
+/* ---- 回放重點（recap_zh）：只認 ## 標題、清單（可一層縮排）、表格與 **粗體** ---- */
+const hasRecap = (slug) => !!RECAP[slug];
+const recapHtml = (md) => {
+  const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const inline = (t) => esc(t).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  const out = [];
+  let list = null, table = null;   /* list = { tag, start, items: [{ html, subs: [] }] } */
+  const closeList = () => {
+    if (!list) return;
+    const open = "<" + list.tag + (list.start ? ' start="' + list.start + '"' : "") + ">";
+    out.push(open + list.items.map((it) =>
+      "<li>" + it.html + (it.subs.length ? "<ul>" + it.subs.map((x) => "<li>" + x + "</li>").join("") + "</ul>" : "") + "</li>"
+    ).join("") + "</" + list.tag + ">");
+    list = null;
+  };
+  const closeTable = () => { if (table) { out.push("<table>" + table.join("") + "</table>"); table = null; } };
+  md.split("\n").forEach((raw) => {
+    const line = raw.replace(/\s+$/, "");
+    let m;
+    if (/^\|/.test(line)) {
+      closeList();
+      if (/^\|[\s|:-]+\|$/.test(line)) return;              /* 表格分隔列 */
+      const tag = table ? "td" : "th";
+      table = table || [];
+      table.push("<tr>" + line.replace(/^\||\|$/g, "").split("|")
+        .map((c) => "<" + tag + ">" + inline(c.trim()) + "</" + tag + ">").join("") + "</tr>");
+      return;
+    }
+    closeTable();
+    if (!line.trim()) return;
+    if ((m = line.match(/^##\s+(.*)/))) { closeList(); out.push("<h4>" + inline(m[1]) + "</h4>"); return; }
+    if (list && (m = line.match(/^\s{2,}(?:\d+\.|[-*])\s+(.*)/))) {   /* 第二層清單 */
+      list.items[list.items.length - 1].subs.push(inline(m[1])); return;
+    }
+    if ((m = line.match(/^(?:(\d+)\.|[-*])\s+(.*)/))) {
+      const tag = m[1] ? "ol" : "ul";
+      if (list && list.tag !== tag) closeList();
+      if (!list) list = { tag, start: m[1] && m[1] !== "1" ? m[1] : "", items: [] };
+      list.items.push({ html: inline(m[2]), subs: [] }); return;
+    }
+    closeList();
+    out.push("<p>" + inline(line) + "</p>");
+  });
+  closeList(); closeTable();
+  return out.join("");
+};
+
 /* split a paragraph on _emphasis_ markers into React nodes */
 const renderEmphasis = (text) =>
   text.split(/_([^_\n]+)_/).map((seg, i) => (i % 2 === 1 ? <em key={i}>{seg}</em> : seg));
@@ -2436,7 +2502,7 @@ function ListView({ day, sessions, onSelect, lang }) {
                     <span className="dur">{durLabel(s[2], s[3])}</span>
                   </div>
                   <div className="lbody">
-                    <div className="ltitle">{accOf(s[4]).mk ? accOf(s[4]).mk + " " : ""}{s[6]}</div>
+                    <div className="ltitle">{accOf(s[4]).mk ? accOf(s[4]).mk + " " : ""}{s[6]}{hasRecap(s[7]) && <span className="rtag" title="有回放重點">▶ 回放</span>}</div>
                     <div className="lmeta">
                       <span className="room">{room}</span>
                       <span className="tk"><span className="dot" />{tp[lang === "zh" ? 0 : 1]}</span>
@@ -2497,6 +2563,13 @@ function Modal({ s, onClose, lang }) {
             <div className="lab">{lang === "zh" ? "活動說明" : "About this session"}</div>
             {paras.map((p, i) => <p key={i}>{renderEmphasis(p)}</p>)}
           </div>
+        )}
+        {hasRecap(s[7]) && (
+          <details className="mrecap" open>
+            <summary className="lab">▶ 回放重點 · Replay recap</summary>
+            <div className="mrecap-body" dangerouslySetInnerHTML={{ __html: recapHtml(RECAP[s[7]]) }} />
+            <p className="mrecap-note">依官方回放影片的英文自動字幕整理（繁中）；人名、數字可能誤聽，引用前請回看影片。</p>
+          </details>
         )}
         {spk.length > 0 && (
           <div className="spk">
@@ -2613,6 +2686,7 @@ function MobileView({ sessions, search, topics, rooms, access, onSelect, lang })
                   <span className="mc-time">{clock(s[2])}–{clock(s[3])}</span>
                   <span className="mc-dur">{durLabel(s[2], s[3])}</span>
                   {acc.mk && <span className="mc-mk">{acc.mk}</span>}
+                  {hasRecap(s[7]) && <span className="rtag">▶ 回放</span>}
                 </div>
                 <div className="mc-title">{s[6]}</div>
                 <div className="mc-meta">

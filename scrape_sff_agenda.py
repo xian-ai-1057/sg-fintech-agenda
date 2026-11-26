@@ -76,7 +76,7 @@ MODERN_CARD = "li.sff26-aglist__r"
 #   description_zh  不從官網爬取，留白；index.html 在沒有中文時會自動顯示英文。
 FIELDS = [
     "date", "day", "datetime", "title", "stage", "location",
-    "event_type", "track", "speakers", "description", "description_zh", "url",
+    "event_type", "track", "speakers", "description", "description_zh", "recap_zh", "url",
 ]
 
 
@@ -367,6 +367,13 @@ def carry_over_zh(path: str, rows: list[dict]) -> int:
             continue
         if r.get("url"):
             by_key[session_key(r["url"])] = r
+
+    # recap_zh（回放重點）也是人工整理、與官網英文無關，依場次編號原樣接手。
+    recaps = {session_key(r["url"]): r["recap_zh"] for r in old
+              if r.get("url") and (r.get("recap_zh") or "").strip()}
+    for row in rows:
+        if not row.get("recap_zh", "").strip():
+            row["recap_zh"] = recaps.get(session_key(row.get("url", "")), "")
 
     kept = 0
     for row in rows:

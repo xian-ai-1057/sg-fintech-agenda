@@ -104,7 +104,9 @@ non-ASCII correctly). Columns are defined by `FIELDS`. `description_zh` is
 **hand-maintained** — the site has no Chinese text to scrape — so before writing,
 `carry_over_zh()` reads the existing CSV and copies each translation onto the
 matching new row (by `url`, falling back to `slug_of()`). Re-running the scraper
-therefore never wipes the translations. The CSS selectors
+therefore never wipes the translations. `recap_zh` (post-event replay recap,
+Traditional Chinese, a small Markdown subset) is likewise hand-maintained and is
+carried over by session key unconditionally. The CSS selectors
 (`CARD`, `.custom-agenda-*`) are coupled to the live site's markup — if scraping
 breaks, these are the first thing to re-check.
 

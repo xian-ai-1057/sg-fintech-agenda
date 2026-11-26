@@ -84,6 +84,7 @@ def agenda(path=ROOT / 'agenda.csv'):
             def minutes(t):
                 parsed = time.strptime(t.strip(), '%I:%M %p')
                 return parsed.tm_hour * 60 + parsed.tm_min
+            row.pop('recap_zh', None)  # 回放重點只給公開議程頁用，不塞進團隊 API
             result.append({**row, 'id': re.search(r'AGND\d+', row['url']).group(),
                            'start': minutes(times[0]), 'end': minutes(times[1]),
                            'access': row['event_type'], 'title_zh': ''})
