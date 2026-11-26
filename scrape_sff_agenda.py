@@ -76,7 +76,7 @@ MODERN_CARD = "li.sff26-aglist__r"
 #   description_zh  不從官網爬取，留白；index.html 在沒有中文時會自動顯示英文。
 FIELDS = [
     "date", "day", "datetime", "title", "stage", "location",
-    "event_type", "track", "speakers", "description", "description_zh", "url",
+    "event_type", "track", "speakers", "description", "description_zh", "recap_zh", "url",
 ]
 
 
@@ -120,11 +120,12 @@ def normalize_time_range(value: str) -> str:
         return (int(h) % 12 + (12 if p.lower() == "pm" else 0)) * 60 + int(m)
     start = minutes(ah, am, ap or bp)
     end = minutes(bh, bm, bp or ap)
-    if start >= end and not ap:
+    # 官網偶有起訖相同的時間點活動（例如 11:30–11:30am），照原樣保留。
+    if start > end and not ap:
         start -= 12 * 60
-    elif start >= end and not bp:
+    elif start > end and not bp:
         end += 12 * 60
-    if not 0 <= start < end < 24 * 60:
+    if not 0 <= start <= end < 24 * 60:
         raise ValueError(f"Invalid or overnight agenda time: {value!r}")
     def display(total):
         h, m = divmod(total, 60)
@@ -258,7 +259,15 @@ def scrape_listing(driver, days) -> list[dict]:
         count_text = text_or_blank(driver, ".sff26-aglist__n", hidden=True)
         if not count_text.isdigit() or len(modern_cards) != int(count_text):
             raise ValueError(f"Incomplete listing: {len(modern_cards)} cards; official count {count_text!r}")
-        rows = [parse_modern_card(card) for card in modern_cards]
+        # 官網也會列出大會前一天的周邊活動（例如 11/17 的 Day 0 Mixer）；
+        # 只收 FESTIVAL_DAYS 內的日子，其餘列出後略過，不寫進 CSV。
+        known = {str(d[2]) for d in FESTIVAL_DAYS}
+        outside = [c for c in modern_cards if (c.get_attribute("data-day") or "").isdigit()
+                   and c.get_attribute("data-day") not in known]
+        for card in outside:
+            print(f"  Skipped (outside FESTIVAL_DAYS): "
+                  f"{text_or_blank(card, '.sff26-aglist__rha', hidden=True)[:80]}")
+        rows = [parse_modern_card(card) for card in modern_cards if card not in outside]
         if len({session_key(r['url']) for r in rows}) != len(rows):
             raise ValueError("Duplicate session IDs in official listing")
         requested = {d[0] for d in days}
@@ -358,6 +367,13 @@ def carry_over_zh(path: str, rows: list[dict]) -> int:
             continue
         if r.get("url"):
             by_key[session_key(r["url"])] = r
+
+    # recap_zh（回放重點）也是人工整理、與官網英文無關，依場次編號原樣接手。
+    recaps = {session_key(r["url"]): r["recap_zh"] for r in old
+              if r.get("url") and (r.get("recap_zh") or "").strip()}
+    for row in rows:
+        if not row.get("recap_zh", "").strip():
+            row["recap_zh"] = recaps.get(session_key(row.get("url", "")), "")
 
     kept = 0
     for row in rows:

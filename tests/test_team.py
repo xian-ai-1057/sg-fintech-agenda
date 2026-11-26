@@ -32,8 +32,8 @@ class TeamTests(unittest.TestCase):
             self.call(*args, **kwargs)
         self.assertEqual(ctx.exception.status, status)
     def test_agenda_count_unique(self):
-        self.assertEqual(len(agenda()),124)
-        self.assertEqual(len(self.ids),124)
+        self.assertEqual(len(agenda()),482)
+        self.assertEqual(len(self.ids),482)
     def test_no_first_visitor_admin(self):
         self.rejects(401,'/api/state',method='GET')
         self.rejects(403,'/api/login',{'password':'bad'})

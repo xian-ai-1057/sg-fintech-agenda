@@ -17,6 +17,21 @@ A static agenda viewer for the **Singapore FinTech Festival 2026**
    (CLI, a small Gradio web UI, and an HTTP API the site's chat box can talk to
    when it is running locally). Its own deps and API key; see below.
 
+Two more pieces sit beside those four:
+
+5. **`team/`** — the team calendar (`/team/`): members join with an invite, pick sessions,
+   see each other's picks. `team/server.py` is a stdlib-only HTTP server + SQLite `Store`
+   (self-host: `python3 -m team.server`). Members re-login with nickname + their own
+   password, or a single-use sign-in link the owner generates. `team/importer.py` reads a
+   picks `.xlsx`/`.csv` (`nickname` + `session_id`/`url`); the admin panel parses the same
+   files in the browser and posts `{action:'import', rows}`.
+6. **`api/index.py` + `vercel.json`** — the Vercel deployment of the same thing. It reuses
+   `team.server.Handler` (via its `app` property) and swaps the store for
+   `team/blobstore.py`'s `BlobStore`: the same SQLite file kept in a private Vercel Blob,
+   pulled to `/tmp`, written back with `x-if-match` (412 → re-pull and redo). The owner is
+   created from `SFF_ADMIN_PASSWORD` on first use. Keep `Store` logic backend-agnostic so
+   both paths stay identical; never return `members.secret` (use `MEMBER_COLUMNS`).
+
 `archive/2025/` holds the frozen 2025 site. It is a *different architecture* —
 its data is inlined into its own `index.html` — and should be left alone.
 
@@ -89,7 +104,9 @@ non-ASCII correctly). Columns are defined by `FIELDS`. `description_zh` is
 **hand-maintained** — the site has no Chinese text to scrape — so before writing,
 `carry_over_zh()` reads the existing CSV and copies each translation onto the
 matching new row (by `url`, falling back to `slug_of()`). Re-running the scraper
-therefore never wipes the translations. The CSS selectors
+therefore never wipes the translations. `recap_zh` (post-event replay recap,
+Traditional Chinese, a small Markdown subset) is likewise hand-maintained and is
+carried over by session key unconditionally. The CSS selectors
 (`CARD`, `.custom-agenda-*`) are coupled to the live site's markup — if scraping
 breaks, these are the first thing to re-check.
 
