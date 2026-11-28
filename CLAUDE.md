@@ -174,6 +174,15 @@ if present; the React block defines `window.__sffMount` and calls it if
 Because of this, `D` / `DESC` / `DAYMETA` / `COLS_ALL` are `let`s assigned in
 `initData()` — **never read them at babel-block top level.**
 
+**Replay notes is the landing page** (the festival is over). `App` reads a hash route
+(`useRoute` / `parseRoute`): `""` → `ReplayPage` (only rows with `recap_zh`, plus the
+replay map and the `Reader` panel), `#/r/AGND631` → the same page with that session open
+in the reader, `#/agenda` → the original calendar/list below. `SiteHeader` is shared by
+both. Recap text is split by `splitRecap()` into the `## 一句話結論` lead and the rest;
+`**bold**` renders inside `.pen` as the red-pen underline, the only place `--pen` is used.
+Interface colour is ink on paper (`--accent` is the ink, `--on-accent` the text on it) —
+don't reintroduce a hue accent for chrome.
+
 Other runtime behaviour in `App`:
 
 - **Desktop vs mobile is one component tree.** `App` checks
