@@ -9,6 +9,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600&family=Noto+Serif+TC:wght@500;600&display=swap" rel="stylesheet">
 <script>
+/* 主題要在第一次繪製前就定好，否則深色系統會先閃一下淺色（React 掛上去之前的載入畫面也一樣）。
+   規則與 App 的 initialDark() 相同：先看使用者切過的 sff-theme，再看系統設定。 */
+(function () {
+  var t = null;
+  try { t = localStorage.getItem("sff-theme"); } catch (e) {}
+  if (!t) { try { t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } catch (e) { t = "light"; } }
+  document.documentElement.setAttribute("data-theme", t);
+})();
+</script>
+<script>
 /* 共編行事曆入口：自架服務會直接在 <html> 加上 data-selfhost；部署在 Vercel 時改由這裡探測同站的
    共編 API（api/health）。GitHub Pages 上沒有 API，請求 404，入口維持隱藏。 */
 if (!document.documentElement.hasAttribute("data-selfhost") && /^https?:$/.test(location.protocol)) {
@@ -917,7 +927,7 @@ html[data-selfhost="true"] .team-entry-mobile { display: block; padding: 8px 16p
 /* 頁面捲動容器 */
 .rp { height: 100%; overflow-y: auto; background: var(--bg); color: var(--text-strong); }
 .rp.locked { overflow: hidden; }
-.rp-wrap { max-width: 1360px; margin: 0 auto; padding: 0 32px; }
+.rp-wrap { max-width: 1360px; margin: 0 auto; padding: 0 32px; scroll-margin-top: 64px; }
 
 /* ---------- hero：左文右地圖 ---------- */
 .rp-hero {
@@ -966,14 +976,14 @@ html[data-selfhost="true"] .team-entry-mobile { display: block; padding: 8px 16p
 .rmap-cell::before { /* 午間 12:00 的淡格線 */
   content: ""; position: absolute; top: 0; bottom: 0; left: var(--noon); width: 1px; background: var(--hairline);
 }
+.rmap-cell { cursor: pointer; touch-action: manipulation; }
 .rtick {
-  position: absolute; top: 10px; height: 24px; min-width: 3px; padding: 0; border: none; cursor: pointer;
+  position: absolute; top: 10px; height: 24px; min-width: 3px; padding: 0; border: none; cursor: pointer; pointer-events: none;
   border-radius: 2px; background: var(--text-strong); opacity: .78;
   transition: opacity .15s var(--ease), background-color .15s var(--ease), transform .15s var(--ease);
 }
-.rtick::after { content: ""; position: absolute; inset: -10px -1px; } /* 擴大可點範圍 */
 .rtick.dim { opacity: .12; }
-.rtick:hover, .rtick.hot { background: var(--pen); opacity: 1; transform: scaleY(1.25); }
+.rtick.hot { background: var(--pen); opacity: 1; transform: scaleY(1.25); }
 .rmap-axis { position: relative; height: 20px; border-top: 1px solid var(--hairline); }
 .rmap-axis span { position: absolute; top: 6px; transform: translateX(-50%); font-family: var(--mono); font-size: 11px; color: var(--text-faint); }
 .rmap-axis span:first-child { transform: none; }
@@ -982,6 +992,10 @@ html[data-selfhost="true"] .team-entry-mobile { display: block; padding: 8px 16p
   margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--hairline);
   display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 16px; min-height: 64px; align-items: baseline;
 }
+.rmap-hit { grid-column: 1 / -1; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 16px; align-items: baseline;
+  width: 100%; padding: 0; border: none; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.rmap-hit .o { grid-column: 2; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 13px; font-weight: 500;
+  color: var(--text-strong); text-decoration: underline; text-decoration-color: var(--pen); text-underline-offset: 4px; }
 .rmap-cap .t { font-family: var(--mono); font-size: 12px; color: var(--text-soft); white-space: nowrap; }
 .rmap-cap .n { font-size: 14px; font-weight: 500; color: var(--text-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rmap-cap .l { grid-column: 2; font-size: 13px; color: var(--text); line-height: 1.6;
@@ -1197,8 +1211,8 @@ html[data-selfhost="true"] .team-entry-mobile { display: block; padding: 8px 16p
 <body>
 <div id="root"></div>
 
-<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" integrity="sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <script>
@@ -3181,6 +3195,8 @@ function Icon({ name, size }) {
 const sidOf = (s) => String(s[7] || "").split("-")[0].toUpperCase();
 
 /* ---- hash 路由 ---- */
+/* 閱讀面板是用 push 打開的，就用 history.back() 關掉；否則關掉後按「上一頁」會又打開同一場 */
+let readerPushed = false;
 const parseRoute = (h) => {
   h = (h || "").replace(/^#\/?/, "");
   if (/^agenda\b/.test(h)) return { page: "agenda", sid: null };
@@ -3289,22 +3305,45 @@ function ReplayMap({ R, match, onOpen }) {
   const dayHead = (dk) => (
     <div className="rmap-dh" key={"h" + dk}><b>{dayShort(dk)}</b><span>{R.items.filter((it) => it.s[0] === dk).length} 場</span></div>
   );
-  const cellEl = (dk, st) => (
-    <div className="rmap-cell" key={dk + st} style={{ "--noon": pct(12 * 60) }}>
-      {cell(dk, st).map((it) => (
-        <button key={it.sid} className={"rtick" + (match.has(it.sid) ? "" : " dim") + (hot === it.sid ? " hot" : "")}
-          style={{ left: pct(mins(it.s[2])), width: "calc(" + ((durMin(it.s) / span) * 100) + "% - 2px)" }}
-          aria-label={clock(it.s[2]) + " " + it.s[6]}
-          onMouseEnter={() => setHot(it.sid)} onFocus={() => setHot(it.sid)}
-          onClick={() => onOpen(it.sid)} />
-      ))}
-    </div>
-  );
+  /* 刻度很細（56 場不到 6px），所以整條時間軸都是感應區：取指標位置最近的那一場。
+     滑鼠：滑過預覽、點了打開。觸控：第一下預覽，再點同一場（或下方的標題）才打開。 */
+  const nearest = (e, arr) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const m = R.lo + ((e.clientX - r.left) / r.width) * span;
+    let best = null, bd = Infinity;
+    arr.forEach((it) => {
+      const a = mins(it.s[2]), b = mins(it.s[3]);
+      const d = m < a ? a - m : m > b ? m - b : 0;
+      if (d < bd) { bd = d; best = it; }
+    });
+    return bd <= 45 ? best : null;
+  };
+  const cellEl = (dk, st) => {
+    const arr = cell(dk, st);
+    return (
+      <div className="rmap-cell" key={dk + st} style={{ "--noon": pct(12 * 60) }}
+        onPointerMove={(e) => { if (e.pointerType === "mouse") { const it = nearest(e, arr); setHot(it ? it.sid : null); } }}
+        onPointerUp={(e) => {
+          const it = nearest(e, arr);
+          if (!it) return;
+          if (e.pointerType === "mouse" || hot === it.sid) onOpen(it.sid);
+          else setHot(it.sid);
+        }}>
+        {arr.map((it) => (
+          <button key={it.sid} className={"rtick" + (match.has(it.sid) ? "" : " dim") + (hot === it.sid ? " hot" : "")}
+            style={{ left: pct(mins(it.s[2])), width: "calc(" + ((durMin(it.s) / span) * 100) + "% - 2px)" }}
+            aria-label={clock(it.s[2]) + " " + it.s[6]}
+            onFocus={() => setHot(it.sid)}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(it.sid); } }} />
+        ))}
+      </div>
+    );
+  };
   const axis = (dk) => (
     <div className="rmap-axis" key={"a" + dk}>{hours.map((h) => <span key={h} style={{ left: pct(h) }}>{pad2(h / 60)}</span>)}</div>
   );
   return (
-    <section className="rmap" aria-label="回放地圖" onMouseLeave={() => setHot(null)}>
+    <section className="rmap" aria-label="回放地圖" onPointerLeave={(e) => { if (e.pointerType === "mouse") setHot(null); }}>
       <div className="rmap-head">
         <h2 className="rmap-title">回放地圖</h2>
         <span className="rmap-hint">每一條是一場演講，長度就是時長</span>
@@ -3334,12 +3373,13 @@ function ReplayMap({ R, match, onOpen }) {
       </div>
       <div className="rmap-cap" aria-live="polite">
         {hit ? (
-          <>
+          <button className="rmap-hit" onClick={() => onOpen(hit.sid)}>
             <span className="t">{dayShort(hit.s[0])} {clock(hit.s[2])}</span>
             <span className="n">{hit.s[6]}</span>
             <span className="l">{plain(hit.lead)}</span>
-          </>
-        ) : <span className="idle">{stacked ? "點一下刻度，就打開那一場的重點" : "滑過刻度預覽，點一下就打開那一場的重點"}</span>}
+            {stacked && <span className="o">點這裡閱讀這一場<Icon name="right" size={14} /></span>}
+          </button>
+        ) : <span className="idle">{stacked ? "點一下時間軸預覽那一場，再點一次就打開" : "滑過時間軸預覽，點一下就打開那一場的重點"}</span>}
       </div>
     </section>
   );
@@ -3468,11 +3508,31 @@ function ReplayPage({ route, go, lang, setLang, dark, toggleDark }) {
   const filtered = !!(needle || day || stage || topic);
   const reset = () => { setQ(""); setDay(""); setStage(""); setTopic(""); };
 
-  const open = (sid) => go("#/r/" + sid, !!route.sid);
-  const close = () => go("", !!route.sid && history.length > 1 ? false : true);
+  const open = (sid) => {
+    if (!route.sid) readerPushed = true;
+    go("#/r/" + sid, !!route.sid);
+  };
+  const close = () => {
+    if (readerPushed) { readerPushed = false; history.back(); }
+    else go("", true);
+  };
+  useEffect(() => { if (!route.sid) readerPushed = false; }, [route.sid]);
   const cur = route.sid && R.bySid.get(route.sid);
   /* 閱讀時的上一場／下一場跟著目前篩選；若該場不在篩選結果裡，就用全部 118 場 */
   const seq = cur && match.has(cur.sid) ? list : R.items;
+
+  /* 換篩選或搜尋時，若清單開頭已經捲出畫面，就捲回清單開頭，不然會停在一片空白 */
+  const mainRef = useRef(null), firstRun = useRef(true);
+  useEffect(() => {
+    if (firstRun.current) { firstRun.current = false; return; }
+    const el = mainRef.current, sc = el && el.closest(".rp");
+    if (!el || !sc) return;
+    const head = document.querySelector(".site-head");
+    const side = window.matchMedia("(max-width: 720px)").matches ? document.querySelector(".rp-side") : null;
+    const offset = (head ? head.offsetHeight : 0) + (side ? side.offsetHeight : 0);
+    const top = el.getBoundingClientRect().top - offset;
+    if (top < 0) sc.scrollTop += top;
+  }, [needle, day, stage, topic]);
 
   const groups = R.days.map((dk) => [dk, list.filter((it) => it.s[0] === dk)]).filter(([, a]) => a.length);
   const first = R.items[0];
@@ -3514,7 +3574,7 @@ function ReplayPage({ route, go, lang, setLang, dark, toggleDark }) {
             {filtered && <button className="rp-reset" onClick={reset}>清除所有條件</button>}
           </aside>
 
-          <main className="rp-main">
+          <main className="rp-main" ref={mainRef}>
             <div className="rp-count">{filtered ? <>符合條件 <b>{list.length}</b> 場，共 {R.items.length} 場</> : <>共 <b>{R.items.length}</b> 場，依時間排序</>}</div>
             {groups.length === 0 && (
               <div className="rp-empty">
